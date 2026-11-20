@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="description" content="Explorez English City 3D, un quartier interactif 3D pour pratiquer l'anglais niveau zéro avec voix humaines naturelles, vocabulaire et quiz." />
+  <meta name="description" content="Explorez English City 3D — Quartier du Burkina Faso : 8 lieux interactifs 3D (Unités 1 à 8 Interchange Intro) avec voix humaines naturelles, grammaire, vocabulaire et quiz." />
   <meta name="theme-color" content="#0f172a" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <title>English City 3D — Simulateur d'Anglais Niveau Zéro</title>
+  <title>English City 3D — Burkina Faso (Unités 1 à 8)</title>
   <!-- Tailwind CSS pour l'interface moderne -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Three.js pour l'environnement 3D léger et fluide -->
@@ -30,7 +30,7 @@
       overflow: hidden;
       overscroll-behavior: none;
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      background-color: #87ceeb;
+      background-color: #68c3f2;
     }
     #canvas-container {
       position: fixed;
@@ -51,7 +51,7 @@
       cursor: grabbing;
     }
     .glass {
-      background: rgba(15, 23, 42, 0.84);
+      background: rgba(15, 23, 42, 0.86);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 255, 255, 0.14);
@@ -94,8 +94,8 @@
       -webkit-touch-callout: none;
     }
     .dpad-btn.is-pressed {
-      background: rgba(56, 189, 248, 0.38);
-      border-color: rgba(125, 211, 252, 0.7);
+      background: rgba(251, 191, 36, 0.42);
+      border-color: rgba(253, 224, 71, 0.75);
       transform: scale(0.92);
     }
     #quick-nav {
@@ -134,12 +134,12 @@
     <div class="flex flex-wrap items-center justify-between gap-1.5 sm:gap-2 max-w-6xl mx-auto w-full pointer-events-auto">
       <!-- Marque -->
       <div class="order-1 glass rounded-2xl px-2.5 sm:px-3 py-1.5 sm:py-2 flex items-center gap-2 sm:gap-2.5 shadow-lg min-h-[42px]">
-        <div class="w-8 h-8 sm:w-9 sm:h-9 shrink-0 rounded-xl bg-gradient-to-br from-emerald-400 to-sky-500 flex items-center justify-center text-base sm:text-lg shadow-inner">
-          🏙️
+        <div class="w-8 h-8 sm:w-9 sm:h-9 shrink-0 rounded-xl bg-gradient-to-b from-red-600 via-amber-400 to-emerald-600 flex items-center justify-center text-base sm:text-lg shadow-inner border border-white/25">
+          🇧🇫
         </div>
         <div class="leading-tight">
           <h1 class="font-extrabold text-sm sm:text-base tracking-tight text-white">English City 3D</h1>
-          <p class="hidden sm:block text-[11px] text-sky-300 font-medium">Quartier Interactif • Niveau Zéro</p>
+          <p class="hidden sm:block text-[11px] text-amber-300 font-medium">Quartier du Burkina Faso • Unités 1–8</p>
         </div>
       </div>
 
@@ -157,13 +157,13 @@
         </button>
 
         <button id="btn-help" title="Aide & Commandes" aria-label="Aide et commandes"
-          class="glass btn-pop rounded-2xl min-w-[42px] min-h-[42px] px-2.5 sm:px-3 flex items-center justify-center gap-1.5 text-xs font-semibold text-sky-300 hover:bg-slate-800/90 shadow-lg">
+          class="glass btn-pop rounded-2xl min-w-[42px] min-h-[42px] px-2.5 sm:px-3 flex items-center justify-center gap-1.5 text-xs font-semibold text-amber-300 hover:bg-slate-800/90 shadow-lg">
           <span>❓</span>
           <span class="hidden sm:inline">Aide</span>
         </button>
       </div>
 
-      <!-- Barre de progression sauvegardée (XP, lieux visités, quiz réussis) -->
+      <!-- Barre de progression sauvegardée (XP, lieux visités, quiz réussis sur 8) -->
       <div id="stats-pill" class="order-3 w-full md:w-auto md:order-2 md:ml-auto glass rounded-xl sm:rounded-2xl px-3 py-1.5 sm:py-2 shadow-lg">
         <div class="flex items-center justify-between md:justify-start gap-2 sm:gap-3 text-xs">
           <div class="flex items-center gap-1">
@@ -173,29 +173,29 @@
           <div class="h-3.5 w-px bg-slate-600/80"></div>
           <div class="flex items-center gap-1 text-slate-200 font-medium whitespace-nowrap">
             <span>📍</span>
-            <span><strong id="visited-count" class="text-emerald-400">0</strong>/7 lieux</span>
+            <span><strong id="visited-count" class="text-emerald-400">0</strong>/<span id="visited-total">8</span> lieux</span>
           </div>
           <div class="h-3.5 w-px bg-slate-600/80"></div>
           <div class="flex items-center gap-1 text-slate-200 font-medium whitespace-nowrap">
             <span>🏆</span>
-            <span><strong id="quiz-count" class="text-sky-300">0</strong>/7 quiz</span>
+            <span><strong id="quiz-count" class="text-amber-300">0</strong>/<span id="quiz-total">8</span> quiz</span>
           </div>
         </div>
         <div class="mt-1.5 h-1 w-full bg-slate-800/90 rounded-full overflow-hidden">
-          <div id="progress-bar-fill" class="h-full bg-gradient-to-r from-emerald-400 to-sky-400 rounded-full transition-all duration-300" style="width: 0%"></div>
+          <div id="progress-bar-fill" class="h-full bg-gradient-to-r from-red-500 via-amber-400 to-emerald-400 rounded-full transition-all duration-300" style="width: 0%"></div>
         </div>
       </div>
     </div>
 
-    <nav id="quick-nav" aria-label="Navigation rapide des lieux" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar max-w-6xl mx-auto w-full pb-0.5 pointer-events-auto"></nav>
+    <nav id="quick-nav" aria-label="Navigation rapide des 8 unités" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar max-w-6xl mx-auto w-full pb-0.5 pointer-events-auto"></nav>
   </header>
 
   <!-- Invite contextuelle quand on s'approche d'un personnage -->
   <div id="proximity-prompt" class="hidden fixed safe-bottom-ctrl right-3 sm:right-auto sm:left-1/2 sm:-translate-x-1/2 sm:bottom-8 z-20 pointer-events-auto max-w-[calc(100vw-11rem)] sm:max-w-none">
     <button id="btn-talk-nearby"
-      class="btn-pop w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-extrabold px-4 sm:px-5 min-h-[48px] py-2.5 sm:py-3 rounded-full shadow-2xl flex items-center justify-center gap-2 border-2 border-white/60 animate-bounce text-xs sm:text-sm">
+      class="btn-pop w-full bg-gradient-to-r from-amber-400 to-emerald-400 hover:from-amber-300 hover:to-emerald-300 text-slate-950 font-extrabold px-4 sm:px-5 min-h-[48px] py-2.5 sm:py-3 rounded-full shadow-2xl flex items-center justify-center gap-2 border-2 border-white/70 animate-bounce text-xs sm:text-sm">
       <span class="shrink-0">💬</span>
-      <span id="proximity-text" class="truncate">Parler à Emma</span>
+      <span id="proximity-text" class="truncate">Parler à Moussa</span>
       <span class="hidden sm:inline shrink-0 text-xs bg-slate-950/20 px-2 py-0.5 rounded-full">Espace</span>
     </button>
   </div>
@@ -206,7 +206,7 @@
     <button type="button" data-dir="up" aria-label="Avancer" class="dpad-btn glass btn-pop rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md">▲</button>
     <div></div>
     <button type="button" data-dir="left" aria-label="Aller à gauche" class="dpad-btn glass btn-pop rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md">◀</button>
-    <button type="button" data-dir="center" id="btn-reset-cam" title="Recentrer la caméra" aria-label="Recentrer la caméra" class="glass btn-pop rounded-xl flex items-center justify-center text-sky-300 text-base sm:text-sm shadow-md">🎯</button>
+    <button type="button" data-dir="center" id="btn-reset-cam" title="Recentrer la caméra" aria-label="Recentrer la caméra" class="glass btn-pop rounded-xl flex items-center justify-center text-amber-300 text-base sm:text-sm shadow-md">🎯</button>
     <button type="button" data-dir="right" aria-label="Aller à droite" class="dpad-btn glass btn-pop rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md">▶</button>
     <div></div>
     <button type="button" data-dir="down" aria-label="Reculer" class="dpad-btn glass btn-pop rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md">▼</button>
@@ -214,8 +214,8 @@
   </div>
 
   <!-- Boîte de Dialogue RPG Interactive (Bottom Sheet sur mobile, panneau latéral sur desktop) -->
-  <section id="dialogue-modal" aria-label="Dialogue interactif" class="hidden fixed bottom-0 left-0 right-0 sm:bottom-3 sm:right-3 sm:left-auto sm:w-[375px] z-30 pointer-events-none transition-all duration-200">
-    <div id="dialogue-sheet" class="glass sheet-animate pointer-events-auto w-full rounded-t-3xl sm:rounded-2xl shadow-2xl border-t sm:border border-white/20 flex flex-col max-h-[68dvh] sm:max-h-[78vh] safe-bottom">
+  <section id="dialogue-modal" aria-label="Dialogue interactif" class="hidden fixed bottom-0 left-0 right-0 sm:bottom-3 sm:right-3 sm:left-auto sm:w-[400px] z-30 pointer-events-none transition-all duration-200">
+    <div id="dialogue-sheet" class="glass sheet-animate pointer-events-auto w-full rounded-t-3xl sm:rounded-2xl shadow-2xl border-t sm:border border-white/20 flex flex-col max-h-[72dvh] sm:max-h-[82vh] safe-bottom">
       <!-- Poignée tactile mobile (glisser vers le bas pour fermer) -->
       <div id="dialogue-drag-zone" class="shrink-0 px-3.5 pt-2 sm:pt-3.5 pb-2">
         <div class="sm:hidden flex justify-center pb-2 cursor-grab">
@@ -224,24 +224,27 @@
 
         <div class="flex items-start justify-between gap-2 mb-2.5">
           <div class="flex items-center gap-2.5 min-w-0">
-            <div id="dlg-avatar" class="w-10 h-10 shrink-0 rounded-xl flex items-center justify-center text-xl shadow-lg bg-sky-500/30 border border-white/20">
+            <div id="dlg-avatar" class="w-10 h-10 shrink-0 rounded-xl flex items-center justify-center text-xl shadow-lg bg-amber-500/25 border border-white/20">
               👋
             </div>
             <div class="min-w-0">
               <div class="flex items-center gap-1.5 flex-wrap">
-                <h2 id="dlg-npc-name" class="font-extrabold text-sm sm:text-base text-white">Emma</h2>
+                <span id="dlg-unit-badge" class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/35">
+                  Unité 1
+                </span>
+                <h2 id="dlg-npc-name" class="font-extrabold text-sm sm:text-base text-white">Moussa</h2>
                 <span id="dlg-place-badge" class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-400/30 truncate">
-                  Place Centrale
+                  Place de la Nation
                 </span>
                 <span id="dlg-quiz-badge" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
                   🏆 Réussi
                 </span>
               </div>
-              <p id="dlg-theme" class="text-[11px] text-slate-300 font-medium truncate">Introductions & Greetings</p>
+              <p id="dlg-theme" class="text-[11px] text-slate-300 font-medium truncate mt-0.5">It's nice to meet you.</p>
             </div>
           </div>
           <div class="flex items-center gap-1 shrink-0">
-            <button id="btn-dock-side" title="Déplacer à gauche / droite" aria-label="Déplacer à gauche ou à droite" class="hidden sm:inline-flex items-center justify-center btn-pop rounded-lg bg-slate-800/80 hover:bg-slate-700 text-sky-300 min-w-[34px] min-h-[34px] text-xs font-bold">
+            <button id="btn-dock-side" title="Déplacer à gauche / droite" aria-label="Déplacer à gauche ou à droite" class="hidden sm:inline-flex items-center justify-center btn-pop rounded-lg bg-slate-800/80 hover:bg-slate-700 text-amber-300 min-w-[34px] min-h-[34px] text-xs font-bold">
               ⇄
             </button>
             <button id="btn-close-dialogue" title="Fermer" aria-label="Fermer le dialogue" class="inline-flex items-center justify-center btn-pop rounded-xl bg-slate-800/85 hover:bg-slate-700 text-slate-200 hover:text-white min-w-[38px] min-h-[38px] text-sm font-bold">
@@ -250,15 +253,19 @@
           </div>
         </div>
 
-        <div class="flex gap-1 bg-slate-900/75 p-1 rounded-xl">
-          <button id="tab-dialogue" class="tab-btn flex-1 min-h-[38px] py-1.5 px-2 rounded-lg text-xs font-bold bg-sky-500 text-slate-950 transition">
+        <!-- 4 onglets : Dialogue, Grammaire, Vocabulaire, Quiz -->
+        <div class="grid grid-cols-4 gap-1 bg-slate-900/75 p-1 rounded-xl">
+          <button id="tab-dialogue" class="tab-btn min-h-[38px] py-1.5 px-1 rounded-lg text-[11px] sm:text-xs font-bold bg-amber-400 text-slate-950 transition">
             💬 Dialogue
           </button>
-          <button id="tab-vocab" class="tab-btn flex-1 min-h-[38px] py-1.5 px-2 rounded-lg text-xs font-bold text-slate-300 hover:text-white transition">
+          <button id="tab-grammar" class="tab-btn min-h-[38px] py-1.5 px-1 rounded-lg text-[11px] sm:text-xs font-bold text-slate-300 hover:text-white transition">
+            📘 Gramm.
+          </button>
+          <button id="tab-vocab" class="tab-btn min-h-[38px] py-1.5 px-1 rounded-lg text-[11px] sm:text-xs font-bold text-slate-300 hover:text-white transition">
             📖 Mots
           </button>
-          <button id="tab-quiz" class="tab-btn flex-1 min-h-[38px] py-1.5 px-2 rounded-lg text-xs font-bold text-slate-300 hover:text-white transition">
-            🎯 Défi
+          <button id="tab-quiz" class="tab-btn min-h-[38px] py-1.5 px-1 rounded-lg text-[11px] sm:text-xs font-bold text-slate-300 hover:text-white transition">
+            🎯 Quiz
           </button>
         </div>
       </div>
@@ -267,22 +274,22 @@
       <div class="flex-1 overflow-y-auto overscroll-contain px-3.5 pb-1">
         <!-- PANNEAU 1 : Dialogue -->
         <div id="panel-dialogue" class="space-y-2.5">
-          <div class="bg-slate-900/75 rounded-xl p-3 border border-white/10">
-            <div class="flex items-center justify-between gap-2 mb-1">
-              <p class="text-[10px] uppercase tracking-wider text-emerald-400 font-bold">Le personnage vous dit :</p>
-              <span id="voice-status" class="text-[10px] text-sky-300 font-medium hidden">🎙️ Lecture...</span>
-            </div>
-            <p id="dlg-en" class="text-sm sm:text-base font-extrabold text-white leading-snug"></p>
-            <p id="dlg-phonetic" class="text-[11px] text-amber-300 font-mono mt-1 break-words"></p>
-            <p id="dlg-fr" class="text-xs sm:text-sm text-slate-300 mt-1.5 pt-1.5 border-t border-slate-700/70"></p>
+          <div class="flex items-center justify-between gap-2">
+            <p class="text-[10px] uppercase tracking-wider text-emerald-400 font-bold">Conversation (touchez une réplique pour écouter)</p>
+            <span id="voice-status" class="text-[10px] text-amber-300 font-medium hidden">🎙️ Lecture...</span>
           </div>
 
+          <div id="dialogue-lines" class="space-y-2"></div>
+
           <div class="flex items-center gap-2">
-            <button id="btn-speak-normal" class="btn-pop flex-1 min-h-[44px] bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold py-2.5 px-3 rounded-xl shadow flex items-center justify-center gap-1.5 text-xs sm:text-sm">
-              🔊 Normal
+            <button id="btn-speak-normal" class="btn-pop flex-1 min-h-[44px] bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-extrabold py-2.5 px-3 rounded-xl shadow flex items-center justify-center gap-1.5 text-xs sm:text-sm">
+              🔊 Tout écouter
             </button>
             <button id="btn-speak-slow" class="btn-pop flex-1 min-h-[44px] bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-400/30 font-bold py-2.5 px-3 rounded-xl shadow flex items-center justify-center gap-1.5 text-xs sm:text-sm">
               🐢 Lent
+            </button>
+            <button id="btn-speak-stop" title="Arrêter la lecture" aria-label="Arrêter la lecture" class="btn-pop min-h-[44px] min-w-[44px] bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/15 font-bold rounded-xl shadow flex items-center justify-center text-sm">
+              ⏹️
             </button>
           </div>
 
@@ -292,24 +299,36 @@
           </div>
         </div>
 
-        <!-- PANNEAU 2 : Vocabulaire -->
+        <!-- PANNEAU 2 : Grammaire -->
+        <div id="panel-grammar" class="hidden space-y-2.5">
+          <p class="text-xs text-slate-300">Points de grammaire de l'unité (touchez un exemple pour l'écouter) :</p>
+          <div id="grammar-list" class="space-y-2.5"></div>
+        </div>
+
+        <!-- PANNEAU 3 : Vocabulaire -->
         <div id="panel-vocab" class="hidden space-y-2">
-          <p class="text-xs text-slate-300">Touchez un mot pour l'écouter :</p>
+          <p class="text-xs text-slate-300">Touchez un mot ou une expression pour l'écouter :</p>
           <div id="vocab-list" class="grid grid-cols-1 gap-2"></div>
         </div>
 
-        <!-- PANNEAU 3 : Mini-Quiz -->
+        <!-- PANNEAU 4 : Exercices / Quiz -->
         <div id="panel-quiz" class="hidden space-y-2.5">
           <div id="quiz-completed-banner" class="hidden rounded-xl px-3 py-2 text-xs font-semibold bg-emerald-500/15 text-emerald-200 border border-emerald-400/30 flex items-center gap-2">
             <span>🏆</span>
-            <span>Défi déjà réussi ! Vous pouvez rejouer pour réviser.</span>
+            <span>Quiz d'unité déjà réussi ! Vous pouvez rejouer pour réviser.</span>
           </div>
           <div class="bg-slate-900/75 rounded-xl p-3 border border-white/10">
-            <p class="text-[10px] uppercase tracking-wider text-sky-300 font-bold mb-1">Mise en situation :</p>
+            <div class="flex items-center justify-between gap-2 mb-1">
+              <p class="text-[10px] uppercase tracking-wider text-amber-300 font-bold">Mise en situation :</p>
+              <span id="quiz-progress-label" class="text-[10px] font-bold text-slate-300 bg-slate-800 px-2 py-0.5 rounded-full">Question 1/1</span>
+            </div>
             <p id="quiz-question" class="text-xs sm:text-sm font-bold text-white leading-snug"></p>
           </div>
           <div id="quiz-options" class="space-y-2"></div>
           <div id="quiz-feedback" class="hidden rounded-xl p-3 text-xs sm:text-sm font-semibold"></div>
+          <button id="btn-quiz-next" type="button" class="hidden btn-pop w-full min-h-[44px] bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-extrabold py-2.5 px-4 rounded-xl text-xs sm:text-sm shadow">
+            Question suivante ➡️
+          </button>
         </div>
       </div>
     </div>
@@ -318,27 +337,27 @@
   <!-- Modale d'aide / Bienvenue -->
   <div id="help-modal" role="dialog" aria-modal="true" aria-labelledby="help-modal-title" class="fixed inset-0 z-40 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
     <div class="glass rounded-3xl max-w-md w-full max-h-[90dvh] overflow-y-auto overscroll-contain p-5 sm:p-6 shadow-2xl border border-white/20 text-center space-y-3.5 sm:space-y-4">
-      <div class="w-14 h-14 sm:w-16 sm:h-16 mx-auto rounded-2xl bg-gradient-to-br from-emerald-400 to-sky-500 flex items-center justify-center text-3xl shadow-lg">
-        🏙️
+      <div class="w-14 h-14 sm:w-16 sm:h-16 mx-auto rounded-2xl bg-gradient-to-b from-red-600 via-amber-400 to-emerald-600 flex items-center justify-center text-3xl shadow-lg border border-white/25">
+        🇧🇫
       </div>
       <div>
-        <h2 id="help-modal-title" class="text-lg sm:text-xl font-extrabold text-white">Bienvenue dans English City 3D !</h2>
+        <h2 id="help-modal-title" class="text-lg sm:text-xl font-extrabold text-white">Bienvenue à English City 3D !</h2>
         <p class="text-xs sm:text-sm text-slate-300 mt-1">
-          Explorez un vrai quartier 3D et discutez avec <strong>7 habitants</strong> dotés de <strong>voix humaines naturelles</strong> pour pratiquer votre cours <em>Niveau Zéro</em>.
+          Explorez un quartier vivant du <strong>Burkina Faso</strong> et discutez avec <strong>8 habitants</strong> correspondant aux <strong>Unités 1 à 8</strong> (<em>Interchange Intro</em>) avec voix humaines naturelles.
         </p>
       </div>
 
       <div id="help-progress-summary" class="hidden bg-emerald-500/15 border border-emerald-400/30 rounded-2xl px-3.5 py-2.5 text-xs text-emerald-200 font-semibold"></div>
 
       <div class="bg-slate-900/70 rounded-2xl p-3.5 text-left text-xs text-slate-200 space-y-2 border border-white/10">
-        <p>🚶 <strong>Se déplacer :</strong> Pad directionnel en bas à gauche, touches <strong>Flèches / ZQSD / WASD</strong>, ou <strong>touchez un lieu</strong> en haut.</p>
+        <p>🚶 <strong>Se déplacer :</strong> Pad directionnel en bas à gauche, touches <strong>Flèches / ZQSD / WASD</strong>, ou <strong>touchez une unité</strong> en haut.</p>
         <p>🎥 <strong>Caméra :</strong> Glissez à <strong>1 doigt</strong> (ou clic gauche) pour tourner, <strong>pincez à 2 doigts</strong> (ou molette) pour zoomer.</p>
-        <p>💬 <strong>Parler :</strong> Touchez un personnage (ou appuyez sur <strong>Espace</strong> près de lui) pour écouter sa voix et relever son défi.</p>
-        <p>💾 <strong>Sauvegarde auto :</strong> Vos XP, lieux visités et quiz réussis sont sauvegardés automatiquement sur cet appareil.</p>
+        <p>💬 <strong>Apprendre :</strong> Touchez un habitant (ou appuyez sur <strong>Espace</strong>) pour ouvrir son <strong>Dialogue, sa Grammaire, son Vocabulaire et son Quiz</strong>.</p>
+        <p>💾 <strong>Sauvegarde auto :</strong> Vos XP, 8 lieux visités et 8 quiz réussis sont enregistrés automatiquement sur cet appareil.</p>
       </div>
 
       <div class="space-y-2 pt-1">
-        <button id="btn-start-sim" class="btn-pop w-full min-h-[48px] bg-gradient-to-r from-emerald-500 to-sky-500 hover:from-emerald-400 hover:to-sky-400 text-slate-950 font-extrabold py-3 rounded-2xl shadow-xl text-sm sm:text-base">
+        <button id="btn-start-sim" class="btn-pop w-full min-h-[48px] bg-gradient-to-r from-amber-400 to-emerald-400 hover:from-amber-300 hover:to-emerald-300 text-slate-950 font-extrabold py-3 rounded-2xl shadow-xl text-sm sm:text-base">
           🚀 Entrer dans le quartier
         </button>
         <button id="btn-help-reset" class="btn-pop w-full min-h-[42px] bg-slate-800/80 hover:bg-rose-500/20 text-rose-300 border border-rose-400/25 font-semibold py-2 rounded-2xl text-xs sm:text-sm">
@@ -372,229 +391,485 @@
   </div>
 
   <!-- Toast de notification -->
-  <div id="toast" role="status" aria-live="polite" class="hidden fixed top-36 md:top-28 left-3 right-3 sm:left-auto sm:right-4 z-40 pointer-events-none glass rounded-2xl px-4 py-2.5 text-xs sm:text-sm font-bold text-emerald-300 shadow-xl border border-emerald-400/30 text-center sm:text-left"></div>
+  <div id="toast" role="status" aria-live="polite" class="hidden fixed top-36 md:top-28 left-3 right-3 sm:left-auto sm:right-4 z-40 pointer-events-none glass rounded-2xl px-4 py-2.5 text-xs sm:text-sm font-bold text-amber-300 shadow-xl border border-amber-400/35 text-center sm:text-left"></div>
 
   <script>
     /*************************************************************************
-     * 1. DONNÉES PÉDAGOGIQUES (7 LIEUX DU QUARTIER + VOIX HUMAINES)
+     * 1. DONNÉES PÉDAGOGIQUES PAR DÉFAUT (8 LIEUX = UNITÉS 1 À 8 BURKINA FASO)
+     *    Chargées et synchronisées dynamiquement depuis ./lessons.json
      *************************************************************************/
     const NEIGHBORHOOD_DATA = [
       {
-        id: 'greetings',
-        placeName: 'Place Centrale',
+        unit: 1,
+        id: 'unit-1',
+        placeName: 'Place de la Nation',
+        shortName: 'Place Nation',
         icon: '👋',
-        npcName: 'Emma',
-        voice: 'en-US-JennyNeural',
-        theme: 'Introductions & Greetings',
-        color: 0x38bdf8,
-        shirtColor: 0x2563eb,
-        buildingType: 'arch',
-        pos: { x: 0, z: -10 },
-        dialogueEn: "Hello! Good morning! My name is Emma. Nice to meet you!",
-        phonetic: "/həˈloʊ! ɡʊd ˈmɔːrnɪŋ! maɪ neɪm ɪz ˈɛmə. naɪs tuː miːt juː!/",
-        dialogueFr: "Bonjour ! Bon matin ! Je m'appelle Emma. Ravie de vous rencontrer !",
-        tip: "En anglais, « Good morning » s'utilise jusqu'à midi, puis « Good afternoon » l'après-midi et « Good evening » le soir.",
+        npcName: 'Moussa',
+        voice: 'en-US-GuyNeural',
+        unitTitle: "It's nice to meet you.",
+        theme: 'Salutations et présentations',
+        color: 0xef4444,
+        wallColor: 0xe6bc8a,
+        awningColor: 0xdc2626,
+        shirtColor: 0xdc2626,
+        trimColor: 0xfcd116,
+        skinColor: 0x5c3317,
+        headwrapColor: null,
+        buildingType: 'plaza',
+        pos: { x: 0, z: -7.8 },
+        buildingPos: { x: 0, z: -12.6 },
+        buildingRotY: 0,
+        dialogues: [
+          {
+            speaker: 'Moussa',
+            en: "Hello! Good morning! My name is Moussa. Welcome to Ouagadougou! It's nice to meet you!",
+            phonetic: "/həˈloʊ! ɡʊd ˈmɔːrnɪŋ! maɪ neɪm ɪz ˈmuːsə. ɪts naɪs tuː miːt juː!/",
+            fr: "Bonjour ! Bon matin ! Je m'appelle Moussa. Bienvenue à Ouagadougou ! Enchanté de vous rencontrer !"
+          }
+        ],
+        grammar: [
+          {
+            title: "Possessifs (my, your, his, her) & verbe « to be »",
+            explanation: "Utilisez « My name is... » pour vous présenter et contractez « to be » à l'oral (I'm, you're, it's).",
+            examples: [
+              { en: "My name is Moussa.", fr: "Je m'appelle Moussa." },
+              { en: "It's nice to meet you too!", fr: "Enchanté(e) moi aussi !" }
+            ]
+          }
+        ],
+        tip: "Pour répondre à « It's nice to meet you! », dites « It's nice to meet you too! ».",
         vocab: [
-          { en: "Hello! Hi!", phonetic: "/həˈloʊ/", fr: "Bonjour / Salut" },
-          { en: "My name is Emma.", phonetic: "/maɪ neɪm ɪz/", fr: "Je m'appelle Emma." },
-          { en: "Nice to meet you!", phonetic: "/naɪs tuː miːt juː/", fr: "Enchanté(e) !" },
+          { en: "Hello! Good morning!", phonetic: "/həˈloʊ! ɡʊd ˈmɔːrnɪŋ/", fr: "Bonjour ! (le matin)" },
+          { en: "My name is Moussa.", phonetic: "/maɪ neɪm ɪz/", fr: "Je m'appelle Moussa." },
+          { en: "It's nice to meet you.", phonetic: "/ɪts naɪs tuː miːt juː/", fr: "Enchanté(e) !" },
           { en: "How are you?", phonetic: "/haʊ ɑːr juː/", fr: "Comment allez-vous ?" }
         ],
-        quiz: {
-          question: "Emma vous dit « Nice to meet you! ». Quelle est la meilleure réponse ?",
-          options: [
-            { text: "Nice to meet you too!", correct: true },
-            { text: "Good night, see you!", correct: false },
-            { text: "I am a table.", correct: false }
-          ]
-        }
+        quizzes: [
+          {
+            question: "Moussa vous dit « It's nice to meet you! ». Quelle est la meilleure réponse ?",
+            options: [
+              { text: "It's nice to meet you too!", correct: true },
+              { text: "Good night, see you!", correct: false },
+              { text: "I am a table.", correct: false }
+            ],
+            explanation: "On reprend la formule avec « too » (aussi)."
+          }
+        ]
       },
       {
-        id: 'origins',
-        placeName: 'World Café',
-        icon: '☕',
-        npcName: 'Lucas',
-        voice: 'en-US-GuyNeural',
-        theme: 'Origins, Nationalities & Descriptions',
-        color: 0xf43f5e,
-        shirtColor: 0xe11d48,
-        buildingType: 'cafe',
-        pos: { x: -16, z: -8 },
-        dialogueEn: "Welcome to the café! Where are you from? I am from Canada, and I am tall and friendly.",
-        phonetic: "/ˈwɛlkəm tuː ðə kæˈfeɪ! wɛər ɑːr juː frɒm? aɪ æm frɒm ˈkænədə/",
-        dialogueFr: "Bienvenue au café ! D'où venez-vous ? Je viens du Canada, et je suis grand et sympathique.",
-        tip: "Pour dire votre origine, utilisez « I am from + Pays » (ex: I am from Burkina Faso) ou « I am + Nationalité ».",
-        vocab: [
-          { en: "Where are you from?", phonetic: "/wɛər ɑːr juː frɒm/", fr: "D'où venez-vous ?" },
-          { en: "I am from Canada.", phonetic: "/aɪ æm frɒm/", fr: "Je viens du Canada." },
-          { en: "Tall and short", phonetic: "/tɔːl / ʃɔːrt/", fr: "Grand et petit" },
-          { en: "Friendly", phonetic: "/ˈfrɛndli/", fr: "Sympathique" }
+        unit: 2,
+        id: 'unit-2',
+        placeName: 'Librairie / Campus',
+        shortName: 'Campus',
+        icon: '📚',
+        npcName: 'Aminata',
+        voice: 'en-US-JennyNeural',
+        unitTitle: "What's this?",
+        theme: 'Objets du quotidien et prépositions',
+        color: 0x0284c7,
+        wallColor: 0xedd6b5,
+        awningColor: 0x0284c7,
+        shirtColor: 0x0284c7,
+        trimColor: 0xfbbf24,
+        skinColor: 0x6b3e26,
+        headwrapColor: 0xf59e0b,
+        buildingType: 'campus',
+        pos: { x: 14.5, z: -6.2 },
+        buildingPos: { x: 14.5, z: -11.4 },
+        buildingRotY: 0,
+        dialogues: [
+          {
+            speaker: 'Aminata',
+            en: "Hi! What's this? It's my notebook, and my keys are in my backpack, next to my phone!",
+            phonetic: "/haɪ! wɒts ðɪs? ɪts maɪ ˈnoʊtbʊk, ænd maɪ kiːz ɑːr ɪn maɪ ˈbækpæk/",
+            fr: "Salut ! Qu'est-ce que c'est ? C'est mon cahier, et mes clés sont dans mon sac à dos, à côté de mon téléphone !"
+          }
         ],
-        quiz: {
-          question: "Comment demander poliment à quelqu'un d'où il vient ?",
-          options: [
-            { text: "What time is it?", correct: false },
-            { text: "Where are you from?", correct: true },
-            { text: "How much is this?", correct: false }
-          ]
-        }
-      },
-      {
-        id: 'objects',
-        placeName: 'Librairie',
-        icon: '🎒',
-        npcName: 'Maya',
-        voice: 'en-US-AriaNeural',
-        theme: 'Everyday Objects',
-        color: 0xf59e0b,
-        shirtColor: 0xd97706,
-        buildingType: 'shop',
-        pos: { x: 16, z: -8 },
-        dialogueEn: "Look at my bag! I have a notebook, a pen, my phone, and my keys.",
-        phonetic: "/lʊk æt maɪ bæɡ! aɪ hæv ə ˈnoʊtbʊk, ə pɛn, maɪ foʊn, ænd maɪ kiːz/",
-        dialogueFr: "Regardez mon sac ! J'ai un cahier, un stylo, mon téléphone et mes clés.",
-        tip: "Utilisez « a » devant une consonne (a pen, a book) et « an » devant une voyelle (an apple, an umbrella).",
+        grammar: [
+          {
+            title: "« a / an », « this / these » et prépositions de lieu",
+            explanation: "« a » devant une consonne, « an » devant une voyelle. Prépositions clés : in (dans), on (sur), under (sous), next to (à côté de).",
+            examples: [
+              { en: "What's this? It's an umbrella.", fr: "Qu'est-ce que c'est ? C'est un parapluie." },
+              { en: "The notebook is on the desk.", fr: "Le cahier est sur le bureau." }
+            ]
+          }
+        ],
+        tip: "Singulier : « What's this? It's a pen. » • Pluriel : « What are these? They're pens. »",
         vocab: [
           { en: "A notebook", phonetic: "/ə ˈnoʊtbʊk/", fr: "Un cahier" },
-          { en: "A pen", phonetic: "/ə pɛn/", fr: "Un stylo" },
-          { en: "A phone", phonetic: "/ə foʊn/", fr: "Un téléphone" },
-          { en: "Keys", phonetic: "/kiːz/", fr: "Des clés" }
+          { en: "A backpack", phonetic: "/ə ˈbækpæk/", fr: "Un sac à dos" },
+          { en: "On the desk", phonetic: "/ɒn ðə dɛsk/", fr: "Sur le bureau" },
+          { en: "In the bag", phonetic: "/ɪn ðə bæɡ/", fr: "Dans le sac" }
         ],
-        quiz: {
-          question: "Comment dit-on « J'ai un stylo et un cahier » en anglais ?",
-          options: [
-            { text: "I have a pen and a notebook.", correct: true },
-            { text: "I am a pen and a house.", correct: false },
-            { text: "You are a notebook.", correct: false }
-          ]
-        }
+        quizzes: [
+          {
+            question: "Comment dire « Qu'est-ce que c'est ? C'est un parapluie » ?",
+            options: [
+              { text: "What's this? It's an umbrella.", correct: true },
+              { text: "What's this? It's a umbrella.", correct: false },
+              { text: "What are these? It's umbrella.", correct: false }
+            ],
+            explanation: "Devant un son voyelle (« umbrella »), on utilise « an »."
+          }
+        ]
       },
       {
-        id: 'time',
-        placeName: 'Arrêt de Bus',
-        icon: '🚌',
-        npcName: 'Tom',
+        unit: 3,
+        id: 'unit-3',
+        placeName: 'Maquis / Café Le Faso',
+        shortName: 'Maquis Le Faso',
+        icon: '☕',
+        npcName: 'Ibrahim',
         voice: 'en-US-GuyNeural',
-        theme: 'Time & Transportation',
-        color: 0x10b981,
-        shirtColor: 0x059669,
-        buildingType: 'busstop',
-        pos: { x: -16, z: 10 },
-        dialogueEn: "Excuse me, what time is it? It is eight o'clock! The bus arrives soon.",
-        phonetic: "/ɪkˈskjuːz miː, wɒt taɪm ɪz ɪt? ɪt ɪz eɪt əˈklɒk! ðə bʌs əˈraɪvz suːn/",
-        dialogueFr: "Excusez-moi, quelle heure est-il ? Il est huit heures ! Le bus arrive bientôt.",
-        tip: "Pour dire l'heure pile, ajoutez « o'clock » (ex: It is 9 o'clock). Pour le transport : « by bus », « by car », « on foot ».",
-        vocab: [
-          { en: "What time is it?", phonetic: "/wɒt taɪm ɪz ɪt/", fr: "Quelle heure est-il ?" },
-          { en: "By bus", phonetic: "/baɪ bʌs/", fr: "En bus" },
-          { en: "On foot", phonetic: "/ɒn fʊt/", fr: "À pied" },
-          { en: "Today and tomorrow", phonetic: "/təˈdeɪ / təˈmɒroʊ/", fr: "Aujourd'hui et demain" }
+        unitTitle: 'Where are you from?',
+        theme: 'Pays, villes, nationalités et descriptions',
+        color: 0xea580c,
+        wallColor: 0xd97d54,
+        awningColor: 0x15803d,
+        shirtColor: 0xea580c,
+        trimColor: 0xfef08a,
+        skinColor: 0x522e18,
+        headwrapColor: null,
+        buildingType: 'maquis',
+        pos: { x: -14.5, z: -6.2 },
+        buildingPos: { x: -14.5, z: -11.4 },
+        buildingRotY: 0,
+        dialogues: [
+          {
+            speaker: 'Ibrahim',
+            en: "Welcome to Café Le Faso! Where are you from? I'm from Bobo-Dioulasso, in Burkina Faso. People here are very friendly!",
+            phonetic: "/ˈwɛlkəm tuː kæˈfeɪ lə ˈfɑːsoʊ! wɛər ɑːr juː frɒm?/",
+            fr: "Bienvenue au Café Le Faso ! D'où venez-vous ? Je viens de Bobo-Dioulasso, au Burkina Faso. Les gens ici sont très sympathiques !"
+          }
         ],
-        quiz: {
-          question: "Vous allez au travail en bus. Quelle phrase est correcte ?",
-          options: [
-            { text: "I go to work by bus.", correct: true },
-            { text: "I eat the bus at 8 o'clock.", correct: false },
-            { text: "The bus is a kitchen.", correct: false }
-          ]
-        }
+        grammar: [
+          {
+            title: "Questions d'origine & descriptions avec « to be »",
+            explanation: "Pour demander l'origine : « Where are you from? ». Pour décrire quelqu'un : sujet + to be + adjectif (invariable).",
+            examples: [
+              { en: "I'm from Burkina Faso.", fr: "Je viens du Burkina Faso." },
+              { en: "Ibrahim is tall and friendly.", fr: "Ibrahim est grand et sympathique." }
+            ]
+          }
+        ],
+        tip: "Utilisez « I'm from + Pays/Ville » ou « I'm + Nationalité ».",
+        vocab: [
+          { en: "Where are you from?", phonetic: "/wɛər ɑːr juː frɒm/", fr: "D'où venez-vous ?" },
+          { en: "I'm from Burkina Faso.", phonetic: "/aɪm frɒm bʊrˈkiːnə ˈfɑːsoʊ/", fr: "Je viens du Burkina Faso." },
+          { en: "Friendly", phonetic: "/ˈfrɛndli/", fr: "Sympathique" },
+          { en: "Tall and short", phonetic: "/tɔːl ænd ʃɔːrt/", fr: "Grand et petit" }
+        ],
+        quizzes: [
+          {
+            question: "Comment demander poliment à quelqu'un d'où il vient ?",
+            options: [
+              { text: "What time is it?", correct: false },
+              { text: "Where are you from?", correct: true },
+              { text: "How much is this?", correct: false }
+            ],
+            explanation: "« Where are you from? » sert à demander le pays ou la ville d'origine."
+          }
+        ]
       },
       {
-        id: 'clothing',
-        placeName: 'Boutique Mode',
-        icon: '👕',
-        npcName: 'Chloe',
-        voice: 'en-US-JennyNeural',
-        theme: 'Clothing & Colors',
-        color: 0xa855f7,
-        shirtColor: 0x9333ea,
-        buildingType: 'boutique',
-        pos: { x: 16, z: 10 },
-        dialogueEn: "I love this blue shirt and these black shoes! What is your favorite color?",
-        phonetic: "/aɪ lʌv ðɪs bluː ʃɜːrt ænd ðiːz blæk ʃuːz! wɒt ɪz jʊər ˈfeɪvərɪt ˈkʌlər?/",
-        dialogueFr: "J'adore cette chemise bleue et ces chaussures noires ! Quelle est votre couleur préférée ?",
-        tip: "En anglais, la couleur se place toujours AVANT le vêtement : on dit « a red jacket » (jamais « a jacket red »).",
+        unit: 4,
+        id: 'unit-4',
+        placeName: 'Boutique Faso Dan Fani',
+        shortName: 'Faso Dan Fani',
+        icon: '🧵',
+        npcName: 'Fatimata',
+        voice: 'en-US-AriaNeural',
+        unitTitle: 'Is this coat yours?',
+        theme: 'Vêtements, couleurs et météo',
+        color: 0xc026d3,
+        wallColor: 0xe4ab66,
+        awningColor: 0xb91c1c,
+        shirtColor: 0xa21caf,
+        trimColor: 0xfcd116,
+        skinColor: 0x62371e,
+        headwrapColor: 0xef4444,
+        buildingType: 'market',
+        pos: { x: 15.5, z: 9.6 },
+        buildingPos: { x: 15.5, z: 14.4 },
+        buildingRotY: Math.PI,
+        dialogues: [
+          {
+            speaker: 'Fatimata',
+            en: "Welcome to my Faso Dan Fani shop! It's sunny and hot today. Look at this yellow scarf! Is this hat yours?",
+            phonetic: "/ˈwɛlkəm tuː maɪ ˈfɑːsoʊ dɑːn ˈfɑːni ʃɒp! ɪts ˈsʌni ænd hɒt təˈdeɪ/",
+            fr: "Bienvenue dans ma boutique Faso Dan Fani ! Il fait soleil et chaud aujourd'hui. Regardez cette écharpe jaune ! Ce chapeau est-il à vous ?"
+          }
+        ],
+        grammar: [
+          {
+            title: "Possessifs (mine, yours, 's), couleurs et météo",
+            explanation: "La couleur vient toujours AVANT le vêtement (a blue shirt). « It's mine / yours » exprime la possession.",
+            examples: [
+              { en: "Is this coat yours? Yes, it's mine.", fr: "Ce manteau est-il à vous ? Oui, il est à moi." },
+              { en: "It's sunny and hot today.", fr: "Il fait soleil et chaud aujourd'hui." }
+            ]
+          }
+        ],
+        tip: "Placez toujours la couleur avant le nom du vêtement : « a red jacket ».",
         vocab: [
           { en: "A blue shirt", phonetic: "/ə bluː ʃɜːrt/", fr: "Une chemise bleue" },
-          { en: "Black shoes", phonetic: "/blæk ʃuːz/", fr: "Des chaussures noires" },
-          { en: "A green hat", phonetic: "/ə ɡriːn hæt/", fr: "Un chapeau vert" },
-          { en: "Favorite color", phonetic: "/ˈfeɪvərɪt ˈkʌlər/", fr: "Couleur préférée" }
+          { en: "A yellow scarf", phonetic: "/ə ˈjɛloʊ skɑːrf/", fr: "Une écharpe jaune" },
+          { en: "It's sunny and hot.", phonetic: "/ɪts ˈsʌni ænd hɒt/", fr: "Il fait soleil et chaud." },
+          { en: "Yes, it's mine.", phonetic: "/jɛs ɪts maɪn/", fr: "Oui, c'est le mien." }
         ],
-        quiz: {
-          question: "Comment traduire correctement « une veste rouge » ?",
-          options: [
-            { text: "A jacket red", correct: false },
-            { text: "A red jacket", correct: true },
-            { text: "Red a jacket", correct: false }
-          ]
-        }
+        quizzes: [
+          {
+            question: "Comment traduire correctement « une veste rouge » ?",
+            options: [
+              { text: "A jacket red", correct: false },
+              { text: "A red jacket", correct: true },
+              { text: "Red a jacket", correct: false }
+            ],
+            explanation: "En anglais, l'adjectif de couleur se place avant le nom."
+          }
+        ]
       },
       {
-        id: 'home',
-        placeName: 'Maison Familiale',
-        icon: '🏠',
-        npcName: 'Sam',
+        unit: 5,
+        id: 'unit-5',
+        placeName: 'Gare Routière / Arrêt de Bus',
+        shortName: 'Gare Routière',
+        icon: '🚌',
+        npcName: 'Salif',
         voice: 'en-US-GuyNeural',
-        theme: 'Homes, Rooms & Furniture',
-        color: 0xf97316,
-        shirtColor: 0xea580c,
-        buildingType: 'house',
-        pos: { x: -8, z: 20 },
-        dialogueEn: "This is my house! There is a kitchen, a living room, a bed, and a big table.",
-        phonetic: "/ðɪs ɪz maɪ haʊs! ðɛər ɪz ə ˈkɪtʃɪn, ə ˈlɪvɪŋ ruːm, ə bɛd/",
-        dialogueFr: "Voici ma maison ! Il y a une cuisine, un salon, un lit et une grande table.",
-        tip: "« There is » s'utilise pour un seul objet (There is a bed) et « There are » pour plusieurs objets (There are two chairs).",
+        unitTitle: 'What time is it?',
+        theme: 'Heure et actions en cours',
+        color: 0x16a34a,
+        wallColor: 0xdca56c,
+        awningColor: 0x15803d,
+        shirtColor: 0x15803d,
+        trimColor: 0xfacc15,
+        skinColor: 0x573019,
+        headwrapColor: null,
+        buildingType: 'busstop',
+        pos: { x: -15.5, z: 9.6 },
+        buildingPos: { x: -15.5, z: 13.8 },
+        buildingRotY: Math.PI,
+        dialogues: [
+          {
+            speaker: 'Salif',
+            en: "Excuse me, what time is it? It's eight thirty! I'm waiting for the bus right now. What are you doing?",
+            phonetic: "/ɪkˈskjuːz miː, wɒt taɪm ɪz ɪt? ɪts eɪt ˈθɜːrti! aɪm ˈweɪtɪŋ fɔːr ðə bʌs/",
+            fr: "Excusez-moi, quelle heure est-il ? Il est huit heures trente ! J'attends le bus en ce moment. Que faites-vous ?"
+          }
+        ],
+        grammar: [
+          {
+            title: "L'heure & le présent continu (be + verbe-ing)",
+            explanation: "Pour l'heure pile : « o'clock ». Pour une action en cours maintenant : « am / is / are + verbe-ing ».",
+            examples: [
+              { en: "It's eight o'clock.", fr: "Il est huit heures pile." },
+              { en: "I'm waiting for the bus.", fr: "Je suis en train d'attendre le bus." }
+            ]
+          }
+        ],
+        tip: "N'oubliez pas l'auxiliaire « to be » devant le verbe en « -ing » : « I am waiting ».",
         vocab: [
+          { en: "What time is it?", phonetic: "/wɒt taɪm ɪz ɪt/", fr: "Quelle heure est-il ?" },
+          { en: "It's eight o'clock.", phonetic: "/ɪts eɪt əˈklɒk/", fr: "Il est huit heures." },
+          { en: "Waiting for the bus", phonetic: "/ˈweɪtɪŋ fɔːr ðə bʌs/", fr: "Attendre le bus" },
+          { en: "Right now", phonetic: "/raɪt naʊ/", fr: "En ce moment" }
+        ],
+        quizzes: [
+          {
+            question: "Salif vous demande : « What are you doing right now? ». Quelle réponse est correcte ?",
+            options: [
+              { text: "I'm studying English.", correct: true },
+              { text: "I studying English.", correct: false },
+              { text: "I am study English.", correct: false }
+            ],
+            explanation: "Le présent continu s'écrit toujours « am / is / are + verbe-ing »."
+          }
+        ]
+      },
+      {
+        unit: 6,
+        id: 'unit-6',
+        placeName: 'Cour Familiale',
+        shortName: 'Cour Familiale',
+        icon: '🚲',
+        npcName: 'Mariam',
+        voice: 'en-US-JennyNeural',
+        unitTitle: 'I ride my bike to school.',
+        theme: 'Transports, famille et routine quotidienne',
+        color: 0xd97706,
+        wallColor: 0xd98e59,
+        awningColor: 0xb45309,
+        shirtColor: 0xd97706,
+        trimColor: 0xfef3c7,
+        skinColor: 0x6b3e26,
+        headwrapColor: 0x16a34a,
+        buildingType: 'courtyard',
+        pos: { x: -9.2, z: 23.0 },
+        buildingPos: { x: -15.2, z: 23.0 },
+        buildingRotY: Math.PI / 2,
+        dialogues: [
+          {
+            speaker: 'Mariam',
+            en: "Good morning! I live with my parents and my brother. Every day, I get up at six and I ride my bike to school!",
+            phonetic: "/ɡʊd ˈmɔːrnɪŋ! aɪ ɡɛt ʌp æt sɪks ænd aɪ raɪd maɪ baɪk tuː skuːl/",
+            fr: "Bonjour ! J'habite avec mes parents et mon frère. Tous les jours, je me lève à six heures et je vais à l'école à vélo !"
+          }
+        ],
+        grammar: [
+          {
+            title: "Présent simple (routine) & transports",
+            explanation: "Avec he / she / it, on ajoute « -s » au verbe : « I ride », mais « She rides ». Devant une heure, utilisez « at ».",
+            examples: [
+              { en: "I ride my bike to school.", fr: "Je vais à l'école à vélo." },
+              { en: "My brother takes the bus at seven.", fr: "Mon frère prend le bus à sept heures." }
+            ]
+          }
+        ],
+        tip: "Verbes clés : « ride a bike », « take the bus », « walk to school », « get up early ».",
+        vocab: [
+          { en: "Ride a bike", phonetic: "/raɪd ə baɪk/", fr: "Aller à vélo" },
+          { en: "Take the bus", phonetic: "/teɪk ðə bʌs/", fr: "Prendre le bus" },
+          { en: "My parents and brother", phonetic: "/maɪ ˈpɛərənts ænd ˈbrʌðər/", fr: "Mes parents et mon frère" },
+          { en: "Get up early", phonetic: "/ɡɛt ʌp ˈɜːrli/", fr: "Se lever tôt" }
+        ],
+        quizzes: [
+          {
+            question: "Complétez au présent simple : « Mariam ___ her bike to school every morning. »",
+            options: [
+              { text: "ride", correct: false },
+              { text: "rides", correct: true },
+              { text: "riding", correct: false }
+            ],
+            explanation: "À la 3e personne du singulier (she), le verbe prend un « -s »."
+          }
+        ]
+      },
+      {
+        unit: 7,
+        id: 'unit-7',
+        placeName: 'Villa / Résidence',
+        shortName: 'Villa',
+        icon: '🏡',
+        npcName: 'Wendpanga',
+        voice: 'en-US-GuyNeural',
+        unitTitle: 'Does it have a view?',
+        theme: 'Maison, pièces et meubles',
+        color: 0xe11d48,
+        wallColor: 0xf1dec0,
+        awningColor: 0xc2410c,
+        shirtColor: 0x0f766e,
+        trimColor: 0xfbbf24,
+        skinColor: 0x5c3317,
+        headwrapColor: null,
+        buildingType: 'villa',
+        pos: { x: 9.2, z: 23.0 },
+        buildingPos: { x: 15.2, z: 23.0 },
+        buildingRotY: -Math.PI / 2,
+        dialogues: [
+          {
+            speaker: 'Wendpanga',
+            en: "Welcome to my house! Does it have a view? Yes, it does! There is a sofa in the living room and four chairs in the kitchen.",
+            phonetic: "/dʌz ɪt hæv ə vjuː? jɛs ɪt dʌz! ðɛər ɪz ə ˈsoʊfə ɪn ðə ˈlɪvɪŋ ruːm/",
+            fr: "Bienvenue chez moi ! A-t-elle une belle vue ? Oui ! Il y a un canapé dans le salon et quatre chaises dans la cuisine."
+          }
+        ],
+        grammar: [
+          {
+            title: "« Does it have...? » et « There is / There are »",
+            explanation: "Utilisez « There is » au singulier et « There are » au pluriel. Après « Does », le verbe reste à l'infinitif (have).",
+            examples: [
+              { en: "Does it have a nice view? Yes, it does.", fr: "A-t-elle une belle vue ? Oui." },
+              { en: "There are four chairs in the kitchen.", fr: "Il y a quatre chaises dans la cuisine." }
+            ]
+          }
+        ],
+        tip: "On dit « Does it have...? » (jamais « Does it has »).",
+        vocab: [
+          { en: "The living room", phonetic: "/ðə ˈlɪvɪŋ ruːm/", fr: "Le salon" },
           { en: "The kitchen", phonetic: "/ðə ˈkɪtʃɪn/", fr: "La cuisine" },
           { en: "The bedroom", phonetic: "/ðə ˈbɛdruːm/", fr: "La chambre" },
-          { en: "A table", phonetic: "/ə ˈteɪbəl/", fr: "Une table" },
-          { en: "A chair", phonetic: "/ə tʃɛər/", fr: "Une chaise" }
+          { en: "A sofa and a table", phonetic: "/ə ˈsoʊfə ænd ə ˈteɪbəl/", fr: "Un canapé et une table" }
         ],
-        quiz: {
-          question: "Dans quelle pièce prépare-t-on le repas ?",
-          options: [
-            { text: "In the kitchen", correct: true },
-            { text: "In the bus stop", correct: false },
-            { text: "In the shirt", correct: false }
-          ]
-        }
+        quizzes: [
+          {
+            question: "Comment demander si la maison a une belle vue ?",
+            options: [
+              { text: "Does it have a nice view?", correct: true },
+              { text: "Does it has a nice view?", correct: false },
+              { text: "Is it have a nice view?", correct: false }
+            ],
+            explanation: "Après « Does », on garde la base verbale « have »."
+          }
+        ]
       },
       {
-        id: 'jobs',
-        placeName: 'Bureau Tech',
-        icon: '💼',
-        npcName: 'Alex',
-        voice: 'en-US-GuyNeural',
-        theme: 'Jobs & Workplaces',
+        unit: 8,
+        id: 'unit-8',
+        placeName: 'Atelier & Bureau Tech',
+        shortName: 'Bureau Tech',
+        icon: '💻',
+        npcName: 'Awa',
+        voice: 'en-US-AriaNeural',
+        unitTitle: 'What do you do?',
+        theme: 'Métiers et lieux de travail',
         color: 0x06b6d4,
+        wallColor: 0xe3b982,
+        awningColor: 0x0891b2,
         shirtColor: 0x0891b2,
-        buildingType: 'office',
-        pos: { x: 8, z: 20 },
-        dialogueEn: "I am a software developer. I work in an office with my computer. What is your job?",
-        phonetic: "/aɪ æm ə ˈsɒftwɛər dɪˈvɛləpər. aɪ wɜːrk ɪn æn ˈɒfɪs/",
-        dialogueFr: "Je suis développeur logiciel. Je travaille dans un bureau avec mon ordinateur. Quel est votre métier ?",
-        tip: "N'oubliez jamais l'article « a / an » devant un métier : « I am a teacher », « I am an engineer ».",
-        vocab: [
-          { en: "A teacher", phonetic: "/ə ˈtiːtʃər/", fr: "Un(e) enseignant(e)" },
-          { en: "A doctor", phonetic: "/ə ˈdɒktər/", fr: "Un médecin" },
-          { en: "An office", phonetic: "/æn ˈɒfɪs/", fr: "Un bureau" },
-          { en: "A computer", phonetic: "/ə kəmˈpjuːtər/", fr: "Un ordinateur" }
+        trimColor: 0xfde047,
+        skinColor: 0x6b3e26,
+        headwrapColor: 0x06b6d4,
+        buildingType: 'tech',
+        pos: { x: 0, z: 26.5 },
+        buildingPos: { x: 0, z: 31.6 },
+        buildingRotY: Math.PI,
+        dialogues: [
+          {
+            speaker: 'Awa',
+            en: "Hello! What do you do? I'm a software developer, and I work in a tech office here in Ouagadougou!",
+            phonetic: "/wɒt duː juː duː? aɪm ə ˈsɒftwɛər dɪˈvɛləpər, ænd aɪ wɜːrk ɪn ə tɛk ˈɒfɪs/",
+            fr: "Bonjour ! Que faites-vous dans la vie ? Je suis développeuse logiciel et je travaille dans un bureau tech ici à Ouagadougou !"
+          }
         ],
-        quiz: {
-          question: "Comment dire correctement « Je suis étudiant » ?",
-          options: [
-            { text: "I am student.", correct: false },
-            { text: "I am a student.", correct: true },
-            { text: "I work student.", correct: false }
-          ]
-        }
+        grammar: [
+          {
+            title: "Questions sur les métiers & article « a / an »",
+            explanation: "Demandez « What do you do? » / « Where does she work? ». Mettez toujours « a » ou « an » devant un métier.",
+            examples: [
+              { en: "I am a teacher. She is an engineer.", fr: "Je suis enseignant. Elle est ingénieure." },
+              { en: "Where does Awa work? In a tech office.", fr: "Où travaille Awa ? Dans un bureau tech." }
+            ]
+          }
+        ],
+        tip: "N'oubliez jamais l'article « a / an » devant un métier : « I am a student », « I am an engineer ».",
+        vocab: [
+          { en: "What do you do?", phonetic: "/wɒt duː juː duː/", fr: "Quel est votre métier ?" },
+          { en: "A software developer", phonetic: "/ə ˈsɒftwɛər dɪˈvɛləpər/", fr: "Développeur(se) logiciel" },
+          { en: "An engineer", phonetic: "/æn ˌɛndʒɪˈnɪər/", fr: "Un(e) ingénieur(e)" },
+          { en: "An office / a workshop", phonetic: "/æn ˈɒfɪs / ə ˈwɜːrkʃɒp/", fr: "Un bureau / un atelier" }
+        ],
+        quizzes: [
+          {
+            question: "Comment dire correctement « Je suis ingénieur » ?",
+            options: [
+              { text: "I am engineer.", correct: false },
+              { text: "I am an engineer.", correct: true },
+              { text: "I work engineer.", correct: false }
+            ],
+            explanation: "On place toujours « a / an » devant un métier, et « an » devant le son voyelle."
+          }
+        ]
       }
     ];
 
     /*************************************************************************
-     * 2. ÉTAT GLOBAL, SAUVEGARDE LOCALSTORAGE & AUDIO (EDGE-TTS + TONE.JS)
+     * 2. ÉTAT GLOBAL, SAUVEGARDE LOCALSTORAGE (8 LIEUX / 8 QUIZ) & AUDIO
      *************************************************************************/
-    const STORAGE_KEY = 'english_city_3d_progress_v1';
+    const STORAGE_KEY = 'english_city_3d_burkina_v2';
+    const LEGACY_STORAGE_KEY = 'english_city_3d_progress_v1';
     const VALID_LOCATION_IDS = new Set(NEIGHBORHOOD_DATA.map(loc => loc.id));
 
     const state = {
@@ -606,10 +881,12 @@
       activeNpc: null,
       nearbyNpc: null,
       autoWalkTarget: null,
+      quizIndex: 0,
+      quizCorrectCount: 0,
       keys: { up: false, down: false, left: false, right: false },
       cameraYaw: 0,
-      cameraPitch: 0.42,
-      cameraDistance: 14,
+      cameraPitch: 0.40,
+      cameraDistance: 14.5,
       lookAtY: 1.4,
       isDragging: false,
       lastPointer: { x: 0, y: 0 }
@@ -622,7 +899,8 @@
     function saveProgress() {
       try {
         const payload = {
-          version: 1,
+          version: 2,
+          totalUnits: NEIGHBORHOOD_DATA.length,
           xp: state.xp,
           visitedIds: Array.from(state.visitedIds),
           completedQuizIds: Array.from(state.completedQuizIds),
@@ -684,13 +962,14 @@
       state.completedQuizIds.clear();
       try {
         localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(LEGACY_STORAGE_KEY);
       } catch (e) {}
 
       closeResetModal();
       closeDialogue();
       syncProgressUI();
       playFX('click');
-      showToast('🔄 Progression réinitialisée !');
+      showToast('🔄 Progression réinitialisée (0/8 lieux, 0/8 quiz) !');
     }
 
     let synthFX = null;
@@ -741,51 +1020,83 @@
       if (statusEl) statusEl.classList.add('hidden');
     }
 
-    // Utilise d'abord le serveur local /tts (voix humaines Edge-TTS), puis repli Web Speech API
+    // Joue un texte anglais via le serveur local /tts (Edge-TTS), sinon repli Web Speech API
+    function playSingleUtterance(text, slow, chosenVoice, myReqId) {
+      return new Promise(async (resolve) => {
+        if (!text || myReqId !== speechRequestId) {
+          resolve();
+          return;
+        }
+        const rateParam = slow ? '-28%' : '+0%';
+        const statusEl = document.getElementById('voice-status');
+
+        if (statusEl) {
+          statusEl.textContent = slow ? '🐢 Voix lente...' : '🎙️ Voix humaine...';
+          statusEl.classList.remove('hidden');
+        }
+
+        try {
+          const url = `/tts?text=${encodeURIComponent(text)}&voice=${encodeURIComponent(chosenVoice)}&rate=${encodeURIComponent(rateParam)}`;
+          const res = await fetch(url);
+          if (!res.ok) throw new Error('Local TTS non actif');
+          const blob = await res.blob();
+          if (myReqId !== speechRequestId) {
+            resolve();
+            return;
+          }
+
+          const audioUrl = URL.createObjectURL(blob);
+          const audio = new Audio(audioUrl);
+          currentAudio = audio;
+          const done = () => {
+            URL.revokeObjectURL(audioUrl);
+            if (currentAudio === audio) currentAudio = null;
+            resolve();
+          };
+          audio.onended = done;
+          audio.onerror = done;
+          await audio.play();
+        } catch (e) {
+          if (myReqId !== speechRequestId) {
+            resolve();
+            return;
+          }
+          if ('speechSynthesis' in window) {
+            const utter = new SpeechSynthesisUtterance(text);
+            utter.lang = 'en-US';
+            utter.rate = slow ? 0.65 : 0.95;
+            utter.onend = () => resolve();
+            utter.onerror = () => resolve();
+            window.speechSynthesis.speak(utter);
+          } else {
+            resolve();
+          }
+        }
+      });
+    }
+
     async function speakEnglish(text, slow = false, voice = null) {
       playFX('click');
       stopCurrentSpeech();
       const myReqId = speechRequestId;
       const chosenVoice = voice || (state.activeNpc ? state.activeNpc.voice : 'en-US-JennyNeural');
-      const rateParam = slow ? '-28%' : '+0%';
+      await playSingleUtterance(text, slow, chosenVoice, myReqId);
       const statusEl = document.getElementById('voice-status');
+      if (myReqId === speechRequestId && statusEl) statusEl.classList.add('hidden');
+    }
 
-      if (statusEl) {
-        statusEl.textContent = '🎙️ Voix humaine...';
-        statusEl.classList.remove('hidden');
-      }
-
-      try {
-        const url = `/tts?text=${encodeURIComponent(text)}&voice=${encodeURIComponent(chosenVoice)}&rate=${encodeURIComponent(rateParam)}`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error('Local TTS non actif');
-        const blob = await res.blob();
+    async function speakDialogueSequence(loc, slow = false) {
+      if (!loc) return;
+      playFX('click');
+      stopCurrentSpeech();
+      const myReqId = speechRequestId;
+      const lines = (loc.dialogues || []).map(d => d.en).filter(Boolean);
+      for (const line of lines) {
         if (myReqId !== speechRequestId) return;
-
-        const audioUrl = URL.createObjectURL(blob);
-        const audio = new Audio(audioUrl);
-        currentAudio = audio;
-        audio.onended = () => {
-          URL.revokeObjectURL(audioUrl);
-          if (myReqId === speechRequestId && statusEl) statusEl.classList.add('hidden');
-        };
-        audio.onerror = () => {
-          URL.revokeObjectURL(audioUrl);
-          if (myReqId === speechRequestId && statusEl) statusEl.classList.add('hidden');
-        };
-        await audio.play();
-        return;
-      } catch (e) {
-        // Repli sur la voix du navigateur si server.py ne tourne pas
-        if (myReqId !== speechRequestId) return;
-        if (statusEl) statusEl.classList.add('hidden');
-        if ('speechSynthesis' in window) {
-          const utter = new SpeechSynthesisUtterance(text);
-          utter.lang = 'en-US';
-          utter.rate = slow ? 0.65 : 0.95;
-          window.speechSynthesis.speak(utter);
-        }
+        await playSingleUtterance(line, slow, loc.voice, myReqId);
       }
+      const statusEl = document.getElementById('voice-status');
+      if (myReqId === speechRequestId && statusEl) statusEl.classList.add('hidden');
     }
 
     function showToast(msg) {
@@ -793,50 +1104,189 @@
       t.textContent = msg;
       t.classList.remove('hidden');
       clearTimeout(t._timer);
-      t._timer = setTimeout(() => t.classList.add('hidden'), 2600);
+      t._timer = setTimeout(() => t.classList.add('hidden'), 2800);
     }
 
     /*************************************************************************
-     * 3. CHARGEMENT OPTIONNEL DE ./lessons.json (ISSU DE NOTEBOOKLM)
+     * 3. CHARGEMENT DYNAMIQUE DE ./lessons.json (PAR NUMÉRO D'UNITÉ 1 À 8)
      *************************************************************************/
-    async function tryLoadNotebookLessons() {
+    function normalizeLessonDialogues(item, fallbackNpcName) {
+      if (Array.isArray(item.dialogues) && item.dialogues.length > 0) {
+        return item.dialogues
+          .map(d => {
+            if (typeof d === 'string') return { speaker: fallbackNpcName, en: d, phonetic: '', fr: '' };
+            return {
+              speaker: d.speaker || fallbackNpcName,
+              en: d.en || d.sentenceEn || d.text || '',
+              phonetic: d.phonetic || '',
+              fr: d.fr || d.sentenceFr || ''
+            };
+          })
+          .filter(d => d.en);
+      }
+      if (item.dialogue && typeof item.dialogue === 'object' && (item.dialogue.en || item.dialogue.sentenceEn)) {
+        return [{
+          speaker: item.dialogue.speaker || fallbackNpcName,
+          en: item.dialogue.en || item.dialogue.sentenceEn,
+          phonetic: item.dialogue.phonetic || '',
+          fr: item.dialogue.fr || item.dialogue.sentenceFr || ''
+        }];
+      }
+      if (item.dialogueEn || item.sentenceEn) {
+        return [{
+          speaker: fallbackNpcName,
+          en: item.dialogueEn || item.sentenceEn,
+          phonetic: item.phonetic || '',
+          fr: item.dialogueFr || item.sentenceFr || ''
+        }];
+      }
+      return null;
+    }
+
+    function normalizeLessonGrammar(item) {
+      const raw = item.grammar || item.grammarPoints;
+      if (!raw) return null;
+      if (Array.isArray(raw) && raw.length > 0) {
+        return raw.map((g, i) => {
+          if (typeof g === 'string') {
+            return { title: `Point de grammaire ${i + 1}`, explanation: g, examples: [] };
+          }
+          const examples = Array.isArray(g.examples)
+            ? g.examples.map(ex => (typeof ex === 'string' ? { en: ex, fr: '' } : { en: ex.en || '', fr: ex.fr || '' })).filter(ex => ex.en)
+            : [];
+          return {
+            title: g.title || g.name || `Point de grammaire ${i + 1}`,
+            explanation: g.explanation || g.rule || g.description || '',
+            examples
+          };
+        });
+      }
+      if (typeof raw === 'string') {
+        return [{ title: 'Grammaire', explanation: raw, examples: [] }];
+      }
+      return null;
+    }
+
+    function normalizeLessonVocab(item) {
+      const raw = item.vocab || item.vocabulary;
+      if (!Array.isArray(raw) || raw.length === 0) return null;
+      return raw
+        .map(v => {
+          if (typeof v === 'string') return { en: v, phonetic: '', fr: '' };
+          return {
+            en: v.en || v.word || v.term || '',
+            phonetic: v.phonetic || v.ipa || '',
+            fr: v.fr || v.translation || v.meaning || ''
+          };
+        })
+        .filter(v => v.en);
+    }
+
+    function normalizeLessonQuizzes(item) {
+      const rawList = Array.isArray(item.quizzes)
+        ? item.quizzes
+        : Array.isArray(item.exercises)
+          ? item.exercises
+          : item.quiz
+            ? [item.quiz]
+            : null;
+      if (!rawList || rawList.length === 0) return null;
+
+      const parsed = rawList
+        .map(q => {
+          if (!q || !q.question || !Array.isArray(q.options) || q.options.length === 0) return null;
+          const options = q.options.map(opt => {
+            if (typeof opt === 'string') return { text: opt, correct: false };
+            return {
+              text: opt.text || opt.label || '',
+              correct: Boolean(opt.correct)
+            };
+          }).filter(opt => opt.text);
+          if (options.length === 0) return null;
+          return {
+            question: q.question,
+            options,
+            explanation: q.explanation || ''
+          };
+        })
+        .filter(Boolean);
+
+      return parsed.length > 0 ? parsed : null;
+    }
+
+    async function loadLessonsFromJson() {
       try {
-        const res = await fetch('./lessons.json');
+        const res = await fetch('./lessons.json', { cache: 'no-store' });
         if (!res.ok) return;
         const data = await res.json();
-        const items = Array.isArray(data) ? data : (data.lessons || data.modules || []);
+        const items = Array.isArray(data)
+          ? data
+          : (data.units || data.lessons || data.modules || []);
         if (!Array.isArray(items) || items.length === 0) return;
 
+        let syncedCount = 0;
         items.forEach((item, idx) => {
-          if (idx >= NEIGHBORHOOD_DATA.length) return;
-          const target = NEIGHBORHOOD_DATA[idx];
-          if (item.category || item.title) target.theme = item.category || item.title;
-          if (item.sentenceEn) target.dialogueEn = item.sentenceEn;
-          if (item.sentenceFr) target.dialogueFr = item.sentenceFr;
-          if (item.phonetic) target.phonetic = item.phonetic;
-          if (item.tip) target.tip = item.tip;
-          if (item.en && item.fr) {
-            target.vocab.unshift({ en: item.en, phonetic: item.phonetic || '', fr: item.fr });
+          if (!item || typeof item !== 'object') return;
+          const unitNum = Number(item.unit);
+          let target = Number.isInteger(unitNum)
+            ? NEIGHBORHOOD_DATA.find(loc => loc.unit === unitNum)
+            : null;
+          if (!target && item.id) {
+            target = NEIGHBORHOOD_DATA.find(loc => loc.id === item.id);
           }
+          if (!target && idx < NEIGHBORHOOD_DATA.length) {
+            target = NEIGHBORHOOD_DATA[idx];
+          }
+          if (!target) return;
+
+          if (item.title || item.unitTitle) target.unitTitle = item.title || item.unitTitle;
+          if (item.theme || item.category) target.theme = item.theme || item.category;
+          if (item.placeName) target.placeName = item.placeName;
+          if (item.npcName) target.npcName = item.npcName;
+          if (item.tip) target.tip = item.tip;
+
+          const dialogues = normalizeLessonDialogues(item, target.npcName);
+          if (dialogues) target.dialogues = dialogues;
+
+          const grammar = normalizeLessonGrammar(item);
+          if (grammar) target.grammar = grammar;
+
+          const vocab = normalizeLessonVocab(item);
+          if (vocab) target.vocab = vocab;
+
+          const quizzes = normalizeLessonQuizzes(item);
+          if (quizzes) target.quizzes = quizzes;
+
+          syncedCount++;
         });
-        showToast('📚 Cours NotebookLM (lessons.json) synchronisé !');
-      } catch (e) {}
+
+        if (syncedCount > 0) {
+          showToast(`📚 lessons.json chargé (${syncedCount} unités synchronisées) !`);
+        }
+      } catch (e) {
+        // Repli automatique sur les données intégrées si lessons.json est indisponible
+      }
     }
 
     /*************************************************************************
-     * 4. MOTEUR 3D THREE.JS — QUARTIER, BÂTIMENTS & PERSONNAGES ANIMÉS
+     * 4. MOTEUR 3D THREE.JS — QUARTIER VIVANT DU BURKINA FASO (LÉGER & FLUIDE)
      *************************************************************************/
     let scene, camera, renderer, raycaster, mouse;
     let playerGroup, playerParts;
+    let burkinaFlagPivot = null;
     const npcEntities = [];
     const clickableMeshes = [];
     let clock = null;
     let stepTimer = 0;
 
+    // Vecteurs réutilisés dans animate() pour éviter les allocations GC
+    let _camGoalVec = null;
+    let _labelVec = null;
+
     function getDefaultCameraDistance() {
-      if (window.innerWidth < 640 && window.innerHeight > window.innerWidth) return 16.5;
+      if (window.innerWidth < 640 && window.innerHeight > window.innerWidth) return 17;
       if (window.innerHeight < 500) return 13.5;
-      return 14;
+      return 14.5;
     }
 
     function updateCameraForViewport() {
@@ -855,14 +1305,18 @@
     function initThreeScene() {
       if (typeof THREE === 'undefined') return false;
       clock = new THREE.Clock();
+      _camGoalVec = new THREE.Vector3();
+      _labelVec = new THREE.Vector3();
       const container = document.getElementById('canvas-container');
       scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x8fd3f4);
-      scene.fog = new THREE.Fog(0x8fd3f4, 38, 95);
+
+      // Ciel bleu lumineux sahélien + brume d'horizon douce
+      scene.background = new THREE.Color(0x68c3f2);
+      scene.fog = new THREE.Fog(0xb9dff5, 48, 120);
 
       state.cameraDistance = getDefaultCameraDistance();
       const initialFov = (window.innerWidth < 640 && window.innerHeight > window.innerWidth) ? 56 : 50;
-      camera = new THREE.PerspectiveCamera(initialFov, container.clientWidth / container.clientHeight, 0.1, 150);
+      camera = new THREE.PerspectiveCamera(initialFov, container.clientWidth / container.clientHeight, 0.1, 180);
 
       renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'default' });
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
@@ -872,15 +1326,18 @@
       raycaster = new THREE.Raycaster();
       mouse = new THREE.Vector2();
 
-      const hemiLight = new THREE.HemisphereLight(0xffffff, 0x4d7c0f, 0.85);
-      hemiLight.position.set(0, 30, 0);
+      // Lumière de soleil chaud & rebond lumineux de la terre de latérite
+      const hemiLight = new THREE.HemisphereLight(0xfff7e6, 0xc27842, 0.92);
+      hemiLight.position.set(0, 35, 0);
       scene.add(hemiLight);
 
-      const sunLight = new THREE.DirectionalLight(0xfffbeb, 0.9);
-      sunLight.position.set(22, 35, 18);
+      const sunLight = new THREE.DirectionalLight(0xffe4b5, 1.05);
+      sunLight.position.set(28, 38, 18);
       scene.add(sunLight);
 
+      buildSkyAndSun();
       buildNeighborhoodGround();
+      buildBurkinaFlagMonument();
       buildEnvironmentDecor();
       buildAllLocationsAndNPCs();
       buildPlayerAvatar();
@@ -891,113 +1348,520 @@
       return true;
     }
 
+    function buildSkyAndSun() {
+      // Soleil chaud stylisé dans le ciel bleu
+      const sunGroup = new THREE.Group();
+      const sunCore = new THREE.Mesh(
+        new THREE.IcosahedronGeometry(3.4, 1),
+        new THREE.MeshBasicMaterial({ color: 0xfff5b8 })
+      );
+      const sunHalo = new THREE.Mesh(
+        new THREE.IcosahedronGeometry(5.0, 1),
+        new THREE.MeshBasicMaterial({ color: 0xfde047, transparent: true, opacity: 0.22 })
+      );
+      sunGroup.add(sunCore, sunHalo);
+      sunGroup.position.set(36, 36, -55);
+      scene.add(sunGroup);
+
+      // Quelques nuages blancs légers
+      const cloudMat = new THREE.MeshLambertMaterial({ color: 0xfffdf8 });
+      const cloudCoords = [
+        [-38, 22, -32], [-14, 24, -40], [16, 23, -34], [42, 21, -24],
+        [-34, 23, 18], [32, 22, 24]
+      ];
+      cloudCoords.forEach(([x, y, z], i) => {
+        const cloud = new THREE.Group();
+        for (let j = 0; j < 3; j++) {
+          const puff = new THREE.Mesh(
+            new THREE.IcosahedronGeometry(1.5 + (j === 1 ? 0.55 : 0), 1),
+            cloudMat
+          );
+          puff.scale.set(1.25, 0.72, 0.9);
+          puff.position.set((j - 1) * 1.55, j === 1 ? 0.28 : 0, 0);
+          cloud.add(puff);
+        }
+        cloud.position.set(x, y + (i % 2) * 1.5, z);
+        scene.add(cloud);
+      });
+    }
+
     function buildNeighborhoodGround() {
-      const grass = new THREE.Mesh(
-        new THREE.PlaneGeometry(140, 140),
-        new THREE.MeshLambertMaterial({ color: 0x65a30d })
+      // Sol principal : terre de latérite chaude / ocre du Burkina Faso
+      const lateriteGround = new THREE.Mesh(
+        new THREE.PlaneGeometry(180, 180),
+        new THREE.MeshLambertMaterial({ color: 0xc57b45 })
       );
-      grass.rotation.x = -Math.PI / 2;
-      scene.add(grass);
+      lateriteGround.rotation.x = -Math.PI / 2;
+      scene.add(lateriteGround);
 
-      const plaza = new THREE.Mesh(
-        new THREE.CylinderGeometry(7.5, 7.8, 0.12, 24),
-        new THREE.MeshLambertMaterial({ color: 0xe2e8f0 })
-      );
-      plaza.position.set(0, 0.02, 2);
-      scene.add(plaza);
+      // Subtiles nuances d'ocre et terre battue (léger, sans textures lourdes)
+      const lightOchreMat = new THREE.MeshLambertMaterial({ color: 0xd28d56 });
+      const deepOchreMat = new THREE.MeshLambertMaterial({ color: 0xb66c39 });
+      const dirtPatches = [
+        [-15, -10, 8.5, lightOchreMat],
+        [15, -10, 8.5, lightOchreMat],
+        [-15, 13, 8.0, deepOchreMat],
+        [15, 13, 8.0, lightOchreMat],
+        [-14, 23, 8.5, lightOchreMat],
+        [14, 23, 8.5, deepOchreMat]
+      ];
+      dirtPatches.forEach(([x, z, r, mat]) => {
+        const patch = new THREE.Mesh(new THREE.CircleGeometry(r, 12), mat);
+        patch.rotation.x = -Math.PI / 2;
+        patch.position.set(x, 0.008, z);
+        scene.add(patch);
+      });
 
-      const roadMat = new THREE.MeshLambertMaterial({ color: 0x334155 });
-      const roadH = new THREE.Mesh(new THREE.BoxGeometry(70, 0.08, 6), roadMat);
+      // Quelques zones d'herbe sèche (savane) et d'herbe verte ombragée
+      const dryGrassMat = new THREE.MeshLambertMaterial({ color: 0xa69445 });
+      const savannaMat = new THREE.MeshLambertMaterial({ color: 0xb69f4c });
+      const greenGrassMat = new THREE.MeshLambertMaterial({ color: 0x5c8c3a });
+      const grassZones = [
+        [-8.0, -13.8, 3.6, greenGrassMat],
+        [8.0, -13.8, 3.6, greenGrassMat],
+        [-23.5, -9.0, 5.2, dryGrassMat],
+        [23.5, -9.0, 5.0, savannaMat],
+        [-24.0, 12.0, 4.8, dryGrassMat],
+        [24.0, 12.0, 4.8, dryGrassMat],
+        [-9.2, 15.6, 3.3, greenGrassMat],
+        [9.2, 15.6, 3.3, greenGrassMat],
+        [-25.5, 22.5, 5.5, savannaMat],
+        [25.5, 22.5, 5.5, dryGrassMat],
+        [-8.8, 30.2, 4.2, greenGrassMat],
+        [8.8, 30.2, 4.2, dryGrassMat],
+        [0, -21.5, 5.4, savannaMat]
+      ];
+      grassZones.forEach(([x, z, r, mat]) => {
+        const tuft = new THREE.Mesh(new THREE.CircleGeometry(r, 9), mat);
+        tuft.rotation.x = -Math.PI / 2;
+        tuft.position.set(x, 0.015, z);
+        scene.add(tuft);
+      });
+
+      // Trottoirs en sable / pierre ocre claire le long des routes
+      const sidewalkMat = new THREE.MeshLambertMaterial({ color: 0xdcc5a1 });
+      const curbMat = new THREE.MeshLambertMaterial({ color: 0xc2a37a });
+
+      // Trottoirs Est-Ouest (Nord et Sud de la chaussée z = 2)
+      [-1.7, 5.7].forEach(z => {
+        const sw = new THREE.Mesh(new THREE.BoxGeometry(84, 0.12, 1.7), sidewalkMat);
+        sw.position.set(0, 0.06, z);
+        scene.add(sw);
+      });
+
+      // Trottoirs Nord-Sud (Ouest et Est de la chaussée x = 0, de z = -7 à z = 28)
+      [-3.7, 3.7].forEach(x => {
+        const sw = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.12, 36), sidewalkMat);
+        sw.position.set(x, 0.06, 10.5);
+        scene.add(sw);
+      });
+
+      // Routes goudronnées (bitume gris foncé)
+      const roadMat = new THREE.MeshLambertMaterial({ color: 0x3b424c });
+      const roadH = new THREE.Mesh(new THREE.BoxGeometry(84, 0.08, 5.8), roadMat);
       roadH.position.set(0, 0.04, 2);
       scene.add(roadH);
 
-      const roadV = new THREE.Mesh(new THREE.BoxGeometry(6, 0.08, 70), roadMat);
-      roadV.position.set(0, 0.04, 2);
+      const roadV = new THREE.Mesh(new THREE.BoxGeometry(5.8, 0.08, 35), roadMat);
+      roadV.position.set(0, 0.04, 10.5);
       scene.add(roadV);
 
+      // Marquages blancs sur le goudron
       const stripeMat = new THREE.MeshBasicMaterial({ color: 0xf8fafc });
-      for (let i = -30; i <= 30; i += 4.5) {
-        if (Math.abs(i) < 5) continue;
-        const sH = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.09, 0.22), stripeMat);
-        sH.position.set(i, 0.05, 2);
-        scene.add(sH);
-
-        const sV = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.09, 2.2), stripeMat);
-        sV.position.set(0, 0.05, i + 2);
-        scene.add(sV);
+      for (let x = -38; x <= 38; x += 4.5) {
+        if (Math.abs(x) < 9.2) continue;
+        const dash = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.09, 0.2), stripeMat);
+        dash.position.set(x, 0.05, 2);
+        scene.add(dash);
       }
+      for (let z = 11.5; z <= 25; z += 4.0) {
+        const dash = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.09, 2.0), stripeMat);
+        dash.position.set(0, 0.05, z);
+        scene.add(dash);
+      }
+
+      // Passages piétons autour du rond-point central
+      for (let s = -2.0; s <= 2.0; s += 0.8) {
+        const zNorth = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.09, 1.4), stripeMat);
+        zNorth.position.set(s, 0.05, 10.4);
+        scene.add(zNorth);
+
+        const zWest = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.09, 0.4), stripeMat);
+        zWest.position.set(-9.2, 0.05, 2 + s);
+        scene.add(zWest);
+
+        const zEast = zWest.clone();
+        zEast.position.x = 9.2;
+        scene.add(zEast);
+      }
+
+      // Place Centrale (Place de la Nation) pavée ocre-sable + anneau terre cuite
+      const plazaBase = new THREE.Mesh(
+        new THREE.CylinderGeometry(8.2, 8.5, 0.14, 24),
+        new THREE.MeshLambertMaterial({ color: 0xe6cfa8 })
+      );
+      plazaBase.position.set(0, 0.07, 2);
+      scene.add(plazaBase);
+
+      const plazaRing = new THREE.Mesh(
+        new THREE.RingGeometry(5.6, 6.3, 24),
+        new THREE.MeshBasicMaterial({ color: 0xc8643c, side: THREE.DoubleSide })
+      );
+      plazaRing.rotation.x = -Math.PI / 2;
+      plazaRing.position.set(0, 0.145, 2);
+      scene.add(plazaRing);
+
+      // Esplanade piétonne Nord (Place de la Nation) & Sud (Bureau Tech)
+      const northEsplanade = new THREE.Mesh(new THREE.BoxGeometry(10.5, 0.12, 10.2), curbMat);
+      northEsplanade.position.set(0, 0.06, -9.8);
+      scene.add(northEsplanade);
+
+      const southEsplanade = new THREE.Mesh(new THREE.BoxGeometry(10.5, 0.12, 8.8), curbMat);
+      southEsplanade.position.set(0, 0.06, 29.4);
+      scene.add(southEsplanade);
+    }
+
+    function createStarShape(outerR, innerR, points = 5) {
+      const shape = new THREE.Shape();
+      for (let i = 0; i < points * 2; i++) {
+        const r = i % 2 === 0 ? outerR : innerR;
+        const a = (i * Math.PI) / points + Math.PI / 2;
+        const x = Math.cos(a) * r;
+        const y = Math.sin(a) * r;
+        if (i === 0) shape.moveTo(x, y);
+        else shape.lineTo(x, y);
+      }
+      shape.closePath();
+      return shape;
+    }
+
+    function buildBurkinaFlagMonument() {
+      const monument = new THREE.Group();
+      monument.position.set(0, 0, 2);
+
+      // Socle à gradins en pierre ocre et terre cuite
+      const step1 = new THREE.Mesh(
+        new THREE.CylinderGeometry(2.2, 2.4, 0.28, 12),
+        new THREE.MeshLambertMaterial({ color: 0xd9be94 })
+      );
+      step1.position.y = 0.22;
+      monument.add(step1);
+
+      const step2 = new THREE.Mesh(
+        new THREE.CylinderGeometry(1.3, 1.5, 0.45, 12),
+        new THREE.MeshLambertMaterial({ color: 0xc66b3d })
+      );
+      step2.position.y = 0.56;
+      monument.add(step2);
+
+      const goldRing = new THREE.Mesh(
+        new THREE.CylinderGeometry(1.34, 1.34, 0.08, 12),
+        new THREE.MeshLambertMaterial({ color: 0xfcd116 })
+      );
+      goldRing.position.y = 0.78;
+      monument.add(goldRing);
+
+      // Mât métallique blanc/argenté
+      const pole = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.075, 0.105, 7.8, 8),
+        new THREE.MeshLambertMaterial({ color: 0xf1f5f9 })
+      );
+      pole.position.y = 4.68;
+      monument.add(pole);
+
+      const finial = new THREE.Mesh(
+        new THREE.SphereGeometry(0.18, 8, 8),
+        new THREE.MeshLambertMaterial({ color: 0xfcd116 })
+      );
+      finial.position.y = 8.65;
+      monument.add(finial);
+
+      // Drapeau du Burkina Faso : rouge en haut, vert en bas, étoile jaune au centre
+      burkinaFlagPivot = new THREE.Group();
+      burkinaFlagPivot.position.set(0.06, 7.45, 0);
+
+      const flagW = 2.8;
+      const flagHalfH = 0.92;
+      const flagThickness = 0.05;
+
+      const redTop = new THREE.Mesh(
+        new THREE.BoxGeometry(flagW, flagHalfH, flagThickness),
+        new THREE.MeshLambertMaterial({ color: 0xef2b2d })
+      );
+      redTop.position.set(flagW / 2, flagHalfH / 2, 0);
+      burkinaFlagPivot.add(redTop);
+
+      const greenBottom = new THREE.Mesh(
+        new THREE.BoxGeometry(flagW, flagHalfH, flagThickness),
+        new THREE.MeshLambertMaterial({ color: 0x009e49 })
+      );
+      greenBottom.position.set(flagW / 2, -flagHalfH / 2, 0);
+      burkinaFlagPivot.add(greenBottom);
+
+      // Étoile jaune à 5 branches visible des deux côtés du drapeau
+      const starGeom = new THREE.ExtrudeGeometry(createStarShape(0.40, 0.16, 5), {
+        depth: 0.09,
+        bevelEnabled: false
+      });
+      const starMesh = new THREE.Mesh(
+        starGeom,
+        new THREE.MeshBasicMaterial({ color: 0xfcd116 })
+      );
+      starMesh.position.set(flagW / 2, 0, -0.045);
+      burkinaFlagPivot.add(starMesh);
+
+      monument.add(burkinaFlagPivot);
+      scene.add(monument);
+    }
+
+    function createMangoTree(scale = 1) {
+      const tree = new THREE.Group();
+
+      // Ombre douce au sol (très légère en GPU)
+      const shadow = new THREE.Mesh(
+        new THREE.CircleGeometry(2.35, 10),
+        new THREE.MeshBasicMaterial({ color: 0x4a2914, transparent: true, opacity: 0.22 })
+      );
+      shadow.rotation.x = -Math.PI / 2;
+      shadow.position.y = 0.025;
+      tree.add(shadow);
+
+      const barkMat = new THREE.MeshLambertMaterial({ color: 0x6b4226 });
+      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.38, 2.25, 7), barkMat);
+      trunk.position.y = 1.12;
+      tree.add(trunk);
+
+      // Couronne dense et arrondie typique du manguier
+      const leafMats = [
+        new THREE.MeshLambertMaterial({ color: 0x26652c }),
+        new THREE.MeshLambertMaterial({ color: 0x337b36 }),
+        new THREE.MeshLambertMaterial({ color: 0x438d3e })
+      ];
+      const crownSpecs = [
+        [0, 3.25, 0, 1.55, 1.25, 1.55, 0],
+        [-1.05, 2.85, 0.5, 1.1, 0.95, 1.1, 1],
+        [1.05, 2.9, -0.45, 1.12, 0.95, 1.12, 1],
+        [0.15, 2.95, 0.95, 1.0, 0.88, 1.0, 2],
+        [-0.2, 3.85, -0.25, 1.05, 0.82, 1.05, 2]
+      ];
+      crownSpecs.forEach(([x, y, z, sx, sy, sz, mIdx]) => {
+        const puff = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 1), leafMats[mIdx]);
+        puff.scale.set(sx, sy, sz);
+        puff.position.set(x, y, z);
+        tree.add(puff);
+      });
+
+      // Quelques mangues dorées sous le feuillage
+      const mangoMat = new THREE.MeshLambertMaterial({ color: 0xf59e0b });
+      [[-0.8, 2.35, 0.7], [0.95, 2.4, 0.4], [0.2, 2.3, -0.95], [-0.4, 2.55, -0.8]].forEach(([mx, my, mz]) => {
+        const mango = new THREE.Mesh(new THREE.IcosahedronGeometry(0.15, 0), mangoMat);
+        mango.position.set(mx, my, mz);
+        tree.add(mango);
+      });
+
+      tree.scale.setScalar(scale);
+      return tree;
+    }
+
+    function createBaobabTree(scale = 1) {
+      const tree = new THREE.Group();
+
+      const shadow = new THREE.Mesh(
+        new THREE.CircleGeometry(3.2, 10),
+        new THREE.MeshBasicMaterial({ color: 0x4a2914, transparent: true, opacity: 0.22 })
+      );
+      shadow.rotation.x = -Math.PI / 2;
+      shadow.position.y = 0.025;
+      tree.add(shadow);
+
+      const barkMat = new THREE.MeshLambertMaterial({ color: 0x7e6452 });
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(1.02, 1.35, 0.8, 8), barkMat);
+      base.position.y = 0.4;
+      tree.add(base);
+
+      // Tronc massif emblématique du baobab
+      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.58, 1.05, 3.5, 8), barkMat);
+      trunk.position.y = 2.45;
+      tree.add(trunk);
+
+      const leafMat1 = new THREE.MeshLambertMaterial({ color: 0x4f7a36 });
+      const leafMat2 = new THREE.MeshLambertMaterial({ color: 0x628c40 });
+
+      // Branches rayonnantes au sommet + touffes de feuillage plates
+      const branchAngles = [0, 1.25, 2.5, 3.75, 5.0];
+      branchAngles.forEach((angle, i) => {
+        const branch = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.26, 2.0, 6), barkMat);
+        const bx = Math.cos(angle) * 0.85;
+        const bz = Math.sin(angle) * 0.85;
+        branch.position.set(bx, 4.45, bz);
+        branch.rotation.z = -Math.cos(angle) * 0.65;
+        branch.rotation.x = Math.sin(angle) * 0.65;
+        tree.add(branch);
+
+        const cluster = new THREE.Mesh(
+          new THREE.IcosahedronGeometry(1.05, 1),
+          i % 2 === 0 ? leafMat1 : leafMat2
+        );
+        cluster.scale.set(1.35, 0.55, 1.35);
+        cluster.position.set(Math.cos(angle) * 1.65, 5.25 + (i % 2) * 0.25, Math.sin(angle) * 1.65);
+        tree.add(cluster);
+      });
+
+      const topCluster = new THREE.Mesh(new THREE.IcosahedronGeometry(1.15, 1), leafMat2);
+      topCluster.scale.set(1.4, 0.58, 1.4);
+      topCluster.position.set(0, 5.6, 0);
+      tree.add(topCluster);
+
+      tree.scale.setScalar(scale);
+      return tree;
+    }
+
+    function createSolarLamp(rotY = 0) {
+      const lamp = new THREE.Group();
+      const poleMat = new THREE.MeshLambertMaterial({ color: 0x475569 });
+      const frameMat = new THREE.MeshLambertMaterial({ color: 0xcbd5e1 });
+      const panelMat = new THREE.MeshLambertMaterial({ color: 0x1d4ed8 });
+      const bulbMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
+
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.2, 0.35, 6), poleMat);
+      base.position.y = 0.175;
+      lamp.add(base);
+
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.085, 4.2, 6), poleMat);
+      pole.position.y = 2.25;
+      lamp.add(pole);
+
+      const arm = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.85), poleMat);
+      arm.position.set(0, 4.18, 0.38);
+      lamp.add(arm);
+
+      const head = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.1, 0.45), poleMat);
+      head.position.set(0, 4.15, 0.72);
+      lamp.add(head);
+
+      const led = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.05, 0.34), bulbMat);
+      led.position.set(0, 4.08, 0.72);
+      lamp.add(led);
+
+      // Panneau solaire incliné au sommet du lampadaire
+      const solarFrame = new THREE.Mesh(new THREE.BoxGeometry(0.84, 0.06, 0.56), frameMat);
+      solarFrame.position.set(0, 4.46, 0);
+      solarFrame.rotation.x = 0.32;
+      lamp.add(solarFrame);
+
+      const solarPanel = new THREE.Mesh(new THREE.BoxGeometry(0.76, 0.07, 0.48), panelMat);
+      solarPanel.position.set(0, 4.47, 0);
+      solarPanel.rotation.x = 0.32;
+      lamp.add(solarPanel);
+
+      lamp.rotation.y = rotY;
+      return lamp;
+    }
+
+    function createPublicBench(rotY = 0) {
+      const bench = new THREE.Group();
+      const woodMat = new THREE.MeshLambertMaterial({ color: 0x9a5b2d });
+      const metalMat = new THREE.MeshLambertMaterial({ color: 0x334155 });
+
+      const seat = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.12, 0.56), woodMat);
+      seat.position.y = 0.52;
+      bench.add(seat);
+
+      const back = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.44, 0.1), woodMat);
+      back.position.set(0, 0.84, -0.24);
+      back.rotation.x = -0.15;
+      bench.add(back);
+
+      [-0.78, 0.78].forEach(lx => {
+        const leg = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.52, 0.5), metalMat);
+        leg.position.set(lx, 0.26, 0);
+        bench.add(leg);
+      });
+
+      bench.rotation.y = rotY;
+      return bench;
     }
 
     function buildEnvironmentDecor() {
-      const treeSpots = [
-        [-24, -14], [-9, -15], [9, -15], [24, -14],
-        [-24, 16], [24, 16], [-18, 25], [18, 25],
-        [-25, 2], [25, 2], [0, -22]
+      // Manguiers stylisés
+      const mangoSpots = [
+        [-7.8, -13.5, 0.95], [7.8, -13.5, 1.0],
+        [-23.5, -8.8, 1.08], [23.5, -8.8, 1.05],
+        [-23.8, 11.8, 1.0], [23.8, 11.8, 0.95],
+        [-9.2, 15.6, 0.88], [9.2, 15.6, 0.88],
+        [-8.8, 30.2, 1.05], [8.8, 30.2, 0.98]
       ];
-      treeSpots.forEach(([x, z]) => {
-        const tree = new THREE.Group();
-        const trunk = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.28, 0.38, 1.8, 7),
-          new THREE.MeshLambertMaterial({ color: 0x78350f })
-        );
-        trunk.position.y = 0.9;
-        tree.add(trunk);
-
-        const foliage1 = new THREE.Mesh(
-          new THREE.ConeGeometry(1.5, 2.4, 7),
-          new THREE.MeshLambertMaterial({ color: 0x15803d })
-        );
-        foliage1.position.y = 2.6;
-        tree.add(foliage1);
-
-        const foliage2 = new THREE.Mesh(
-          new THREE.ConeGeometry(1.1, 1.9, 7),
-          new THREE.MeshLambertMaterial({ color: 0x22c55e })
-        );
-        foliage2.position.y = 3.8;
-        tree.add(foliage2);
-
+      mangoSpots.forEach(([x, z, s]) => {
+        const tree = createMangoTree(s);
         tree.position.set(x, 0, z);
         scene.add(tree);
       });
 
-      const cloudMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
-      for (let i = 0; i < 8; i++) {
-        const cloud = new THREE.Group();
-        for (let j = 0; j < 3; j++) {
-          const puff = new THREE.Mesh(new THREE.SphereGeometry(1.4 + (j === 1 ? 0.5 : 0), 8, 8), cloudMat);
-          puff.position.set((j - 1) * 1.4, j === 1 ? 0.3 : 0, 0);
-          cloud.add(puff);
-        }
-        cloud.position.set((i - 4) * 11, 16 + (i % 3) * 2.5, -24 + (i % 2) * 18);
-        scene.add(cloud);
-      }
+      // Baobabs emblématiques du Burkina Faso
+      const baobabSpots = [
+        [-24.8, -16.8, 1.1], [24.8, -16.8, 1.05],
+        [-25.5, 22.8, 1.15], [25.5, 22.8, 1.08],
+        [0, -21.5, 1.18]
+      ];
+      baobabSpots.forEach(([x, z, s]) => {
+        const baobab = createBaobabTree(s);
+        baobab.position.set(x, 0, z);
+        scene.add(baobab);
+      });
 
-      const lampSpots = [[-4.2, -2.2], [4.2, -2.2], [-4.2, 6.2], [4.2, 6.2]];
-      lampSpots.forEach(([x, z]) => {
-        const post = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.08, 0.1, 3.6, 6),
-          new THREE.MeshLambertMaterial({ color: 0x1e293b })
-        );
-        post.position.set(x, 1.8, z);
-        scene.add(post);
+      // Lampadaires solaires autour de la place centrale et le long des avenues
+      const lampSpecs = [
+        [-5.8, -3.5, 0.7], [5.8, -3.5, -0.7],
+        [-5.8, 7.5, 2.4], [5.8, 7.5, -2.4],
+        [-19.5, -1.8, 0], [19.5, -1.8, 0],
+        [-19.5, 5.8, Math.PI], [19.5, 5.8, Math.PI],
+        [-4.2, 16.5, Math.PI / 2], [4.2, 16.5, -Math.PI / 2],
+        [-4.2, 25.0, Math.PI / 2], [4.2, 25.0, -Math.PI / 2]
+      ];
+      lampSpecs.forEach(([x, z, r]) => {
+        const lamp = createSolarLamp(r);
+        lamp.position.set(x, 0, z);
+        scene.add(lamp);
+      });
 
-        const bulb = new THREE.Mesh(
-          new THREE.SphereGeometry(0.24, 8, 8),
-          new THREE.MeshBasicMaterial({ color: 0xfef08a })
-        );
-        bulb.position.set(x, 3.7, z);
-        scene.add(bulb);
+      // Bancs publics sur la Place de la Nation et le long de l'avenue
+      const benchSpecs = [
+        [-5.8, 2.0, Math.PI / 2],
+        [5.8, 2.0, -Math.PI / 2],
+        [-4.0, -4.2, 0.55],
+        [4.0, -4.2, -0.55],
+        [-5.8, 15.5, Math.PI / 2],
+        [5.8, 15.5, -Math.PI / 2]
+      ];
+      benchSpecs.forEach(([x, z, r]) => {
+        const bench = createPublicBench(r);
+        bench.position.set(x, 0, z);
+        scene.add(bench);
       });
     }
 
-    function createCharacterMesh(shirtColor, hairColor = 0x1e293b, isPlayer = false) {
+    function createCharacterMesh(locOrConfig, isPlayer = false) {
       const group = new THREE.Group();
-      const skinMat = new THREE.MeshLambertMaterial({ color: 0xf1c27d });
+      const skinColor = isPlayer ? 0x62371e : (locOrConfig.skinColor || 0x5c3317);
+      const shirtColor = isPlayer ? 0x10b981 : locOrConfig.shirtColor;
+      const trimColor = isPlayer ? 0xfcd116 : (locOrConfig.trimColor || 0xfcd116);
+      const headwrapColor = isPlayer ? null : locOrConfig.headwrapColor;
+
+      const skinMat = new THREE.MeshLambertMaterial({ color: skinColor });
       const shirtMat = new THREE.MeshLambertMaterial({ color: shirtColor });
-      const pantsMat = new THREE.MeshLambertMaterial({ color: isPlayer ? 0x1d4ed8 : 0x334155 });
-      const hairMat = new THREE.MeshLambertMaterial({ color: hairColor });
-      const eyeMat = new THREE.MeshBasicMaterial({ color: 0x0f172a });
+      const trimMat = new THREE.MeshLambertMaterial({ color: trimColor });
+      const pantsMat = new THREE.MeshLambertMaterial({ color: isPlayer ? 0x1e293b : 0x27272a });
+      const hairMat = new THREE.MeshLambertMaterial({ color: 0x111827 });
+      const eyeMat = new THREE.MeshBasicMaterial({ color: 0x09090b });
+
+      // Petite ombre circulaire au sol
+      const shadow = new THREE.Mesh(
+        new THREE.CircleGeometry(0.55, 10),
+        new THREE.MeshBasicMaterial({ color: 0x3b1f0e, transparent: true, opacity: 0.25 })
+      );
+      shadow.rotation.x = -Math.PI / 2;
+      shadow.position.y = 0.03;
+      group.add(shadow);
 
       const leftLeg = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.72, 0.26), pantsMat);
       leftLeg.position.set(-0.17, 0.36, 0);
@@ -1007,31 +1871,50 @@
       rightLeg.position.set(0.17, 0.36, 0);
       group.add(rightLeg);
 
-      const torso = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.85, 0.38), shirtMat);
+      const torso = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.86, 0.38), shirtMat);
       torso.position.y = 1.15;
       group.add(torso);
 
+      // Bande décorative inspirée du Faso Dan Fani sur le buste
+      const trimBand = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.14, 0.4), trimMat);
+      trimBand.position.y = 0.86;
+      group.add(trimBand);
+
       const leftArmPivot = new THREE.Group();
       leftArmPivot.position.set(-0.46, 1.48, 0);
-      const leftArm = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.68, 0.22), shirtMat);
-      leftArm.position.y = -0.3;
-      leftArmPivot.add(leftArm);
+      const leftArm = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.44, 0.22), shirtMat);
+      leftArm.position.y = -0.18;
+      const leftHand = new THREE.Mesh(new THREE.BoxGeometry(0.20, 0.26, 0.20), skinMat);
+      leftHand.position.y = -0.52;
+      leftArmPivot.add(leftArm, leftHand);
       group.add(leftArmPivot);
 
       const rightArmPivot = new THREE.Group();
       rightArmPivot.position.set(0.46, 1.48, 0);
-      const rightArm = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.68, 0.22), shirtMat);
-      rightArm.position.y = -0.3;
-      rightArmPivot.add(rightArm);
+      const rightArm = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.44, 0.22), shirtMat);
+      rightArm.position.y = -0.18;
+      const rightHand = new THREE.Mesh(new THREE.BoxGeometry(0.20, 0.26, 0.20), skinMat);
+      rightHand.position.y = -0.52;
+      rightArmPivot.add(rightArm, rightHand);
       group.add(rightArmPivot);
 
       const head = new THREE.Mesh(new THREE.BoxGeometry(0.54, 0.54, 0.54), skinMat);
       head.position.y = 1.88;
       group.add(head);
 
-      const hair = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.18, 0.58), hairMat);
+      const hair = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.17, 0.58), hairMat);
       hair.position.y = 2.18;
       group.add(hair);
+
+      // Foulard / coiffure colorée pour certaines habitantes
+      if (headwrapColor) {
+        const wrap = new THREE.Mesh(
+          new THREE.BoxGeometry(0.62, 0.22, 0.62),
+          new THREE.MeshLambertMaterial({ color: headwrapColor })
+        );
+        wrap.position.y = 2.24;
+        group.add(wrap);
+      }
 
       const eyeL = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.05), eyeMat);
       eyeL.position.set(-0.12, 1.9, 0.27);
@@ -1044,86 +1927,272 @@
       return { group, parts: { leftLeg, rightLeg, leftArmPivot, rightArmPivot, head } };
     }
 
+    function createStripedAwning(width, depth, colorA, colorB) {
+      const awning = new THREE.Group();
+      const stripes = 5;
+      const sw = width / stripes;
+      const matA = new THREE.MeshLambertMaterial({ color: colorA });
+      const matB = new THREE.MeshLambertMaterial({ color: colorB });
+      for (let i = 0; i < stripes; i++) {
+        const seg = new THREE.Mesh(new THREE.BoxGeometry(sw, 0.16, depth), i % 2 === 0 ? matA : matB);
+        seg.position.x = -width / 2 + sw * (i + 0.5);
+        awning.add(seg);
+      }
+      awning.rotation.x = 0.22;
+      return awning;
+    }
+
     function createBuildingMesh(loc) {
       const b = new THREE.Group();
-      const wallMat = new THREE.MeshLambertMaterial({ color: 0xf8fafc });
-      const accentMat = new THREE.MeshLambertMaterial({ color: loc.color });
-      const glassMat = new THREE.MeshLambertMaterial({ color: 0xbae6fd });
-      const doorMat = new THREE.MeshLambertMaterial({ color: 0x78350f });
+      const wallMat = new THREE.MeshLambertMaterial({ color: loc.wallColor || 0xe6bc8a });
+      const terracottaMat = new THREE.MeshLambertMaterial({ color: 0xc8643c });
+      const accentMat = new THREE.MeshLambertMaterial({ color: loc.awningColor || loc.color });
+      const trimMat = new THREE.MeshLambertMaterial({ color: 0xfcd116 });
+      const glassMat = new THREE.MeshLambertMaterial({ color: 0x7dd3fc });
+      const doorMat = new THREE.MeshLambertMaterial({ color: 0x6b3a1e });
+      const darkMat = new THREE.MeshLambertMaterial({ color: 0x334155 });
 
-      if (loc.buildingType === 'arch') {
-        const p1 = new THREE.Mesh(new THREE.BoxGeometry(0.6, 3.8, 0.6), accentMat);
-        p1.position.set(-2.2, 1.9, 0);
-        const p2 = p1.clone();
-        p2.position.x = 2.2;
-        const top = new THREE.Mesh(new THREE.BoxGeometry(5.6, 0.8, 0.8), accentMat);
-        top.position.set(0, 4.0, 0);
-        b.add(p1, p2, top);
+      if (loc.buildingType === 'plaza') {
+        // Arche monumentale de la Place de la Nation (ocre, sable et bandeau tricolore BF)
+        const baseStep = new THREE.Mesh(new THREE.BoxGeometry(7.6, 0.32, 2.4), wallMat);
+        baseStep.position.y = 0.16;
+        b.add(baseStep);
+
+        [-2.7, 2.7].forEach(px => {
+          const pillar = new THREE.Mesh(new THREE.BoxGeometry(1.1, 4.4, 1.2), wallMat);
+          pillar.position.set(px, 2.36, 0);
+          b.add(pillar);
+          const cap = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.3, 1.4), terracottaMat);
+          cap.position.set(px, 4.65, 0);
+          b.add(cap);
+        });
+
+        const lintel = new THREE.Mesh(new THREE.BoxGeometry(7.4, 1.15, 1.35), wallMat);
+        lintel.position.set(0, 5.2, 0);
+        b.add(lintel);
+
+        // Frise rouge / or / vert sur l'arche
+        const bandRed = new THREE.Mesh(new THREE.BoxGeometry(6.6, 0.2, 1.42), new THREE.MeshLambertMaterial({ color: 0xef2b2d }));
+        bandRed.position.set(0, 5.42, 0);
+        const bandGold = new THREE.Mesh(new THREE.BoxGeometry(6.6, 0.14, 1.44), trimMat);
+        bandGold.position.set(0, 5.2, 0);
+        const bandGreen = new THREE.Mesh(new THREE.BoxGeometry(6.6, 0.2, 1.42), new THREE.MeshLambertMaterial({ color: 0x009e49 }));
+        bandGreen.position.set(0, 4.98, 0);
+        b.add(bandRed, bandGold, bandGreen);
+
       } else if (loc.buildingType === 'busstop') {
-        const back = new THREE.Mesh(new THREE.BoxGeometry(4.6, 2.6, 0.2), glassMat);
-        back.position.set(0, 1.3, -0.8);
-        const roof = new THREE.Mesh(new THREE.BoxGeometry(5.0, 0.25, 2.2), accentMat);
-        roof.position.set(0, 2.7, 0);
-        const bench = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.35, 0.7), doorMat);
-        bench.position.set(0, 0.55, -0.3);
-        const signPost = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 3.4, 6), accentMat);
-        signPost.position.set(2.8, 1.7, 0.5);
-        b.add(back, roof, bench, signPost);
+        // Gare Routière / Arrêt de Bus abrité + petit bus local garé à côté
+        const platform = new THREE.Mesh(new THREE.BoxGeometry(6.4, 0.18, 3.2), wallMat);
+        platform.position.y = 0.09;
+        b.add(platform);
+
+        const backWall = new THREE.Mesh(new THREE.BoxGeometry(5.6, 2.5, 0.26), terracottaMat);
+        backWall.position.set(0, 1.4, -1.1);
+        b.add(backWall);
+
+        [-2.6, 0, 2.6].forEach(px => {
+          const post = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 2.8, 6), darkMat);
+          post.position.set(px, 1.5, 1.0);
+          b.add(post);
+        });
+
+        const roof = new THREE.Mesh(new THREE.BoxGeometry(6.2, 0.22, 2.8), accentMat);
+        roof.position.set(0, 2.95, 0);
+        roof.rotation.x = -0.06;
+        b.add(roof);
+
+        const bench = new THREE.Mesh(new THREE.BoxGeometry(3.8, 0.35, 0.65), doorMat);
+        bench.position.set(-0.3, 0.55, -0.5);
+        b.add(bench);
+
+        // Poteau d'arrêt de bus
+        const signPost = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 3.5, 6), darkMat);
+        signPost.position.set(3.4, 1.75, 0.8);
+        const signBoard = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.65, 0.12), trimMat);
+        signBoard.position.set(3.4, 3.25, 0.8);
+        b.add(signPost, signBoard);
+
+        // Petit bus coloré stylisé à gauche de l'abri
+        const bus = new THREE.Group();
+        const busBody = new THREE.Mesh(new THREE.BoxGeometry(3.4, 1.5, 1.6), new THREE.MeshLambertMaterial({ color: 0x16a34a }));
+        busBody.position.y = 1.05;
+        const busStripe = new THREE.Mesh(new THREE.BoxGeometry(3.45, 0.25, 1.64), trimMat);
+        busStripe.position.y = 0.95;
+        const busWin = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.55, 1.64), glassMat);
+        busWin.position.y = 1.42;
+        bus.add(busBody, busStripe, busWin);
+        [[-1.0, 0.8], [1.0, 0.8], [-1.0, -0.8], [1.0, -0.8]].forEach(([wx, wz]) => {
+          const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.2, 8), darkMat);
+          wheel.rotation.x = Math.PI / 2;
+          wheel.position.set(wx, 0.32, wz);
+          bus.add(wheel);
+        });
+        bus.position.set(-4.9, 0, 0.6);
+        b.add(bus);
+
+      } else if (loc.buildingType === 'courtyard') {
+        // Cour Familiale burkinabè : mur d'enceinte bas, maison ocre/terre cuite, véranda et vélo garé !
+        const house = new THREE.Mesh(new THREE.BoxGeometry(4.8, 3.0, 3.4), wallMat);
+        house.position.set(0, 1.5, -1.2);
+        b.add(house);
+
+        const roof = new THREE.Mesh(new THREE.BoxGeometry(5.2, 0.36, 3.8), terracottaMat);
+        roof.position.set(0, 3.18, -1.2);
+        b.add(roof);
+
+        const verandaRoof = createStripedAwning(4.6, 1.5, 0xd97706, 0xfef3c7);
+        verandaRoof.position.set(0, 2.35, 1.05);
+        b.add(verandaRoof);
+
+        const door = new THREE.Mesh(new THREE.BoxGeometry(1.05, 1.85, 0.14), doorMat);
+        door.position.set(0, 0.92, 0.52);
+        b.add(door);
+
+        [-1.5, 1.5].forEach(wx => {
+          const win = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.85, 0.14), glassMat);
+          win.position.set(wx, 1.65, 0.52);
+          b.add(win);
+        });
+
+        // Muret de cour familiale (ouvert au centre pour l'entrée)
+        const wallH = 1.1;
+        const sideL = new THREE.Mesh(new THREE.BoxGeometry(0.26, wallH, 4.4), wallMat);
+        sideL.position.set(-2.9, wallH / 2, 0.8);
+        const sideR = sideL.clone();
+        sideR.position.x = 2.9;
+        const frontL = new THREE.Mesh(new THREE.BoxGeometry(1.8, wallH, 0.26), wallMat);
+        frontL.position.set(-2.1, wallH / 2, 2.9);
+        const frontR = frontL.clone();
+        frontR.position.x = 2.1;
+        b.add(sideL, sideR, frontL, frontR);
+
+        // Canari (jarre traditionnelle en terre cuite) dans la cour
+        const canari = new THREE.Mesh(new THREE.SphereGeometry(0.36, 8, 6), terracottaMat);
+        canari.position.set(-1.9, 0.36, 1.5);
+        b.add(canari);
+
+        // Vélo stylisé garé devant la cour (Unité 6 : I ride my bike to school)
+        const bike = new THREE.Group();
+        const wheelGeo = new THREE.TorusGeometry(0.32, 0.05, 6, 12);
+        const w1 = new THREE.Mesh(wheelGeo, darkMat);
+        w1.position.set(-0.52, 0.34, 0);
+        const w2 = new THREE.Mesh(wheelGeo, darkMat);
+        w2.position.set(0.52, 0.34, 0);
+        const frame = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.08, 0.08), new THREE.MeshLambertMaterial({ color: 0xef4444 }));
+        frame.position.set(0, 0.62, 0);
+        const handle = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.45, 0.42), darkMat);
+        handle.position.set(0.42, 0.82, 0);
+        bike.add(w1, w2, frame, handle);
+        bike.position.set(1.8, 0, 1.8);
+        bike.rotation.y = -0.3;
+        b.add(bike);
+
       } else {
-        const h = loc.buildingType === 'office' ? 5.2 : 3.4;
-        const w = 5.4;
+        // Bâtiments sahéliens modernes (Campus, Maquis, Boutique Faso Dan Fani, Villa, Bureau Tech)
+        const isTech = loc.buildingType === 'tech';
+        const isVilla = loc.buildingType === 'villa';
+        const h = isTech ? 4.8 : isVilla ? 4.2 : 3.4;
+        const w = isTech ? 6.0 : 5.6;
         const d = 4.2;
+
         const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), wallMat);
         body.position.y = h / 2;
         b.add(body);
 
-        if (loc.buildingType === 'house') {
-          const roof = new THREE.Mesh(new THREE.ConeGeometry(4.2, 2.2, 4), accentMat);
-          roof.rotation.y = Math.PI / 4;
-          roof.position.y = h + 1.1;
-          b.add(roof);
-        } else {
-          const roof = new THREE.Mesh(new THREE.BoxGeometry(w + 0.4, 0.45, d + 0.4), accentMat);
-          roof.position.y = h + 0.22;
-          b.add(roof);
-          const awning = new THREE.Mesh(new THREE.BoxGeometry(w - 0.6, 0.25, 1.1), accentMat);
-          awning.position.set(0, 2.3, d / 2 + 0.45);
-          b.add(awning);
-        }
+        // Parapet / corniche terre cuite ou ocre en haut du bâtiment
+        const cornice = new THREE.Mesh(new THREE.BoxGeometry(w + 0.36, 0.38, d + 0.36), terracottaMat);
+        cornice.position.y = h + 0.19;
+        b.add(cornice);
 
-        const door = new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.9, 0.15), doorMat);
-        door.position.set(0, 0.95, d / 2 + 0.05);
+        // Auvent coloré rayé au-dessus de la façade
+        const awning = createStripedAwning(w - 0.5, 1.35, loc.awningColor || loc.color, 0xfef3c7);
+        awning.position.set(0, 2.45, d / 2 + 0.58);
+        b.add(awning);
+
+        // Porte et fenêtres
+        const door = new THREE.Mesh(new THREE.BoxGeometry(1.15, 1.95, 0.15), doorMat);
+        door.position.set(0, 0.98, d / 2 + 0.06);
         b.add(door);
 
-        const winL = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.0, 0.15), glassMat);
-        winL.position.set(-1.6, 1.6, d / 2 + 0.05);
-        const winR = winL.clone();
-        winR.position.x = 1.6;
-        b.add(winL, winR);
+        [-1.75, 1.75].forEach(wx => {
+          const win = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.0, 0.15), glassMat);
+          win.position.set(wx, 1.55, d / 2 + 0.06);
+          b.add(win);
+        });
+
+        // Détails spécifiques par type de lieu
+        if (loc.buildingType === 'maquis') {
+          // Tables & tabourets de maquis en terrasse
+          [-1.5, 1.5].forEach(tx => {
+            const tbl = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 0.08, 8), trimMat);
+            tbl.position.set(tx, 0.72, d / 2 + 1.85);
+            const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.09, 0.72, 6), darkMat);
+            leg.position.set(tx, 0.36, d / 2 + 1.85);
+            b.add(tbl, leg);
+          });
+        } else if (loc.buildingType === 'market') {
+          // Rouleaux de pagnes Faso Dan Fani colorés en vitrine extérieure
+          const fabricColors = [0xef2b2d, 0xfcd116, 0x009e49, 0x2563eb, 0xd946ef];
+          fabricColors.forEach((fc, i) => {
+            const roll = new THREE.Mesh(
+              new THREE.CylinderGeometry(0.16, 0.16, 1.15, 7),
+              new THREE.MeshLambertMaterial({ color: fc })
+            );
+            roll.position.set(-1.6 + i * 0.8, 0.62, d / 2 + 0.75);
+            b.add(roll);
+          });
+        } else if (isVilla) {
+          // Fenêtres d'étage et balcon de la villa
+          [-1.5, 0, 1.5].forEach(wx => {
+            const upWin = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.85, 0.15), glassMat);
+            upWin.position.set(wx, 3.3, d / 2 + 0.06);
+            b.add(upWin);
+          });
+          const balcony = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.16, 0.9), terracottaMat);
+          balcony.position.set(0, 2.75, d / 2 + 0.45);
+          b.add(balcony);
+        } else if (isTech) {
+          // Baies vitrées à l'étage + panneaux solaires sur le toit du Bureau Tech
+          const bigWin = new THREE.Mesh(new THREE.BoxGeometry(4.4, 1.15, 0.15), glassMat);
+          bigWin.position.set(0, 3.65, d / 2 + 0.06);
+          b.add(bigWin);
+
+          const solarMat = new THREE.MeshLambertMaterial({ color: 0x1d4ed8 });
+          [-1.4, 1.4].forEach(sx => {
+            const panel = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.08, 1.3), solarMat);
+            panel.position.set(sx, h + 0.65, 0);
+            panel.rotation.x = 0.28;
+            b.add(panel);
+          });
+        } else if (loc.buildingType === 'campus') {
+          // Enseigne livre sur le toit de la Librairie / Campus
+          const sign = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.7, 0.2), accentMat);
+          sign.position.set(0, h + 0.75, d / 2 - 0.2);
+          b.add(sign);
+        }
       }
+
       return b;
     }
 
     function buildAllLocationsAndNPCs() {
       const labelsLayer = document.getElementById('labels-layer');
-      const hairColors = [0x451a03, 0x0f172a, 0x713f12, 0x1e293b, 0x92400e, 0x334155, 0x0f172a];
 
       NEIGHBORHOOD_DATA.forEach((loc, idx) => {
         const building = createBuildingMesh(loc);
-        const dirToCenter = new THREE.Vector2(-loc.pos.x, 2 - loc.pos.z).normalize();
-        building.position.set(loc.pos.x - dirToCenter.x * 3.8, 0, loc.pos.z - dirToCenter.y * 3.8);
-        building.lookAt(loc.pos.x, 0, loc.pos.z);
+        building.position.set(loc.buildingPos.x, 0, loc.buildingPos.z);
+        building.rotation.y = loc.buildingRotY || 0;
         scene.add(building);
 
         const ring = new THREE.Mesh(
-          new THREE.RingGeometry(0.9, 1.25, 24),
+          new THREE.RingGeometry(0.92, 1.28, 20),
           new THREE.MeshBasicMaterial({ color: loc.color, side: THREE.DoubleSide })
         );
         ring.rotation.x = -Math.PI / 2;
-        ring.position.set(loc.pos.x, 0.07, loc.pos.z);
+        ring.position.set(loc.pos.x, 0.09, loc.pos.z);
         scene.add(ring);
 
-        const npc = createCharacterMesh(loc.shirtColor, hairColors[idx % hairColors.length], false);
+        const npc = createCharacterMesh(loc, false);
         npc.group.position.set(loc.pos.x, 0, loc.pos.z);
         npc.group.lookAt(0, 0, 2);
         npc.group.userData = { npcId: loc.id };
@@ -1144,7 +2213,7 @@
         });
         labelsLayer.appendChild(labelEl);
 
-        const entity = { data: loc, group: npc.group, parts: npc.parts, ring, labelEl, phase: idx * 1.1 };
+        const entity = { data: loc, group: npc.group, parts: npc.parts, ring, labelEl, phase: idx * 0.9 };
         renderNpcLabel(entity);
         npcEntities.push(entity);
       });
@@ -1155,25 +2224,29 @@
       const quizDone = state.completedQuizIds.has(loc.id);
       const visited = state.visitedIds.has(loc.id);
       const badge = quizDone
-        ? ' <span class="text-emerald-400" title="Défi réussi">🏆</span>'
+        ? ' <span class="text-emerald-400" title="Quiz réussi">🏆</span>'
         : visited
-          ? ' <span class="text-sky-300" title="Lieu visité">✓</span>'
+          ? ' <span class="text-amber-300" title="Lieu visité">✓</span>'
           : '';
 
       entity.labelEl.className = `npc-label glass rounded-2xl px-2.5 py-1 shadow-lg text-center border ${
-        quizDone ? 'border-emerald-400/50' : visited ? 'border-sky-400/40' : 'border-white/25'
+        quizDone ? 'border-emerald-400/55' : visited ? 'border-amber-400/45' : 'border-white/25'
       }`;
       entity.labelEl.innerHTML = `
-        <div class="text-[11px] sm:text-xs font-extrabold text-white whitespace-nowrap">${loc.icon} ${loc.npcName}${badge}</div>
+        <div class="text-[11px] sm:text-xs font-extrabold text-white whitespace-nowrap">
+          <span class="text-amber-300 mr-0.5">U${loc.unit}</span> ${loc.icon} ${loc.npcName}${badge}
+        </div>
         <div class="text-[9px] sm:text-[10px] text-sky-300 font-medium whitespace-nowrap">${loc.placeName}</div>
       `;
     }
 
     function buildPlayerAvatar() {
-      const player = createCharacterMesh(0x10b981, 0x0f172a, true);
+      const player = createCharacterMesh({}, true);
       playerGroup = player.group;
       playerParts = player.parts;
-      playerGroup.position.set(0, 0, 2);
+      // Apparition au sud de la Place de la Nation, face au drapeau du Burkina Faso
+      playerGroup.position.set(0, 0, 7.6);
+      playerGroup.rotation.y = Math.PI;
       scene.add(playerGroup);
     }
 
@@ -1236,7 +2309,7 @@
 
       dom.addEventListener('wheel', e => {
         e.preventDefault();
-        state.cameraDistance = Math.max(8, Math.min(24, state.cameraDistance + e.deltaY * 0.01));
+        state.cameraDistance = Math.max(8, Math.min(26, state.cameraDistance + e.deltaY * 0.01));
       }, { passive: false });
 
       dom.addEventListener('touchstart', e => {
@@ -1255,7 +2328,7 @@
           e.preventDefault();
           const dist = getPinchDistance(e.touches);
           const delta = lastPinchDist - dist;
-          state.cameraDistance = Math.max(8, Math.min(24, state.cameraDistance + delta * 0.04));
+          state.cameraDistance = Math.max(8, Math.min(26, state.cameraDistance + delta * 0.04));
           lastPinchDist = dist;
         } else if (state.isDragging && e.touches.length === 1) {
           e.preventDefault();
@@ -1290,7 +2363,7 @@
         z: loc.pos.z + Math.cos(angle) * 2.2,
         openNpc: loc
       };
-      showToast(`🚶 En route vers ${loc.placeName} (${loc.npcName})...`);
+      showToast(`🚶 En route vers Unité ${loc.unit} : ${loc.placeName} (${loc.npcName})...`);
     }
 
     function onWindowResize() {
@@ -1305,9 +2378,14 @@
       const dt = Math.min(clock.getDelta(), 0.05);
       const elapsed = clock.getElapsedTime();
 
+      // Doux flottement du drapeau du Burkina Faso dans la brise
+      if (burkinaFlagPivot) {
+        burkinaFlagPivot.rotation.y = 0.25 + Math.sin(elapsed * 2.3) * 0.16;
+      }
+
       let moveX = 0;
       let moveZ = 0;
-      const speed = 7.2;
+      const speed = 7.6;
 
       if (state.keys.up) moveZ -= 1;
       if (state.keys.down) moveZ += 1;
@@ -1332,19 +2410,28 @@
         const dx = state.autoWalkTarget.x - playerGroup.position.x;
         const dz = state.autoWalkTarget.z - playerGroup.position.z;
         const dist = Math.hypot(dx, dz);
-        if (dist < 0.45) {
+        if (dist < 0.48) {
           const npcToOpen = state.autoWalkTarget.openNpc;
           state.autoWalkTarget = null;
           if (npcToOpen) openDialogue(npcToOpen);
         } else {
-          playerGroup.position.x += (dx / dist) * (speed * 1.15) * dt;
-          playerGroup.position.z += (dz / dist) * (speed * 1.15) * dt;
+          playerGroup.position.x += (dx / dist) * (speed * 1.2) * dt;
+          playerGroup.position.z += (dz / dist) * (speed * 1.2) * dt;
           playerGroup.rotation.y = Math.atan2(dx, dz);
         }
       }
 
-      playerGroup.position.x = Math.max(-28, Math.min(28, playerGroup.position.x));
-      playerGroup.position.z = Math.max(-20, Math.min(28, playerGroup.position.z));
+      // Contourner doucement le socle central du mât (0, 2)
+      const fDx = playerGroup.position.x;
+      const fDz = playerGroup.position.z - 2;
+      const fDist = Math.hypot(fDx, fDz);
+      if (fDist < 2.65 && fDist > 0.001) {
+        playerGroup.position.x = (fDx / fDist) * 2.65;
+        playerGroup.position.z = 2 + (fDz / fDist) * 2.65;
+      }
+
+      playerGroup.position.x = Math.max(-29, Math.min(29, playerGroup.position.x));
+      playerGroup.position.z = Math.max(-18, Math.min(30, playerGroup.position.z));
 
       const isMoving = manualMove || Boolean(state.autoWalkTarget);
       if (isMoving) {
@@ -1366,17 +2453,17 @@
       }
 
       let closestNpc = null;
-      let closestDist = 4.2;
+      let closestDist = 4.3;
 
       npcEntities.forEach(npc => {
         const dx = playerGroup.position.x - npc.group.position.x;
         const dz = playerGroup.position.z - npc.group.position.z;
         const dist = Math.hypot(dx, dz);
 
-        npc.group.position.y = Math.sin(elapsed * 2.5 + npc.phase) * 0.04;
+        npc.group.position.y = Math.sin(elapsed * 2.5 + npc.phase) * 0.035;
         npc.ring.scale.setScalar(1 + Math.sin(elapsed * 3 + npc.phase) * 0.07);
 
-        if (dist < 6.5) {
+        if (dist < 6.8) {
           npc.group.rotation.y = Math.atan2(dx, dz);
           npc.parts.rightArmPivot.rotation.z = -2.4 + Math.sin(elapsed * 8) * 0.35;
         } else {
@@ -1388,14 +2475,14 @@
           closestNpc = npc.data;
         }
 
-        const labelPos = new THREE.Vector3(npc.group.position.x, 2.75, npc.group.position.z);
-        labelPos.project(camera);
-        if (labelPos.z < 1) {
-          const x = (labelPos.x * 0.5 + 0.5) * window.innerWidth;
-          const y = (-labelPos.y * 0.5 + 0.5) * window.innerHeight;
+        _labelVec.set(npc.group.position.x, 2.8, npc.group.position.z);
+        _labelVec.project(camera);
+        if (_labelVec.z < 1) {
+          const x = (_labelVec.x * 0.5 + 0.5) * window.innerWidth;
+          const y = (-_labelVec.y * 0.5 + 0.5) * window.innerHeight;
           npc.labelEl.style.left = `${x}px`;
           npc.labelEl.style.top = `${y}px`;
-          npc.labelEl.style.opacity = dist < 34 ? '1' : '0.45';
+          npc.labelEl.style.opacity = dist < 38 ? '1' : '0.45';
           npc.labelEl.style.display = 'block';
         } else {
           npc.labelEl.style.display = 'none';
@@ -1407,15 +2494,14 @@
       if (closestNpc && !state.activeNpc) {
         const isSmallScreen = window.innerWidth < 640;
         document.getElementById('proximity-text').textContent = isSmallScreen
-          ? `Parler à ${closestNpc.npcName}`
-          : `Parler à ${closestNpc.npcName} (${closestNpc.placeName})`;
+          ? `Parler à ${closestNpc.npcName} (U${closestNpc.unit})`
+          : `Parler à ${closestNpc.npcName} — U${closestNpc.unit} ${closestNpc.placeName}`;
         promptEl.classList.remove('hidden');
       } else {
         promptEl.classList.add('hidden');
       }
 
       // Sur mobile, décaler légèrement le point visé vers le bas lorsque la feuille de dialogue est ouverte
-      // afin que les personnages restent visibles dans la moitié supérieure de l'écran.
       const targetLookY = (state.activeNpc && window.innerWidth < 640) ? -0.3 : 1.4;
       state.lookAtY += (targetLookY - state.lookAtY) * 0.1;
 
@@ -1423,14 +2509,15 @@
       const camY = playerGroup.position.y + 1.8 + Math.sin(state.cameraPitch) * state.cameraDistance;
       const camZ = playerGroup.position.z + Math.cos(state.cameraYaw) * Math.cos(state.cameraPitch) * state.cameraDistance;
 
-      camera.position.lerp(new THREE.Vector3(camX, camY, camZ), 0.12);
+      _camGoalVec.set(camX, camY, camZ);
+      camera.position.lerp(_camGoalVec, 0.12);
       camera.lookAt(playerGroup.position.x, playerGroup.position.y + state.lookAtY, playerGroup.position.z);
 
       renderer.render(scene, camera);
     }
 
     /*************************************************************************
-     * 7. INTERFACE : PROGRESSION, DIALOGUES, VOCABULAIRE & MINI-QUIZ
+     * 7. INTERFACE : PROGRESSION (8 UNITÉS), DIALOGUES, GRAMMAIRE, MOTS & QUIZ
      *************************************************************************/
     function buildQuickNav() {
       const nav = document.getElementById('quick-nav');
@@ -1444,17 +2531,17 @@
         btn.dataset.locId = loc.id;
         btn.className = `glass btn-pop shrink-0 rounded-full px-3 min-h-[36px] py-1.5 text-xs font-semibold flex items-center gap-1.5 shadow ${
           quizDone
-            ? 'text-emerald-200 border-emerald-400/50 bg-emerald-500/15 hover:bg-emerald-500/25'
+            ? 'text-emerald-200 border-emerald-400/55 bg-emerald-500/15 hover:bg-emerald-500/25'
             : visited
-              ? 'text-sky-200 border-sky-400/40 hover:bg-sky-500/30'
-              : 'text-slate-100 hover:bg-sky-500/30'
+              ? 'text-amber-200 border-amber-400/45 hover:bg-amber-500/25'
+              : 'text-slate-100 hover:bg-amber-500/25'
         }`;
         const statusMark = quizDone
           ? '<span class="text-[11px]" title="Quiz réussi">🏆</span>'
           : visited
             ? '<span class="text-[11px] text-emerald-400" title="Visité">✓</span>'
             : '';
-        btn.innerHTML = `<span>${loc.icon}</span><span>${loc.placeName}</span>${statusMark}`;
+        btn.innerHTML = `<span class="text-[10px] font-extrabold text-amber-300">U${loc.unit}</span><span>${loc.icon}</span><span>${loc.shortName || loc.placeName}</span>${statusMark}`;
         btn.addEventListener('click', () => {
           initAudioFX();
           walkToAndTalk(loc);
@@ -1472,7 +2559,7 @@
 
       if (badgeEl) badgeEl.classList.toggle('hidden', !quizDone);
       if (bannerEl) bannerEl.classList.toggle('hidden', !quizDone);
-      if (quizTab) quizTab.textContent = quizDone ? '🎯 Défi ✓' : '🎯 Défi';
+      if (quizTab) quizTab.textContent = quizDone ? '🎯 Quiz ✓' : '🎯 Quiz';
     }
 
     function syncProgressUI() {
@@ -1483,21 +2570,21 @@
 
       document.getElementById('xp-display').textContent = `${state.xp} XP`;
       document.getElementById('visited-count').textContent = visitedCount;
+      document.getElementById('visited-total').textContent = total;
       document.getElementById('quiz-count').textContent = quizCount;
+      document.getElementById('quiz-total').textContent = total;
       document.getElementById('progress-bar-fill').style.width = `${pct}%`;
       document.getElementById('btn-sound-toggle').textContent = state.soundEnabled ? '🔊' : '🔇';
 
-      // Mise à jour de la navigation rapide et des étiquettes 3D
       buildQuickNav();
       npcEntities.forEach(renderNpcLabel);
 
-      // Résumé dans la modale d'accueil / aide
       const helpSummary = document.getElementById('help-progress-summary');
       const startBtn = document.getElementById('btn-start-sim');
       if (hasSavedProgress()) {
         helpSummary.textContent = `💾 Progression sauvegardée : ${state.xp} XP • ${visitedCount}/${total} lieux • ${quizCount}/${total} quiz réussis`;
         helpSummary.classList.remove('hidden');
-        startBtn.textContent = '🚀 Continuer l\'exploration';
+        startBtn.textContent = "🚀 Continuer l'exploration";
       } else {
         helpSummary.classList.add('hidden');
         startBtn.textContent = '🚀 Entrer dans le quartier';
@@ -1508,8 +2595,154 @@
       }
     }
 
+    function renderDialogueLines(loc) {
+      const box = document.getElementById('dialogue-lines');
+      box.innerHTML = '';
+      const lines = loc.dialogues && loc.dialogues.length > 0 ? loc.dialogues : [];
+
+      lines.forEach(line => {
+        const card = document.createElement('button');
+        card.type = 'button';
+        card.className = 'btn-pop w-full text-left bg-slate-900/75 hover:bg-slate-800/90 rounded-xl p-3 border border-white/10 transition block';
+
+        const topRow = document.createElement('div');
+        topRow.className = 'flex items-center justify-between gap-2 mb-1';
+        const speakerSpan = document.createElement('span');
+        speakerSpan.className = 'text-[10px] uppercase tracking-wider font-extrabold text-amber-300';
+        speakerSpan.textContent = line.speaker || loc.npcName;
+        const iconSpan = document.createElement('span');
+        iconSpan.className = 'text-xs text-sky-300 shrink-0';
+        iconSpan.textContent = '🔊';
+        topRow.append(speakerSpan, iconSpan);
+        card.appendChild(topRow);
+
+        const enP = document.createElement('p');
+        enP.className = 'text-sm sm:text-[15px] font-extrabold text-white leading-snug';
+        enP.textContent = line.en;
+        card.appendChild(enP);
+
+        if (line.phonetic) {
+          const phP = document.createElement('p');
+          phP.className = 'text-[11px] text-amber-300/90 font-mono mt-1 break-words';
+          phP.textContent = line.phonetic;
+          card.appendChild(phP);
+        }
+
+        if (line.fr) {
+          const frP = document.createElement('p');
+          frP.className = 'text-xs sm:text-sm text-slate-300 mt-1.5 pt-1.5 border-t border-slate-700/70';
+          frP.textContent = line.fr;
+          card.appendChild(frP);
+        }
+
+        card.addEventListener('click', () => speakEnglish(line.en, false, loc.voice));
+        box.appendChild(card);
+      });
+    }
+
+    function renderGrammarPanel(loc) {
+      const gList = document.getElementById('grammar-list');
+      gList.innerHTML = '';
+      const points = Array.isArray(loc.grammar) ? loc.grammar : [];
+
+      if (points.length === 0) {
+        const empty = document.createElement('p');
+        empty.className = 'text-xs text-slate-400 italic';
+        empty.textContent = 'Aucun point de grammaire renseigné dans lessons.json pour cette unité.';
+        gList.appendChild(empty);
+        return;
+      }
+
+      points.forEach(point => {
+        const card = document.createElement('div');
+        card.className = 'bg-slate-900/75 rounded-2xl p-3 border border-white/10 space-y-2';
+
+        const title = document.createElement('h3');
+        title.className = 'text-xs sm:text-sm font-extrabold text-amber-300';
+        title.textContent = `📘 ${point.title}`;
+        card.appendChild(title);
+
+        if (point.explanation) {
+          const exp = document.createElement('p');
+          exp.className = 'text-xs text-slate-200 leading-relaxed';
+          exp.textContent = point.explanation;
+          card.appendChild(exp);
+        }
+
+        if (Array.isArray(point.examples) && point.examples.length > 0) {
+          const exWrap = document.createElement('div');
+          exWrap.className = 'space-y-1.5 pt-1';
+          point.examples.forEach(ex => {
+            const exBtn = document.createElement('button');
+            exBtn.type = 'button';
+            exBtn.className = 'btn-pop w-full text-left bg-slate-800/80 hover:bg-slate-700/90 border border-white/10 rounded-xl px-3 py-2 flex items-center justify-between gap-2';
+            const left = document.createElement('div');
+            left.className = 'min-w-0';
+            const enDiv = document.createElement('div');
+            enDiv.className = 'text-xs font-bold text-white';
+            enDiv.textContent = ex.en;
+            left.appendChild(enDiv);
+            if (ex.fr) {
+              const frDiv = document.createElement('div');
+              frDiv.className = 'text-[11px] text-slate-300';
+              frDiv.textContent = ex.fr;
+              left.appendChild(frDiv);
+            }
+            const spk = document.createElement('span');
+            spk.className = 'text-sm shrink-0';
+            spk.textContent = '🔊';
+            exBtn.append(left, spk);
+            exBtn.addEventListener('click', () => speakEnglish(ex.en, false, loc.voice));
+            exWrap.appendChild(exBtn);
+          });
+          card.appendChild(exWrap);
+        }
+
+        gList.appendChild(card);
+      });
+    }
+
+    function renderVocabPanel(loc) {
+      const vList = document.getElementById('vocab-list');
+      vList.innerHTML = '';
+      (loc.vocab || []).forEach(item => {
+        const card = document.createElement('button');
+        card.type = 'button';
+        card.className = 'btn-pop text-left bg-slate-900/80 hover:bg-slate-800 border border-white/10 rounded-2xl p-3 min-h-[56px] flex items-center justify-between gap-2';
+
+        const left = document.createElement('div');
+        left.className = 'min-w-0';
+        const enDiv = document.createElement('div');
+        enDiv.className = 'font-bold text-sm text-white';
+        enDiv.textContent = item.en;
+        left.appendChild(enDiv);
+
+        if (item.phonetic) {
+          const phDiv = document.createElement('div');
+          phDiv.className = 'text-[11px] font-mono text-amber-300';
+          phDiv.textContent = item.phonetic;
+          left.appendChild(phDiv);
+        }
+
+        const frDiv = document.createElement('div');
+        frDiv.className = 'text-xs text-slate-300 mt-0.5';
+        frDiv.textContent = item.fr || '';
+        left.appendChild(frDiv);
+
+        const spk = document.createElement('span');
+        spk.className = 'text-lg shrink-0';
+        spk.textContent = '🔊';
+        card.append(left, spk);
+
+        card.addEventListener('click', () => speakEnglish(item.en, false, loc.voice));
+        vList.appendChild(card);
+      });
+    }
+
     function openDialogue(loc) {
       state.activeNpc = loc;
+      state.quizIndex = 0;
+      state.quizCorrectCount = 0;
       playFX('open');
 
       if (!state.visitedIds.has(loc.id)) {
@@ -1520,32 +2753,15 @@
       }
 
       document.getElementById('dlg-avatar').textContent = loc.icon;
+      document.getElementById('dlg-unit-badge').textContent = `Unité ${loc.unit}`;
       document.getElementById('dlg-npc-name').textContent = loc.npcName;
       document.getElementById('dlg-place-badge').textContent = loc.placeName;
-      document.getElementById('dlg-theme').textContent = loc.theme;
-      document.getElementById('dlg-en').textContent = loc.dialogueEn;
-      document.getElementById('dlg-phonetic').textContent = loc.phonetic;
-      document.getElementById('dlg-fr').textContent = loc.dialogueFr;
-      document.getElementById('dlg-tip').textContent = loc.tip;
+      document.getElementById('dlg-theme').textContent = `${loc.unitTitle} • ${loc.theme}`;
+      document.getElementById('dlg-tip').textContent = loc.tip || '';
 
-      const vList = document.getElementById('vocab-list');
-      vList.innerHTML = '';
-      loc.vocab.forEach(item => {
-        const card = document.createElement('button');
-        card.type = 'button';
-        card.className = 'btn-pop text-left bg-slate-900/80 hover:bg-slate-800 border border-white/10 rounded-2xl p-3 min-h-[56px] flex items-center justify-between gap-2';
-        card.innerHTML = `
-          <div class="min-w-0">
-            <div class="font-bold text-sm text-white">${item.en}</div>
-            <div class="text-[11px] font-mono text-amber-300">${item.phonetic || ''}</div>
-            <div class="text-xs text-slate-300 mt-0.5">${item.fr}</div>
-          </div>
-          <span class="text-lg shrink-0">🔊</span>
-        `;
-        card.addEventListener('click', () => speakEnglish(item.en, false, loc.voice));
-        vList.appendChild(card);
-      });
-
+      renderDialogueLines(loc);
+      renderGrammarPanel(loc);
+      renderVocabPanel(loc);
       renderQuiz(loc);
       updateDialogueStatusBadges(loc);
       switchTab('dialogue');
@@ -1559,40 +2775,97 @@
       dpad.classList.add('hidden', 'sm:grid');
       dpad.classList.remove('grid');
 
-      speakEnglish(loc.dialogueEn, false, loc.voice);
+      const firstLine = loc.dialogues && loc.dialogues[0] ? loc.dialogues[0].en : '';
+      if (firstLine) speakEnglish(firstLine, false, loc.voice);
     }
 
     function renderQuiz(loc) {
-      document.getElementById('quiz-question').textContent = loc.quiz.question;
+      const quizzes = Array.isArray(loc.quizzes) && loc.quizzes.length > 0 ? loc.quizzes : [];
+      const qEl = document.getElementById('quiz-question');
+      const progressLabel = document.getElementById('quiz-progress-label');
       const optBox = document.getElementById('quiz-options');
       const feedback = document.getElementById('quiz-feedback');
+      const nextBtn = document.getElementById('btn-quiz-next');
+
       feedback.classList.add('hidden');
+      nextBtn.classList.add('hidden');
       optBox.innerHTML = '';
 
-      loc.quiz.options.forEach(opt => {
+      if (quizzes.length === 0) {
+        progressLabel.textContent = '0/0';
+        qEl.textContent = 'Aucun exercice défini dans lessons.json pour cette unité.';
+        return;
+      }
+
+      const idx = Math.min(state.quizIndex, quizzes.length - 1);
+      const currentQ = quizzes[idx];
+      progressLabel.textContent = `Question ${idx + 1}/${quizzes.length}`;
+      qEl.textContent = currentQ.question;
+
+      let answeredCorrectly = false;
+
+      currentQ.options.forEach(opt => {
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'btn-pop w-full text-left bg-slate-900/80 hover:bg-slate-800 border border-white/15 rounded-2xl px-4 py-3 min-h-[48px] text-xs sm:text-sm font-semibold text-white flex items-center justify-between gap-2';
-        btn.innerHTML = `<span class="leading-snug">${opt.text}</span><span class="text-[11px] text-slate-400 shrink-0">Choisir</span>`;
+
+        const txt = document.createElement('span');
+        txt.className = 'leading-snug';
+        txt.textContent = opt.text;
+        const choose = document.createElement('span');
+        choose.className = 'text-[11px] text-slate-400 shrink-0';
+        choose.textContent = 'Choisir';
+        btn.append(txt, choose);
+
         btn.addEventListener('click', () => {
           speakEnglish(opt.text, false, loc.voice);
           feedback.classList.remove('hidden');
+
           if (opt.correct) {
             playFX('success');
             btn.classList.add('border-emerald-400', 'bg-emerald-500/20');
             feedback.className = 'rounded-2xl p-3 text-xs sm:text-sm font-semibold bg-emerald-500/20 text-emerald-200 border border-emerald-400/40';
-            if (!state.completedQuizIds.has(loc.id)) {
-              state.completedQuizIds.add(loc.id);
-              addXP(20);
-              feedback.textContent = `🎉 Excellent ! +20 XP gagnés avec ${loc.npcName} !`;
+
+            const extra = currentQ.explanation ? ` ${currentQ.explanation}` : '';
+            const isLast = idx >= quizzes.length - 1;
+
+            if (!answeredCorrectly) {
+              answeredCorrectly = true;
+              state.quizCorrectCount++;
+            }
+
+            if (isLast) {
+              if (!state.completedQuizIds.has(loc.id)) {
+                state.completedQuizIds.add(loc.id);
+                addXP(20);
+                feedback.textContent = `🎉 Unité ${loc.unit} validée ! +20 XP gagnés avec ${loc.npcName} !${extra}`;
+              } else {
+                feedback.textContent = `✅ Bravo, c'est la bonne réponse !${extra}`;
+              }
+              if (quizzes.length > 1) {
+                nextBtn.textContent = '🔁 Recommencer le quiz';
+                nextBtn.classList.remove('hidden');
+                nextBtn.onclick = () => {
+                  state.quizIndex = 0;
+                  state.quizCorrectCount = 0;
+                  renderQuiz(loc);
+                };
+              }
             } else {
-              feedback.textContent = `✅ Bravo, c'est la bonne réponse !`;
+              feedback.textContent = `✅ Bonne réponse !${extra}`;
+              nextBtn.textContent = `Question suivante (${idx + 2}/${quizzes.length}) ➡️`;
+              nextBtn.classList.remove('hidden');
+              nextBtn.onclick = () => {
+                playFX('click');
+                state.quizIndex = idx + 1;
+                renderQuiz(loc);
+              };
             }
           } else {
             playFX('error');
             btn.classList.add('border-rose-400', 'bg-rose-500/20');
             feedback.className = 'rounded-2xl p-3 text-xs sm:text-sm font-semibold bg-rose-500/20 text-rose-200 border border-rose-400/40';
-            feedback.textContent = `❌ Pas tout à fait ! Réécoutez le dialogue de ${loc.npcName} et réessayez.`;
+            feedback.textContent = `❌ Pas tout à fait ! Consultez le dialogue ou la grammaire de ${loc.npcName} et réessayez.`;
           }
         });
         optBox.appendChild(btn);
@@ -1613,15 +2886,15 @@
     }
 
     function switchTab(tabName) {
-      ['dialogue', 'vocab', 'quiz'].forEach(name => {
+      ['dialogue', 'grammar', 'vocab', 'quiz'].forEach(name => {
         const panel = document.getElementById(`panel-${name}`);
         const btn = document.getElementById(`tab-${name}`);
         if (name === tabName) {
           panel.classList.remove('hidden');
-          btn.className = 'tab-btn flex-1 min-h-[38px] py-1.5 px-2 rounded-lg text-xs font-bold bg-sky-500 text-slate-950 transition';
+          btn.className = 'tab-btn min-h-[38px] py-1.5 px-1 rounded-lg text-[11px] sm:text-xs font-bold bg-amber-400 text-slate-950 transition';
         } else {
           panel.classList.add('hidden');
-          btn.className = 'tab-btn flex-1 min-h-[38px] py-1.5 px-2 rounded-lg text-xs font-bold text-slate-300 hover:text-white transition';
+          btn.className = 'tab-btn min-h-[38px] py-1.5 px-1 rounded-lg text-[11px] sm:text-xs font-bold text-slate-300 hover:text-white transition';
         }
       });
     }
@@ -1697,7 +2970,7 @@
 
       document.getElementById('btn-reset-cam').addEventListener('click', () => {
         state.cameraYaw = 0;
-        state.cameraPitch = 0.42;
+        state.cameraPitch = 0.40;
         state.cameraDistance = getDefaultCameraDistance();
         playFX('click');
       });
@@ -1791,20 +3064,25 @@
       });
 
       document.getElementById('tab-dialogue').addEventListener('click', () => switchTab('dialogue'));
+      document.getElementById('tab-grammar').addEventListener('click', () => switchTab('grammar'));
       document.getElementById('tab-vocab').addEventListener('click', () => switchTab('vocab'));
       document.getElementById('tab-quiz').addEventListener('click', () => switchTab('quiz'));
 
       document.getElementById('btn-speak-normal').addEventListener('click', () => {
-        if (state.activeNpc) speakEnglish(state.activeNpc.dialogueEn, false, state.activeNpc.voice);
+        if (state.activeNpc) speakDialogueSequence(state.activeNpc, false);
       });
       document.getElementById('btn-speak-slow').addEventListener('click', () => {
-        if (state.activeNpc) speakEnglish(state.activeNpc.dialogueEn, true, state.activeNpc.voice);
+        if (state.activeNpc) speakDialogueSequence(state.activeNpc, true);
+      });
+      document.getElementById('btn-speak-stop').addEventListener('click', () => {
+        playFX('click');
+        stopCurrentSpeech();
       });
     }
 
     window.onload = async function () {
       const restored = loadProgress();
-      await tryLoadNotebookLessons();
+      await loadLessonsFromJson();
       bindUIEvents();
       const sceneReady = initThreeScene();
       syncProgressUI();
