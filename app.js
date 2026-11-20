@@ -546,6 +546,18 @@ const state = {
   nearbyNpc: null,
   activeTab: 'dialogue',
   autoWalkTarget: null,
+  speakingTarget: null, // 'player' | npcId | null (pilote le lip-sync 3D et les gestes)
+  cinema: {
+    active: false,
+    loc: null,
+    npcEntity: null,
+    turnIndex: 0,
+    finished: false,
+    activeRole: null, // 'npc' | 'player'
+    playerSpot: null,
+    camSide: 1,
+    autoAdvanceTimer: null
+  },
   quizIndex: 0,
   quizAnswered: false,
   keys: { up: false, down: false, left: false, right: false },
@@ -799,8 +811,17 @@ function playFX(type) {
   } catch (e) {}
 }
 
+function clearCinemaAutoAdvance() {
+  if (state.cinema && state.cinema.autoAdvanceTimer) {
+    clearTimeout(state.cinema.autoAdvanceTimer);
+    state.cinema.autoAdvanceTimer = null;
+  }
+}
+
 function stopCurrentSpeech() {
   speechRequestId++;
+  clearCinemaAutoAdvance();
+  state.speakingTarget = null;
   if (currentAudio) {
     currentAudio.pause();
     currentAudio.currentTime = 0;
@@ -809,9 +830,10 @@ function stopCurrentSpeech() {
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
   const statusEl = document.getElementById('voice-status');
   if (statusEl) statusEl.classList.add('hidden');
+  updateBubbleSpeakingWaves(false);
 }
 
-function playSingleUtterance(text, slow, chosenVoice, myReqId) {
+function playSingleUtterance(text, slow, chosenVoice, myReqId, speakerTarget = null) {
   return new Promise(async (resolve) => {
     if (!text || myReqId !== speechRequestId) {
       resolve();
@@ -824,6 +846,21 @@ function playSingleUtterance(text, slow, chosenVoice, myReqId) {
       statusEl.textContent = slow ? 'Lecture lente...' : 'Lecture audio...';
       statusEl.classList.remove('hidden');
     }
+
+    const startSpeaking = () => {
+      if (myReqId === speechRequestId && speakerTarget) {
+        state.speakingTarget = speakerTarget;
+        updateBubbleSpeakingWaves(true);
+      }
+    };
+
+    const finishSpeaking = () => {
+      if (myReqId === speechRequestId) {
+        state.speakingTarget = null;
+        updateBubbleSpeakingWaves(false);
+      }
+      resolve();
+    };
 
     try {
       const url = `/tts?text=${encodeURIComponent(text)}&voice=${encodeURIComponent(chosenVoice)}&rate=${encodeURIComponent(rateParam)}`;
@@ -838,13 +875,17 @@ function playSingleUtterance(text, slow, chosenVoice, myReqId) {
       const audioUrl = URL.createObjectURL(blob);
       const audio = new Audio(audioUrl);
       currentAudio = audio;
+      let finished = false;
       const done = () => {
+        if (finished) return;
+        finished = true;
         URL.revokeObjectURL(audioUrl);
         if (currentAudio === audio) currentAudio = null;
-        resolve();
+        finishSpeaking();
       };
       audio.onended = done;
       audio.onerror = done;
+      startSpeaking();
       await audio.play();
     } catch (e) {
       if (myReqId !== speechRequestId) {
@@ -852,25 +893,43 @@ function playSingleUtterance(text, slow, chosenVoice, myReqId) {
         return;
       }
       if ('speechSynthesis' in window) {
+        let settled = false;
+        const finishUtter = () => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(fallbackSafetyTimer);
+          finishSpeaking();
+        };
         const utter = new SpeechSynthesisUtterance(text);
         utter.lang = 'en-US';
         utter.rate = slow ? 0.68 : 0.95;
-        utter.onend = () => resolve();
-        utter.onerror = () => resolve();
+        utter.onstart = startSpeaking;
+        utter.onend = finishUtter;
+        utter.onerror = finishUtter;
+        // Filet de sécurité si le navigateur ne déclenche pas onend (ex: mode sans voix système)
+        const approxMs = Math.max(1800, Math.min(9000, text.length * (slow ? 85 : 62)));
+        const fallbackSafetyTimer = setTimeout(finishUtter, approxMs + 1200);
+        startSpeaking();
         window.speechSynthesis.speak(utter);
       } else {
-        resolve();
+        // Mode silencieux : anime la bouche le temps naturel de lecture de la phrase
+        startSpeaking();
+        const approxMs = Math.max(1500, Math.min(5000, text.length * 55));
+        setTimeout(() => {
+          finishSpeaking();
+        }, approxMs);
       }
     }
   });
 }
 
-async function speakEnglish(text, slow = false, voice = null) {
+async function speakEnglish(text, slow = false, voice = null, speakerTarget = null) {
   playFX('click');
   stopCurrentSpeech();
   const myReqId = speechRequestId;
   const chosenVoice = voice || (state.activeNpc ? state.activeNpc.voice : 'en-US-JennyNeural');
-  await playSingleUtterance(text, slow, chosenVoice, myReqId);
+  const target = speakerTarget || (state.activeNpc ? state.activeNpc.id : null);
+  await playSingleUtterance(text, slow, chosenVoice, myReqId, target);
   const statusEl = document.getElementById('voice-status');
   if (myReqId === speechRequestId && statusEl) statusEl.classList.add('hidden');
 }
@@ -880,10 +939,13 @@ async function speakDialogueSequence(loc, slow = false) {
   playFX('click');
   stopCurrentSpeech();
   const myReqId = speechRequestId;
-  const lines = (loc.dialogues || []).map(d => d.en).filter(Boolean);
-  for (const line of lines) {
+  const lines = (loc.dialogues || []).filter(d => d && d.en);
+  for (let i = 0; i < lines.length; i++) {
     if (myReqId !== speechRequestId) return;
-    await playSingleUtterance(line, slow, loc.voice, myReqId);
+    const role = getCinemaTurnRole(loc, lines[i], i);
+    const target = role === 'player' ? 'player' : loc.id;
+    const chosenVoice = role === 'player' ? getPlayerVoiceForNpc(loc.voice) : loc.voice;
+    await playSingleUtterance(lines[i].en, slow, chosenVoice, myReqId, target);
   }
   const statusEl = document.getElementById('voice-status');
   if (myReqId === speechRequestId && statusEl) statusEl.classList.add('hidden');
@@ -1060,15 +1122,152 @@ async function loadLessonsFromJson() {
    7. SCÈNE 3D THREE.JS — QUARTIER DU BURKINA FASO & PERSONNAGES STYLE DUOLINGO
    =========================================================================== */
 let scene, camera, renderer, raycaster, mouse;
-let playerGroup, playerParts;
+let playerGroup, playerParts, playerAnim;
 let burkinaFlagPivot = null;
 const npcEntities = [];
 const clickableMeshes = [];
+const worldColliders = [];
 let clock = null;
 let stepTimer = 0;
 
 let _camGoalVec = null;
+let _camLookVec = null;
+let _camTargetLookVec = null;
 let _labelVec = null;
+
+const PLAYER_RADIUS = 0.56;
+const NPC_RADIUS = 0.62;
+const WORLD_BOUNDS = { minX: -28.0, maxX: 28.0, minZ: -17.5, maxZ: 29.2 };
+
+function addCircleCollider(x, z, r, tag = 'obstacle', npcId = null) {
+  worldColliders.push({ type: 'circle', x, z, r, tag, npcId });
+}
+
+function addBoxCollider(x, z, hx, hz, rotY = 0, tag = 'building') {
+  worldColliders.push({ type: 'box', x, z, hx, hz, rotY, tag });
+}
+
+function lerpAngle(current, target, factor) {
+  let diff = target - current;
+  while (diff > Math.PI) diff -= Math.PI * 2;
+  while (diff < -Math.PI) diff += Math.PI * 2;
+  return current + diff * factor;
+}
+
+/**
+ * Résout proprement toutes les collisions (cercles et boîtes orientées OBB)
+ * avec glissement fluide le long des murs et respect des limites du quartier.
+ */
+function resolveCollisions(pos, radius = PLAYER_RADIUS, ignoreNpcId = null) {
+  let collided = false;
+  for (let iter = 0; iter < 3; iter++) {
+    for (let i = 0; i < worldColliders.length; i++) {
+      const c = worldColliders[i];
+      if (ignoreNpcId && c.npcId === ignoreNpcId) continue;
+
+      if (c.type === 'circle') {
+        const dx = pos.x - c.x;
+        const dz = pos.z - c.z;
+        const minDist = radius + c.r;
+        const distSq = dx * dx + dz * dz;
+        if (distSq < minDist * minDist) {
+          const dist = Math.sqrt(distSq);
+          if (dist > 0.0001) {
+            const push = minDist - dist;
+            pos.x += (dx / dist) * push;
+            pos.z += (dz / dist) * push;
+          } else {
+            pos.z += minDist;
+          }
+          collided = true;
+        }
+      } else if (c.type === 'box') {
+        const relX = pos.x - c.x;
+        const relZ = pos.z - c.z;
+        const cos = Math.cos(-c.rotY);
+        const sin = Math.sin(-c.rotY);
+        const lx = relX * cos - relZ * sin;
+        const lz = relX * sin + relZ * cos;
+
+        const clampedX = Math.max(-c.hx, Math.min(c.hx, lx));
+        const clampedZ = Math.max(-c.hz, Math.min(c.hz, lz));
+        const dx = lx - clampedX;
+        const dz = lz - clampedZ;
+        const distSq = dx * dx + dz * dz;
+
+        if (distSq < radius * radius) {
+          let pushLx = 0;
+          let pushLz = 0;
+          if (distSq > 0.000001) {
+            const dist = Math.sqrt(distSq);
+            const push = radius - dist;
+            pushLx = (dx / dist) * push;
+            pushLz = (dz / dist) * push;
+          } else {
+            // Centre à l'intérieur de la boîte : expulser vers le bord le plus proche
+            const penX = c.hx - Math.abs(lx);
+            const penZ = c.hz - Math.abs(lz);
+            if (penX < penZ) {
+              pushLx = (lx >= 0 ? 1 : -1) * (penX + radius);
+            } else {
+              pushLz = (lz >= 0 ? 1 : -1) * (penZ + radius);
+            }
+          }
+          const cosBack = Math.cos(c.rotY);
+          const sinBack = Math.sin(c.rotY);
+          pos.x += pushLx * cosBack - pushLz * sinBack;
+          pos.z += pushLx * sinBack + pushLz * cosBack;
+          collided = true;
+        }
+      }
+    }
+
+    // Limites strictes du quartier
+    if (pos.x < WORLD_BOUNDS.minX) { pos.x = WORLD_BOUNDS.minX; collided = true; }
+    if (pos.x > WORLD_BOUNDS.maxX) { pos.x = WORLD_BOUNDS.maxX; collided = true; }
+    if (pos.z < WORLD_BOUNDS.minZ) { pos.z = WORLD_BOUNDS.minZ; collided = true; }
+    if (pos.z > WORLD_BOUNDS.maxZ) { pos.z = WORLD_BOUNDS.maxZ; collided = true; }
+  }
+  return collided;
+}
+
+function isSpotClear(x, z, radius = PLAYER_RADIUS, ignoreNpcId = null) {
+  const probe = { x, z };
+  const hit = resolveCollisions(probe, radius, ignoreNpcId);
+  return !hit;
+}
+
+function findClearStandPosition(loc, preferredFromPos = null) {
+  const dist = 2.35;
+  const fromX = preferredFromPos ? preferredFromPos.x : 0;
+  const fromZ = preferredFromPos ? preferredFromPos.z : 2;
+  const baseAngle = Math.atan2(fromX - loc.pos.x, fromZ - loc.pos.z);
+  const plazaAngle = Math.atan2(0 - loc.pos.x, 2 - loc.pos.z);
+  const candidateAngles = [
+    baseAngle,
+    plazaAngle,
+    baseAngle + 0.55,
+    baseAngle - 0.55,
+    plazaAngle + 0.7,
+    plazaAngle - 0.7,
+    0, Math.PI / 2, Math.PI, -Math.PI / 2
+  ];
+
+  for (const ang of candidateAngles) {
+    const cx = loc.pos.x + Math.sin(ang) * dist;
+    const cz = loc.pos.z + Math.cos(ang) * dist;
+    if (isSpotClear(cx, cz, PLAYER_RADIUS + 0.08, null)) {
+      return { x: cx, z: cz };
+    }
+  }
+
+  const fallback = {
+    x: loc.pos.x + Math.sin(plazaAngle) * dist,
+    z: loc.pos.z + Math.cos(plazaAngle) * dist
+  };
+  resolveCollisions(fallback, PLAYER_RADIUS + 0.05, null);
+  return fallback;
+}
 
 function getDefaultCameraDistance() {
   if (window.innerWidth < 640 && window.innerHeight > window.innerWidth) return 17;
@@ -1091,8 +1290,13 @@ function updateCameraForViewport() {
 
 function initThreeScene() {
   if (typeof THREE === 'undefined') return false;
+  worldColliders.length = 0;
+  npcEntities.length = 0;
+  clickableMeshes.length = 0;
   clock = new THREE.Clock();
   _camGoalVec = new THREE.Vector3();
+  _camLookVec = new THREE.Vector3(0, 1.4, 7.6);
+  _camTargetLookVec = new THREE.Vector3();
   _labelVec = new THREE.Vector3();
   const container = document.getElementById('canvas-container');
   scene = new THREE.Scene();
@@ -1422,6 +1626,7 @@ function buildBurkinaFlagMonument() {
 
   monument.add(burkinaFlagPivot);
   scene.add(monument);
+  addCircleCollider(0, 2, 2.55, 'monument');
 }
 
 function buildMonumentDesMartyrs() {
@@ -1534,6 +1739,7 @@ function buildMonumentDesMartyrs() {
   });
 
   scene.add(m);
+  addCircleCollider(0, -23.5, 9.1, 'monument');
 }
 
 function createMangoTree(scale = 1) {
@@ -1814,6 +2020,7 @@ function buildEnvironmentDecor() {
     const tree = createMangoTree(s);
     tree.position.set(x, 0, z);
     scene.add(tree);
+    addCircleCollider(x, z, 0.62 * s, 'tree');
   });
 
   const baobabSpots = [
@@ -1825,6 +2032,7 @@ function buildEnvironmentDecor() {
     const baobab = createBaobabTree(s);
     baobab.position.set(x, 0, z);
     scene.add(baobab);
+    addCircleCollider(x, z, 1.42 * s, 'baobab');
   });
 
   const yLampSpecs = [
@@ -1835,6 +2043,7 @@ function buildEnvironmentDecor() {
     const lamp = createYStreetLamp(r);
     lamp.position.set(x, 0, z);
     scene.add(lamp);
+    addCircleCollider(x, z, 0.34, 'lamp');
   });
 
   const lampSpecs = [
@@ -1847,17 +2056,22 @@ function buildEnvironmentDecor() {
     const lamp = createSolarLamp(r);
     lamp.position.set(x, 0, z);
     scene.add(lamp);
+    addCircleCollider(x, z, 0.36, 'lamp');
   });
 
   const gantry = createBoulevardGantry();
   gantry.position.set(22.5, 0, 2);
   scene.add(gantry);
+  addCircleCollider(22.5, 2 - 4.1, 0.44, 'gantry');
+  addCircleCollider(22.5, 2 + 4.1, 0.44, 'gantry');
 
   const towerL = createTelecomTower();
   towerL.position.set(-12.5, 0, -37.5);
   const towerR = createTelecomTower();
   towerR.position.set(14.0, 0, -35.5);
   scene.add(towerL, towerR);
+  addCircleCollider(-12.5, -37.5, 1.15, 'tower');
+  addCircleCollider(14.0, -35.5, 1.15, 'tower');
 
   const benchSpecs = [
     [-5.8, 2.0, Math.PI / 2],
@@ -1871,6 +2085,7 @@ function buildEnvironmentDecor() {
     const bench = createPublicBench(r);
     bench.position.set(x, 0, z);
     scene.add(bench);
+    addBoxCollider(x, z, 1.05, 0.4, r, 'bench');
   });
 }
 
@@ -1895,6 +2110,8 @@ function createCharacterMesh(locOrConfig, isPlayer = false) {
   const hairMat = new THREE.MeshLambertMaterial({ color: 0x1a1715 });
   const whiteMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
   const pupilMat = new THREE.MeshBasicMaterial({ color: 0x141414 });
+  const mouthInsideMat = new THREE.MeshBasicMaterial({ color: 0x3a1216 });
+  const lipMat = new THREE.MeshLambertMaterial({ color: 0x9b3b3b });
   const blushMat = new THREE.MeshBasicMaterial({ color: 0xff8b8b, transparent: true, opacity: 0.42 });
 
   // Ombre douce au sol
@@ -1927,35 +2144,42 @@ function createCharacterMesh(locOrConfig, isPlayer = false) {
   const rightLeg = buildLeg(0.16);
   group.add(leftLeg, rightLeg);
 
-  // Corps stylisé en capsule arrondie (cylindre + calottes sphériques)
+  // Pivot du haut du corps (respiration + léger balancement naturel)
+  const bodyPivot = new THREE.Group();
+  bodyPivot.position.y = 0.72;
+  group.add(bodyPivot);
+
+  const torsoGroup = new THREE.Group();
+  bodyPivot.add(torsoGroup);
+
   const torsoCyl = new THREE.Mesh(new THREE.CylinderGeometry(0.27, 0.34, 0.68, 12), shirtMat);
-  torsoCyl.position.y = 1.06;
-  group.add(torsoCyl);
+  torsoCyl.position.y = 0.34;
+  torsoGroup.add(torsoCyl);
 
   const torsoTop = new THREE.Mesh(new THREE.SphereGeometry(0.27, 12, 8), shirtMat);
   torsoTop.scale.set(1, 0.55, 0.92);
-  torsoTop.position.y = 1.38;
-  group.add(torsoTop);
+  torsoTop.position.y = 0.66;
+  torsoGroup.add(torsoTop);
 
   const torsoBottom = new THREE.Mesh(new THREE.SphereGeometry(0.34, 12, 8), shirtMat);
   torsoBottom.scale.set(1, 0.4, 0.92);
-  torsoBottom.position.y = 0.72;
-  group.add(torsoBottom);
+  torsoBottom.position.y = 0.0;
+  torsoGroup.add(torsoBottom);
 
   // Bande Faso Dan Fani colorée + col
   const trimBand = new THREE.Mesh(new THREE.CylinderGeometry(0.325, 0.345, 0.13, 12), trimMat);
-  trimBand.position.y = 0.84;
-  group.add(trimBand);
+  trimBand.position.y = 0.12;
+  torsoGroup.add(trimBand);
 
   const collar = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.04, 6, 12), trimMat);
   collar.rotation.x = Math.PI / 2;
-  collar.position.y = 1.47;
-  group.add(collar);
+  collar.position.y = 0.75;
+  torsoGroup.add(collar);
 
   // Bras arrondis (épaule sphérique + manche cylindre + main sphérique)
   const buildArm = (xPos) => {
     const pivot = new THREE.Group();
-    pivot.position.set(xPos, 1.35, 0);
+    pivot.position.set(xPos, 0.63, 0);
 
     const shoulder = new THREE.Mesh(new THREE.SphereGeometry(0.125, 8, 8), shirtMat);
     pivot.add(shoulder);
@@ -1977,15 +2201,15 @@ function createCharacterMesh(locOrConfig, isPlayer = false) {
 
   const leftArmPivot = buildArm(-0.39);
   const rightArmPivot = buildArm(0.39);
-  group.add(leftArmPivot, rightArmPivot);
+  bodyPivot.add(leftArmPivot, rightArmPivot);
 
   // Cou + Tête sphérique chaleureuse style Duolingo
   const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.13, 0.18, 10), skinMat);
-  neck.position.y = 1.54;
-  group.add(neck);
+  neck.position.y = 0.82;
+  bodyPivot.add(neck);
 
   const headGroup = new THREE.Group();
-  headGroup.position.y = 1.88;
+  headGroup.position.y = 1.16;
 
   const head = new THREE.Mesh(new THREE.SphereGeometry(0.36, 14, 12), skinMat);
   head.scale.set(1.02, 1.0, 0.98);
@@ -2004,27 +2228,35 @@ function createCharacterMesh(locOrConfig, isPlayer = false) {
     }
   });
 
-  // Grands yeux expressifs (blanc + pupille + reflet lumineux)
-  [-0.125, 0.125].forEach(ex => {
+  // Grands yeux expressifs groupés pour clignements naturels
+  const buildEye = (ex) => {
+    const eyeGroup = new THREE.Group();
+    eyeGroup.position.set(ex, 0.04, 0.31);
+
     const sclera = new THREE.Mesh(new THREE.SphereGeometry(0.068, 10, 8), whiteMat);
     sclera.scale.set(1, 1.08, 0.55);
-    sclera.position.set(ex, 0.04, 0.31);
-    headGroup.add(sclera);
+    eyeGroup.add(sclera);
 
     const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.039, 8, 8), pupilMat);
     pupil.scale.set(1, 1.05, 0.6);
-    pupil.position.set(ex, 0.04, 0.345);
-    headGroup.add(pupil);
+    pupil.position.set(0, 0, 0.035);
+    eyeGroup.add(pupil);
 
     const glint = new THREE.Mesh(new THREE.SphereGeometry(0.015, 6, 6), whiteMat);
-    glint.position.set(ex + 0.016, 0.06, 0.368);
-    headGroup.add(glint);
+    glint.position.set(0.016, 0.02, 0.058);
+    eyeGroup.add(glint);
 
     const brow = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.024, 0.025), hairMat);
-    brow.position.set(ex, 0.14, 0.32);
+    brow.position.set(ex, 0.145, 0.32);
     brow.rotation.z = ex < 0 ? 0.1 : -0.1;
     headGroup.add(brow);
-  });
+
+    return eyeGroup;
+  };
+
+  const leftEyeGroup = buildEye(-0.125);
+  const rightEyeGroup = buildEye(0.125);
+  headGroup.add(leftEyeGroup, rightEyeGroup);
 
   // Joues rosées subtiles
   [-0.19, 0.19].forEach(cx => {
@@ -2034,11 +2266,31 @@ function createCharacterMesh(locOrConfig, isPlayer = false) {
     headGroup.add(cheek);
   });
 
-  // Sourire visible et chaleureux
-  const smile = new THREE.Mesh(new THREE.TorusGeometry(0.095, 0.022, 6, 10, Math.PI), whiteMat);
-  smile.rotation.z = Math.PI;
-  smile.position.set(0, -0.065, 0.325);
-  headGroup.add(smile);
+  // Bouche au repos : sourire chaleureux visible
+  const mouthClosed = new THREE.Mesh(new THREE.TorusGeometry(0.092, 0.022, 6, 10, Math.PI), whiteMat);
+  mouthClosed.rotation.z = Math.PI;
+  mouthClosed.position.set(0, -0.068, 0.326);
+  headGroup.add(mouthClosed);
+
+  // Bouche parlante animée (Lip-Sync) : cavité + dents + lèvre inférieure mobile
+  const mouthOpen = new THREE.Group();
+  mouthOpen.position.set(0, -0.102, 0.326);
+  mouthOpen.visible = false;
+
+  const mouthCavity = new THREE.Mesh(new THREE.SphereGeometry(0.082, 10, 8), mouthInsideMat);
+  mouthCavity.scale.set(1.12, 0.88, 0.45);
+  mouthOpen.add(mouthCavity);
+
+  const upperTeeth = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.026, 0.03), whiteMat);
+  upperTeeth.position.set(0, 0.036, 0.026);
+  mouthOpen.add(upperTeeth);
+
+  const lowerLip = new THREE.Mesh(new THREE.TorusGeometry(0.078, 0.017, 6, 10, Math.PI), lipMat);
+  lowerLip.rotation.z = Math.PI;
+  lowerLip.position.set(0, -0.015, 0.024);
+  mouthOpen.add(lowerLip);
+
+  headGroup.add(mouthOpen);
 
   // Coiffure / Foulard / Accessoires cohérents avec le portrait 2D
   if (headwrapColor) {
@@ -2100,9 +2352,172 @@ function createCharacterMesh(locOrConfig, isPlayer = false) {
     headGroup.add(bridge);
   }
 
-  group.add(headGroup);
+  bodyPivot.add(headGroup);
 
-  return { group, parts: { leftLeg, rightLeg, leftArmPivot, rightArmPivot, head: headGroup } };
+  return {
+    group,
+    parts: {
+      bodyPivot,
+      torsoGroup,
+      leftLeg,
+      rightLeg,
+      leftArmPivot,
+      rightArmPivot,
+      head: headGroup,
+      leftEyeGroup,
+      rightEyeGroup,
+      mouthClosed,
+      mouthOpen
+    }
+  };
+}
+
+function createAnimState(phase = 0) {
+  return {
+    phase,
+    nextBlinkAt: 2.0 + (phase * 1.37) % 3.2,
+    blinkTimer: 0,
+    mouthLevel: 0,
+    walkCycle: 0
+  };
+}
+
+/**
+ * Contrôleur d'animation organique pour chaque personnage 3D :
+ * - Respiration subtile + léger balancement naturel au repos
+ * - Clignements d'yeux occasionnels
+ * - Marche naturelle (jambes + bras + rebond)
+ * - Salut de la main à l'approche
+ * - Lip-Sync fluide de la bouche + gestes de conversation quand il parle
+ * - Hochements de tête doux quand il écoute
+ */
+function updateCharacterAnimation(parts, anim, opts, elapsed, dt) {
+  if (!parts || !anim) return;
+  const {
+    isMoving = false,
+    isSpeaking = false,
+    isListening = false,
+    isGreeting = false,
+    headLookYaw = 0
+  } = opts;
+
+  const t = elapsed + anim.phase;
+  const lerpK = Math.min(1, dt * 10);
+
+  // 1. Respiration subtile & léger balancement naturel (Idle toujours vivant)
+  const breath = Math.sin(t * 2.1);
+  parts.torsoGroup.scale.set(1 + breath * 0.018, 1 + breath * 0.022, 1 + breath * 0.018);
+  const idleSwayZ = isMoving ? 0 : Math.sin(t * 1.15) * 0.025;
+  parts.bodyPivot.rotation.z += (idleSwayZ - parts.bodyPivot.rotation.z) * lerpK;
+
+  // 2. Clignements d'yeux occasionnels
+  anim.nextBlinkAt -= dt;
+  if (anim.nextBlinkAt <= 0 && anim.blinkTimer <= 0) {
+    anim.blinkTimer = 0.14;
+    anim.nextBlinkAt = 2.6 + Math.random() * 3.4;
+  }
+  let eyeScaleY = 1;
+  if (anim.blinkTimer > 0) {
+    anim.blinkTimer = Math.max(0, anim.blinkTimer - dt);
+    const p = anim.blinkTimer / 0.14; // 1 -> 0
+    eyeScaleY = 0.12 + Math.abs(p - 0.5) * 1.76;
+  }
+  parts.leftEyeGroup.scale.y = eyeScaleY;
+  parts.rightEyeGroup.scale.y = eyeScaleY;
+
+  // 3. Marche naturelle vs posture de repos / conversation
+  let targetLeftLegX = 0;
+  let targetRightLegX = 0;
+  let targetLeftArmX = 0;
+  let targetRightArmX = 0;
+  let targetLeftArmZ = 0.08;
+  let targetRightArmZ = -0.08;
+  let targetBodyY = 0.72 + breath * 0.012;
+
+  if (isMoving) {
+    anim.walkCycle += dt * 11.5;
+    const swing = Math.sin(anim.walkCycle) * 0.68;
+    targetLeftLegX = swing;
+    targetRightLegX = -swing;
+    targetLeftArmX = -swing * 0.68;
+    targetRightArmX = swing * 0.68;
+    targetBodyY = 0.72 + Math.abs(Math.sin(anim.walkCycle)) * 0.045;
+  } else if (isSpeaking) {
+    // Gestes naturels de conversation avec les deux bras et les mains
+    targetLeftArmX = -0.62 + Math.sin(t * 5.2) * 0.24;
+    targetRightArmX = -0.68 + Math.cos(t * 4.6 + 0.8) * 0.28;
+    targetLeftArmZ = 0.28 + Math.sin(t * 3.4) * 0.12;
+    targetRightArmZ = -0.28 - Math.cos(t * 3.9) * 0.12;
+  } else if (isGreeting) {
+    // Salut chaleureux de la main droite
+    targetRightArmZ = -2.35 + Math.sin(elapsed * 8.5) * 0.34;
+    targetRightArmX = -0.18;
+    targetLeftArmZ = 0.12;
+  } else if (isListening) {
+    // Posture calme et attentive
+    targetLeftArmX = -0.10 + Math.sin(t * 1.6) * 0.04;
+    targetRightArmX = -0.10 - Math.sin(t * 1.6) * 0.04;
+    targetLeftArmZ = 0.10;
+    targetRightArmZ = -0.10;
+  } else {
+    // Repos naturel avec léger mouvement de bras
+    targetLeftArmX = Math.sin(t * 1.4) * 0.05;
+    targetRightArmX = -Math.sin(t * 1.4) * 0.05;
+  }
+
+  parts.leftLeg.rotation.x += (targetLeftLegX - parts.leftLeg.rotation.x) * lerpK;
+  parts.rightLeg.rotation.x += (targetRightLegX - parts.rightLeg.rotation.x) * lerpK;
+  parts.leftArmPivot.rotation.x += (targetLeftArmX - parts.leftArmPivot.rotation.x) * lerpK;
+  parts.rightArmPivot.rotation.x += (targetRightArmX - parts.rightArmPivot.rotation.x) * lerpK;
+  parts.leftArmPivot.rotation.z += (targetLeftArmZ - parts.leftArmPivot.rotation.z) * lerpK;
+  parts.rightArmPivot.rotation.z += (targetRightArmZ - parts.rightArmPivot.rotation.z) * lerpK;
+  parts.bodyPivot.position.y += (targetBodyY - parts.bodyPivot.position.y) * lerpK;
+
+  // 4. Mouvements expressifs de la tête (regard, parole, hochement d'écoute)
+  let targetHeadX = Math.sin(t * 1.3) * 0.025;
+  let targetHeadZ = Math.cos(t * 1.05) * 0.02;
+  let targetHeadY = headLookYaw;
+
+  if (isSpeaking) {
+    targetHeadX = Math.sin(t * 6.4) * 0.08;
+    targetHeadZ = Math.sin(t * 3.1) * 0.07;
+  } else if (isListening) {
+    // Hochement de tête périodique et naturel pendant que l'autre parle
+    const nodPulse = Math.max(0, Math.sin(elapsed * 2.2));
+    targetHeadX = Math.pow(nodPulse, 3) * 0.17;
+    targetHeadZ = Math.sin(t * 1.4) * 0.04;
+  } else if (isGreeting) {
+    targetHeadZ = 0.08;
+  }
+
+  parts.head.rotation.x += (targetHeadX - parts.head.rotation.x) * lerpK;
+  parts.head.rotation.y += (targetHeadY - parts.head.rotation.y) * lerpK;
+  parts.head.rotation.z += (targetHeadZ - parts.head.rotation.z) * lerpK;
+
+  // 5. Bouche animée (Lip-Sync fluide pendant la parole, refermée dès la fin)
+  let targetMouth = 0;
+  if (isSpeaking) {
+    const syllable =
+      0.52 +
+      0.28 * Math.sin(elapsed * 16.5) +
+      0.20 * Math.sin(elapsed * 25.3 + 1.1) +
+      0.12 * Math.cos(elapsed * 9.2);
+    targetMouth = Math.max(0.18, Math.min(1.0, syllable));
+  }
+  anim.mouthLevel += (targetMouth - anim.mouthLevel) * Math.min(1, dt * 22);
+
+  if (anim.mouthLevel > 0.07) {
+    parts.mouthClosed.visible = false;
+    parts.mouthOpen.visible = true;
+    parts.mouthOpen.scale.set(
+      0.88 + anim.mouthLevel * 0.24,
+      0.32 + anim.mouthLevel * 0.92,
+      1
+    );
+  } else {
+    parts.mouthOpen.visible = false;
+    parts.mouthClosed.visible = true;
+  }
 }
 
 function createCorrugatedRoof(width, depth, color = 0x9aa3ab, slopeX = 0.16) {
@@ -2572,6 +2987,37 @@ function createBuildingMesh(loc) {
   return b;
 }
 
+function registerBuildingCollider(loc) {
+  const bx = loc.buildingPos.x;
+  const bz = loc.buildingPos.z;
+  const rotY = loc.buildingRotY || 0;
+
+  // Dimensions précises de chaque bâtiment + annexes (auvents, terrasses, murets, bus)
+  if (loc.buildingType === 'plaza') {
+    addBoxCollider(bx, bz - 0.3, 4.2, 2.75, rotY, 'building-plaza');
+  } else if (loc.buildingType === 'busstop') {
+    addBoxCollider(bx, bz, 3.35, 1.75, rotY, 'building-busstop');
+    // Minibus garé à (-4.9, 0.6) en coordonnées locales du bâtiment
+    const cos = Math.cos(rotY);
+    const sin = Math.sin(rotY);
+    const busWorldX = bx + (-4.9 * cos + 0.6 * sin);
+    const busWorldZ = bz + (-4.9 * -sin + 0.6 * cos);
+    addBoxCollider(busWorldX, busWorldZ, 1.95, 1.0, rotY, 'bus');
+  } else if (loc.buildingType === 'courtyard') {
+    addBoxCollider(bx, bz, 3.15, 3.15, rotY, 'building-courtyard');
+  } else if (loc.buildingType === 'market') {
+    addBoxCollider(bx, bz, 3.45, 2.75, rotY, 'building-market');
+  } else if (loc.buildingType === 'maquis') {
+    addBoxCollider(bx, bz, 3.15, 2.85, rotY, 'building-maquis');
+  } else if (loc.buildingType === 'campus') {
+    addBoxCollider(bx, bz, 3.05, 2.45, rotY, 'building-campus');
+  } else if (loc.buildingType === 'villa') {
+    addBoxCollider(bx, bz, 3.05, 2.65, rotY, 'building-villa');
+  } else {
+    addBoxCollider(bx, bz, 3.25, 2.55, rotY, 'building-tech');
+  }
+}
+
 function buildAllLocationsAndNPCs() {
   const labelsLayer = document.getElementById('labels-layer');
   labelsLayer.innerHTML = '';
@@ -2581,6 +3027,7 @@ function buildAllLocationsAndNPCs() {
     building.position.set(loc.buildingPos.x, 0, loc.buildingPos.z);
     building.rotation.y = loc.buildingRotY || 0;
     scene.add(building);
+    registerBuildingCollider(loc);
 
     const ring = new THREE.Mesh(
       new THREE.RingGeometry(0.92, 1.28, 20),
@@ -2593,6 +3040,8 @@ function buildAllLocationsAndNPCs() {
     const npc = createCharacterMesh(loc, false);
     npc.group.position.set(loc.pos.x, 0, loc.pos.z);
     npc.group.lookAt(0, 0, 2);
+    const baseRotY = Math.atan2(0 - loc.pos.x, 2 - loc.pos.z);
+    npc.group.rotation.set(0, baseRotY, 0);
     npc.group.userData = { npcId: loc.id };
     npc.group.traverse(obj => {
       if (obj.isMesh) {
@@ -2601,6 +3050,7 @@ function buildAllLocationsAndNPCs() {
       }
     });
     scene.add(npc.group);
+    addCircleCollider(loc.pos.x, loc.pos.z, NPC_RADIUS, 'npc', loc.id);
 
     const labelEl = document.createElement('button');
     labelEl.type = 'button';
@@ -2612,7 +3062,16 @@ function buildAllLocationsAndNPCs() {
     });
     labelsLayer.appendChild(labelEl);
 
-    const entity = { data: loc, group: npc.group, parts: npc.parts, ring, labelEl, phase: idx * 0.9 };
+    const entity = {
+      data: loc,
+      group: npc.group,
+      parts: npc.parts,
+      anim: createAnimState(idx * 0.9),
+      baseRotY,
+      ring,
+      labelEl,
+      phase: idx * 0.9
+    };
     renderNpcLabel(entity);
     npcEntities.push(entity);
   });
@@ -2647,8 +3106,10 @@ function buildPlayerAvatar() {
   const player = createCharacterMesh({}, true);
   playerGroup = player.group;
   playerParts = player.parts;
+  playerAnim = createAnimState(0.3);
   playerGroup.position.set(0, 0, 7.6);
   playerGroup.rotation.y = Math.PI;
+  resolveCollisions(playerGroup.position, PLAYER_RADIUS, null);
   scene.add(playerGroup);
 }
 
@@ -2751,18 +3212,299 @@ function setupCanvasEvents(dom) {
   });
 }
 
-function walkToAndTalk(loc) {
-  playFX('click');
-  closeDialogue();
-  if (!playerGroup) {
-    openDialogue(loc);
+function getCinemaTurnRole(loc, line, idx) {
+  const sp = (line && line.speaker) ? String(line.speaker).trim() : '';
+  if (sp === 'A') return 'npc';
+  if (sp === 'B') return 'player';
+  return idx % 2 === 0 ? 'npc' : 'player';
+}
+
+function getPlayerVoiceForNpc(npcVoice) {
+  return npcVoice === 'en-US-GuyNeural' ? 'en-US-JennyNeural' : 'en-US-GuyNeural';
+}
+
+function updateBubbleSpeakingWaves(isSpeaking) {
+  const npcWave = document.getElementById('npc-bubble-wave');
+  const playerWave = document.getElementById('player-bubble-wave');
+  if (!npcWave || !playerWave) return;
+  const activeNpcSpeaking = isSpeaking && state.cinema.active && state.speakingTarget && state.speakingTarget !== 'player';
+  const activePlayerSpeaking = isSpeaking && state.cinema.active && state.speakingTarget === 'player';
+  npcWave.classList.toggle('hidden', !activeNpcSpeaking);
+  playerWave.classList.toggle('hidden', !activePlayerSpeaking);
+}
+
+function hideFloatingSpeechBubbles() {
+  const npcBubble = document.getElementById('npc-speech-bubble');
+  const playerBubble = document.getElementById('player-speech-bubble');
+  if (npcBubble) npcBubble.classList.add('hidden');
+  if (playerBubble) playerBubble.classList.add('hidden');
+  updateBubbleSpeakingWaves(false);
+}
+
+function projectSpeechBubble(el, worldX, worldY, worldZ) {
+  if (!el || el.classList.contains('hidden') || !camera || !_labelVec) return;
+  _labelVec.set(worldX, worldY, worldZ);
+  _labelVec.project(camera);
+  if (_labelVec.z >= 1) return;
+
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const rawX = (_labelVec.x * 0.5 + 0.5) * vw;
+  const rawY = (-_labelVec.y * 0.5 + 0.5) * vh;
+
+  const halfW = Math.min(165, (vw - 24) / 2);
+  const clampedX = Math.max(halfW + 12, Math.min(vw - halfW - 12, rawX));
+  const minTop = vw < 640 ? 275 : 245;
+  const maxBottom = vh - (vw < 640 ? 132 : 108);
+  const clampedY = Math.max(minTop, Math.min(maxBottom, rawY));
+
+  el.style.left = `${clampedX}px`;
+  el.style.top = `${clampedY}px`;
+}
+
+function updateCinemaControlsUI() {
+  const loc = state.cinema.loc;
+  if (!loc) return;
+  const lines = loc.dialogues || [];
+  const total = Math.max(1, lines.length);
+  const idx = Math.min(state.cinema.turnIndex, total - 1);
+  const isFinished = state.cinema.finished;
+  const isLast = idx >= total - 1;
+
+  document.getElementById('cinema-unit-pill').textContent = `Unité ${loc.unit} • ${idx + 1}/${total}`;
+
+  const statusEl = document.getElementById('cinema-status-text');
+  const nextBtn = document.getElementById('btn-cinema-next');
+  const nextLabel = document.getElementById('cinema-next-label');
+  const courseLabel = document.getElementById('cinema-course-label');
+  const grammarBtn = document.getElementById('btn-cinema-grammar');
+
+  if (isFinished) {
+    statusEl.textContent = `Dialogue terminé avec ${loc.npcName} !`;
+    nextLabel.textContent = 'Revoir';
+    courseLabel.textContent = 'Passer au Quiz';
+    grammarBtn.classList.remove('hidden');
+    nextBtn.classList.remove('hidden');
+  } else {
+    const speakerName = state.cinema.activeRole === 'player'
+      ? (state.profile ? state.profile.name : 'Vous')
+      : loc.npcName;
+    statusEl.textContent = `${speakerName} parle...`;
+    const nextRole = !isLast ? getCinemaTurnRole(loc, lines[idx + 1], idx + 1) : null;
+    nextLabel.textContent = isLast ? 'Terminer' : (nextRole === 'player' ? 'Répondre' : 'Suivant');
+    courseLabel.textContent = 'Ouvrir le cours & Quiz';
+    grammarBtn.classList.add('hidden');
+    nextBtn.classList.remove('hidden');
+  }
+}
+
+function startCinematicDialogue(loc) {
+  if (!loc) return;
+  stopCurrentSpeech();
+  closeDialogue(true);
+  state.autoWalkTarget = null;
+  clearMovementKeys();
+  playFX('open');
+
+  // Enregistrer la visite (+10 XP la première fois)
+  updateDailyStreak(false);
+  if (!state.visitedIds.has(loc.id)) {
+    state.visitedIds.add(loc.id);
+    addXP(10);
+  } else {
+    saveProgress();
+    syncProgressUI();
+  }
+
+  const npcEntity = npcEntities.find(e => e.data.id === loc.id) || null;
+  const playerSpot = playerGroup ? findClearStandPosition(loc, playerGroup.position) : null;
+
+  // Choisir le côté caméra le plus dégagé pour cadrer les deux personnages face à face
+  let camSide = 1;
+  if (playerSpot) {
+    const dx = playerSpot.x - loc.pos.x;
+    const dz = playerSpot.z - loc.pos.z;
+    const len = Math.hypot(dx, dz) || 1;
+    const midX = (playerSpot.x + loc.pos.x) * 0.5;
+    const midZ = (playerSpot.z + loc.pos.z) * 0.5;
+    const perpX = -dz / len;
+    const perpZ = dx / len;
+    const testPosA = { x: midX + perpX * 5.2, z: midZ + perpZ * 5.2 };
+    const testPosB = { x: midX - perpX * 5.2, z: midZ - perpZ * 5.2 };
+    const distA = Math.hypot(testPosA.x, testPosA.z - 2);
+    const distB = Math.hypot(testPosB.x, testPosB.z - 2);
+    camSide = distA <= distB ? 1 : -1;
+  }
+
+  state.cinema.active = true;
+  state.cinema.loc = loc;
+  state.cinema.npcEntity = npcEntity;
+  state.cinema.turnIndex = 0;
+  state.cinema.finished = false;
+  state.cinema.activeRole = 'npc';
+  state.cinema.playerSpot = playerSpot;
+  state.cinema.camSide = camSide;
+
+  // Masquer les contrôles d'exploration et les étiquettes pour libérer la scène 3D
+  document.getElementById('dpad-controls').classList.add('hidden');
+  document.getElementById('proximity-prompt').classList.add('hidden');
+  document.getElementById('labels-layer').classList.add('hidden');
+  document.getElementById('cinema-controls').classList.remove('hidden');
+
+  if (!loc.dialogues || loc.dialogues.length === 0) {
+    state.cinema.finished = true;
+    updateCinemaControlsUI();
     return;
   }
-  const angle = Math.atan2(playerGroup.position.x - loc.pos.x, playerGroup.position.z - loc.pos.z);
+
+  playCinemaTurn(0);
+}
+
+async function playCinemaTurn(idx) {
+  const loc = state.cinema.loc;
+  if (!state.cinema.active || !loc) return;
+  const lines = loc.dialogues || [];
+  if (idx < 0 || idx >= lines.length) {
+    state.cinema.finished = true;
+    updateCinemaControlsUI();
+    return;
+  }
+
+  stopCurrentSpeech();
+  const myReqId = speechRequestId;
+  state.cinema.turnIndex = idx;
+  state.cinema.finished = false;
+
+  const line = lines[idx];
+  const role = getCinemaTurnRole(loc, line, idx);
+  state.cinema.activeRole = role;
+
+  const npcBubble = document.getElementById('npc-speech-bubble');
+  const playerBubble = document.getElementById('player-speech-bubble');
+  const total = lines.length;
+
+  if (role === 'player') {
+    npcBubble.classList.add('hidden');
+    document.getElementById('player-bubble-avatar').innerHTML = state.profile
+      ? renderAvatarHTML(state.profile.avatarType, state.profile.avatarPresetId, state.profile.avatarDataUrl)
+      : getPartnerPortraitSVG();
+    document.getElementById('player-bubble-speaker').textContent = state.profile ? state.profile.name : 'Vous';
+    document.getElementById('player-bubble-turn').textContent = `${idx + 1}/${total}`;
+    document.getElementById('player-bubble-en').textContent = line.en;
+    const frEl = document.getElementById('player-bubble-fr');
+    frEl.textContent = line.fr || '';
+    frEl.classList.toggle('hidden', !line.fr);
+    playerBubble.classList.remove('hidden');
+    // Position initiale centrée avant le prochain rafraîchissement 3D
+    if (!playerGroup) {
+      playerBubble.style.left = '50%';
+      playerBubble.style.top = '52%';
+    }
+  } else {
+    playerBubble.classList.add('hidden');
+    document.getElementById('npc-bubble-avatar').innerHTML = getNpcPortraitSVG(loc.id);
+    document.getElementById('npc-bubble-speaker').textContent = loc.npcName;
+    document.getElementById('npc-bubble-turn').textContent = `${idx + 1}/${total}`;
+    document.getElementById('npc-bubble-en').textContent = line.en;
+    const frEl = document.getElementById('npc-bubble-fr');
+    frEl.textContent = line.fr || '';
+    frEl.classList.toggle('hidden', !line.fr);
+    npcBubble.classList.remove('hidden');
+    if (!state.cinema.npcEntity) {
+      npcBubble.style.left = '50%';
+      npcBubble.style.top = '48%';
+    }
+  }
+
+  updateCinemaControlsUI();
+
+  const speakerTarget = role === 'player' ? 'player' : loc.id;
+  const chosenVoice = role === 'player' ? getPlayerVoiceForNpc(loc.voice) : loc.voice;
+
+  await playSingleUtterance(line.en, false, chosenVoice, myReqId, speakerTarget);
+
+  if (myReqId !== speechRequestId || !state.cinema.active) return;
+
+  if (idx < lines.length - 1) {
+    // Enchaînement fluide vers la réplique suivante (tour alterné habitant <-> joueur)
+    state.cinema.autoAdvanceTimer = setTimeout(() => {
+      state.cinema.autoAdvanceTimer = null;
+      if (state.cinema.active && state.cinema.turnIndex === idx) {
+        playCinemaTurn(idx + 1);
+      }
+    }, 850);
+  } else {
+    state.cinema.finished = true;
+    updateCinemaControlsUI();
+  }
+}
+
+function advanceCinemaTurn() {
+  if (!state.cinema.active || !state.cinema.loc) return;
+  playFX('click');
+  const lines = state.cinema.loc.dialogues || [];
+  if (state.cinema.finished) {
+    playCinemaTurn(0);
+    return;
+  }
+  const nextIdx = state.cinema.turnIndex + 1;
+  if (nextIdx < lines.length) {
+    playCinemaTurn(nextIdx);
+  } else {
+    stopCurrentSpeech();
+    state.cinema.finished = true;
+    updateCinemaControlsUI();
+  }
+}
+
+function exitCinematicDialogue(restoreHud = true) {
+  if (!state.cinema.active) return;
+  stopCurrentSpeech();
+  state.cinema.active = false;
+  state.cinema.loc = null;
+  state.cinema.npcEntity = null;
+  state.cinema.playerSpot = null;
+  state.cinema.finished = false;
+  state.cinema.activeRole = null;
+
+  hideFloatingSpeechBubbles();
+  document.getElementById('cinema-controls').classList.add('hidden');
+  document.getElementById('labels-layer').classList.remove('hidden');
+  if (restoreHud) {
+    document.getElementById('dpad-controls').classList.remove('hidden');
+  }
+}
+
+function openCourseFromCinema(initialTab = 'dialogue') {
+  const loc = state.cinema.loc;
+  if (!loc) return;
+  exitCinematicDialogue(false);
+  openDialogue(loc, initialTab, false);
+}
+
+function walkToAndTalk(loc) {
+  playFX('click');
+  if (state.cinema.active) exitCinematicDialogue(true);
+  closeDialogue(true);
+
+  if (!playerGroup) {
+    startCinematicDialogue(loc);
+    return;
+  }
+
+  const distNow = Math.hypot(playerGroup.position.x - loc.pos.x, playerGroup.position.z - loc.pos.z);
+  if (distNow < 3.4) {
+    startCinematicDialogue(loc);
+    return;
+  }
+
+  const spot = findClearStandPosition(loc, playerGroup.position);
   state.autoWalkTarget = {
-    x: loc.pos.x + Math.sin(angle) * 2.2,
-    z: loc.pos.z + Math.cos(angle) * 2.2,
-    openNpc: loc
+    x: spot.x,
+    z: spot.z,
+    openNpc: loc,
+    stuckTimer: 0,
+    steerDir: 1
   };
   showToast(`Direction Unité ${loc.unit} — ${loc.placeName} (${loc.npcName})`);
 }
@@ -2781,72 +3523,134 @@ function animate() {
   let moveX = 0;
   let moveZ = 0;
   const speed = 7.6;
+  let playerIsMoving = false;
 
-  if (state.keys.up) moveZ -= 1;
-  if (state.keys.down) moveZ += 1;
-  if (state.keys.left) moveX -= 1;
-  if (state.keys.right) moveX += 1;
+  if (!state.cinema.active) {
+    if (state.keys.up) moveZ -= 1;
+    if (state.keys.down) moveZ += 1;
+    if (state.keys.left) moveX -= 1;
+    if (state.keys.right) moveX += 1;
 
-  const manualMove = (moveX !== 0 || moveZ !== 0);
-  if (manualMove) {
-    state.autoWalkTarget = null;
-    const forwardX = -Math.sin(state.cameraYaw);
-    const forwardZ = -Math.cos(state.cameraYaw);
-    const rightX = Math.cos(state.cameraYaw);
-    const rightZ = -Math.sin(state.cameraYaw);
-
-    const vx = (forwardX * -moveZ + rightX * moveX);
-    const vz = (forwardZ * -moveZ + rightZ * moveX);
-    const len = Math.hypot(vx, vz) || 1;
-    playerGroup.position.x += (vx / len) * speed * dt;
-    playerGroup.position.z += (vz / len) * speed * dt;
-    playerGroup.rotation.y = Math.atan2(vx, vz);
-  } else if (state.autoWalkTarget) {
-    const dx = state.autoWalkTarget.x - playerGroup.position.x;
-    const dz = state.autoWalkTarget.z - playerGroup.position.z;
-    const dist = Math.hypot(dx, dz);
-    if (dist < 0.48) {
-      const npcToOpen = state.autoWalkTarget.openNpc;
+    const manualMove = (moveX !== 0 || moveZ !== 0);
+    if (manualMove) {
       state.autoWalkTarget = null;
-      if (npcToOpen) openDialogue(npcToOpen);
+      const forwardX = -Math.sin(state.cameraYaw);
+      const forwardZ = -Math.cos(state.cameraYaw);
+      const rightX = Math.cos(state.cameraYaw);
+      const rightZ = -Math.sin(state.cameraYaw);
+
+      const vx = (forwardX * -moveZ + rightX * moveX);
+      const vz = (forwardZ * -moveZ + rightZ * moveX);
+      const len = Math.hypot(vx, vz) || 1;
+      const prevX = playerGroup.position.x;
+      const prevZ = playerGroup.position.z;
+
+      playerGroup.position.x += (vx / len) * speed * dt;
+      playerGroup.position.z += (vz / len) * speed * dt;
+      resolveCollisions(playerGroup.position, PLAYER_RADIUS, null);
+
+      const movedDist = Math.hypot(playerGroup.position.x - prevX, playerGroup.position.z - prevZ);
+      playerIsMoving = movedDist > 0.004;
+      const desiredRotY = Math.atan2(vx, vz);
+      playerGroup.rotation.y = lerpAngle(playerGroup.rotation.y, desiredRotY, Math.min(1, dt * 14));
+    } else if (state.autoWalkTarget) {
+      const target = state.autoWalkTarget;
+      const dx = target.x - playerGroup.position.x;
+      const dz = target.z - playerGroup.position.z;
+      const dist = Math.hypot(dx, dz);
+
+      if (dist < 0.55) {
+        const npcToOpen = target.openNpc;
+        state.autoWalkTarget = null;
+        if (npcToOpen) startCinematicDialogue(npcToOpen);
+      } else {
+        const prevX = playerGroup.position.x;
+        const prevZ = playerGroup.position.z;
+        let dirX = dx / dist;
+        let dirZ = dz / dist;
+
+        // Légère déviation tangentielle si un obstacle (mât, arbre, banc) se trouve sur le trajet
+        if (target.stuckTimer > 0.12) {
+          const perpX = -dirZ * target.steerDir;
+          const perpZ = dirX * target.steerDir;
+          dirX = dirX * 0.45 + perpX * 0.89;
+          dirZ = dirZ * 0.45 + perpZ * 0.89;
+          const norm = Math.hypot(dirX, dirZ) || 1;
+          dirX /= norm;
+          dirZ /= norm;
+        }
+
+        const stepLen = speed * 1.18 * dt;
+        playerGroup.position.x += dirX * stepLen;
+        playerGroup.position.z += dirZ * stepLen;
+        const hitObstacle = resolveCollisions(playerGroup.position, PLAYER_RADIUS, null);
+
+        const actualStep = Math.hypot(playerGroup.position.x - prevX, playerGroup.position.z - prevZ);
+        if (hitObstacle && actualStep < stepLen * 0.55) {
+          target.stuckTimer += dt;
+          if (target.stuckTimer > 1.4) {
+            target.steerDir *= -1;
+            target.stuckTimer = 0.25;
+          }
+        } else {
+          target.stuckTimer = Math.max(0, target.stuckTimer - dt * 2);
+        }
+
+        playerIsMoving = actualStep > 0.004;
+        if (playerIsMoving) {
+          const walkAngle = Math.atan2(playerGroup.position.x - prevX, playerGroup.position.z - prevZ);
+          playerGroup.rotation.y = lerpAngle(playerGroup.rotation.y, walkAngle, Math.min(1, dt * 14));
+        }
+      }
     } else {
-      playerGroup.position.x += (dx / dist) * (speed * 1.2) * dt;
-      playerGroup.position.z += (dz / dist) * (speed * 1.2) * dt;
-      playerGroup.rotation.y = Math.atan2(dx, dz);
+      resolveCollisions(playerGroup.position, PLAYER_RADIUS, null);
     }
+  } else if (state.cinema.playerSpot && state.cinema.npcEntity) {
+    // Placement cinématique fluide face à l'habitant sans aucun chevauchement
+    const spot = state.cinema.playerSpot;
+    const npcPos = state.cinema.npcEntity.group.position;
+    const dxSpot = spot.x - playerGroup.position.x;
+    const dzSpot = spot.z - playerGroup.position.z;
+    const distSpot = Math.hypot(dxSpot, dzSpot);
+
+    if (distSpot > 0.08) {
+      const step = Math.min(distSpot, 6.2 * dt);
+      playerGroup.position.x += (dxSpot / distSpot) * step;
+      playerGroup.position.z += (dzSpot / distSpot) * step;
+      resolveCollisions(playerGroup.position, PLAYER_RADIUS, null);
+      playerIsMoving = true;
+    }
+
+    const faceNpcYaw = Math.atan2(npcPos.x - playerGroup.position.x, npcPos.z - playerGroup.position.z);
+    playerGroup.rotation.y = lerpAngle(playerGroup.rotation.y, faceNpcYaw, Math.min(1, dt * 10));
   }
 
-  // Contourner doucement le socle central du drapeau (0, 2)
-  const fDx = playerGroup.position.x;
-  const fDz = playerGroup.position.z - 2;
-  const fDist = Math.hypot(fDx, fDz);
-  if (fDist < 2.65 && fDist > 0.001) {
-    playerGroup.position.x = (fDx / fDist) * 2.65;
-    playerGroup.position.z = 2 + (fDz / fDist) * 2.65;
-  }
-
-  playerGroup.position.x = Math.max(-29, Math.min(29, playerGroup.position.x));
-  playerGroup.position.z = Math.max(-18, Math.min(30, playerGroup.position.z));
-
-  const isMoving = manualMove || Boolean(state.autoWalkTarget);
-  if (isMoving) {
-    const swing = Math.sin(elapsed * 12) * 0.65;
-    playerParts.leftLeg.rotation.x = swing;
-    playerParts.rightLeg.rotation.x = -swing;
-    playerParts.leftArmPivot.rotation.x = -swing * 0.7;
-    playerParts.rightArmPivot.rotation.x = swing * 0.7;
+  if (playerIsMoving) {
     stepTimer += dt;
     if (stepTimer > 0.34) {
       stepTimer = 0;
       playFX('step');
     }
-  } else {
-    playerParts.leftLeg.rotation.x *= 0.8;
-    playerParts.rightLeg.rotation.x *= 0.8;
-    playerParts.leftArmPivot.rotation.x *= 0.8;
-    playerParts.rightArmPivot.rotation.x *= 0.8;
   }
 
+  // Animer le personnage joueur (respiration, clignements, marche, parole & écoute)
+  const playerIsSpeaking = state.speakingTarget === 'player';
+  const playerIsListening = state.cinema.active && Boolean(state.speakingTarget) && state.speakingTarget !== 'player';
+  updateCharacterAnimation(
+    playerParts,
+    playerAnim,
+    {
+      isMoving: playerIsMoving,
+      isSpeaking: playerIsSpeaking,
+      isListening: playerIsListening,
+      isGreeting: false,
+      headLookYaw: 0
+    },
+    elapsed,
+    dt
+  );
+
+  // Animer les 8 habitants du quartier
   let closestNpc = null;
   let closestDist = 4.3;
 
@@ -2855,38 +3659,65 @@ function animate() {
     const dz = playerGroup.position.z - npc.group.position.z;
     const dist = Math.hypot(dx, dz);
 
-    npc.group.position.y = Math.sin(elapsed * 2.6 + npc.phase) * 0.04;
+    // Maintien de la position valide du NPC (aucun chevauchement avec le décor)
     npc.ring.scale.setScalar(1 + Math.sin(elapsed * 3 + npc.phase) * 0.07);
 
-    if (dist < 6.8) {
-      npc.group.rotation.y = Math.atan2(dx, dz);
-      npc.parts.rightArmPivot.rotation.z = -2.35 + Math.sin(elapsed * 8) * 0.32;
+    const isCinemaNpc = state.cinema.active && state.cinema.npcEntity === npc;
+    const isSpeaking = state.speakingTarget === npc.data.id;
+    const isListening = isCinemaNpc && state.speakingTarget === 'player';
+    const isGreeting = !state.cinema.active && !state.activeNpc && dist < 6.4;
+
+    // Rotation douce vers le joueur lorsqu'il s'approche ou pendant la scène
+    let headLookYaw = 0;
+    if (isCinemaNpc || dist < 7.2) {
+      const lookAngle = Math.atan2(dx, dz);
+      npc.group.rotation.y = lerpAngle(npc.group.rotation.y, lookAngle, Math.min(1, dt * 6.5));
+      let residual = lookAngle - npc.group.rotation.y;
+      while (residual > Math.PI) residual -= Math.PI * 2;
+      while (residual < -Math.PI) residual += Math.PI * 2;
+      headLookYaw = Math.max(-0.45, Math.min(0.45, residual));
     } else {
-      npc.parts.rightArmPivot.rotation.z *= 0.9;
+      npc.group.rotation.y = lerpAngle(npc.group.rotation.y, npc.baseRotY, Math.min(1, dt * 2.5));
     }
+
+    updateCharacterAnimation(
+      npc.parts,
+      npc.anim,
+      {
+        isMoving: false,
+        isSpeaking,
+        isListening,
+        isGreeting,
+        headLookYaw
+      },
+      elapsed,
+      dt
+    );
 
     if (dist < closestDist) {
       closestDist = dist;
       closestNpc = npc.data;
     }
 
-    _labelVec.set(npc.group.position.x, 2.75, npc.group.position.z);
-    _labelVec.project(camera);
-    if (_labelVec.z < 1) {
-      const x = (_labelVec.x * 0.5 + 0.5) * window.innerWidth;
-      const y = (-_labelVec.y * 0.5 + 0.5) * window.innerHeight;
-      npc.labelEl.style.left = `${x}px`;
-      npc.labelEl.style.top = `${y}px`;
-      npc.labelEl.style.opacity = dist < 38 ? '1' : '0.45';
-      npc.labelEl.style.display = 'flex';
-    } else {
-      npc.labelEl.style.display = 'none';
+    if (!state.cinema.active) {
+      _labelVec.set(npc.group.position.x, 2.75, npc.group.position.z);
+      _labelVec.project(camera);
+      if (_labelVec.z < 1) {
+        const x = (_labelVec.x * 0.5 + 0.5) * window.innerWidth;
+        const y = (-_labelVec.y * 0.5 + 0.5) * window.innerHeight;
+        npc.labelEl.style.left = `${x}px`;
+        npc.labelEl.style.top = `${y}px`;
+        npc.labelEl.style.opacity = dist < 38 ? '1' : '0.45';
+        npc.labelEl.style.display = 'flex';
+      } else {
+        npc.labelEl.style.display = 'none';
+      }
     }
   });
 
   state.nearbyNpc = closestNpc;
   const promptEl = document.getElementById('proximity-prompt');
-  if (closestNpc && !state.activeNpc) {
+  if (closestNpc && !state.activeNpc && !state.cinema.active) {
     if (lastProximityNpcId !== closestNpc.id) {
       lastProximityNpcId = closestNpc.id;
       document.getElementById('proximity-avatar').innerHTML = getNpcPortraitSVG(closestNpc.id);
@@ -2900,16 +3731,56 @@ function animate() {
     promptEl.classList.add('hidden');
   }
 
-  const targetLookY = (state.activeNpc && window.innerWidth < 640) ? -0.35 : 1.4;
-  state.lookAtY += (targetLookY - state.lookAtY) * 0.1;
+  // Caméra : cadrage film 2-plans pendant le dialogue 3D, sinon orbite libre fluide
+  if (state.cinema.active && state.cinema.npcEntity) {
+    const npcPos = state.cinema.npcEntity.group.position;
+    const pPos = playerGroup.position;
+    const midX = (npcPos.x + pPos.x) * 0.5;
+    const midZ = (npcPos.z + pPos.z) * 0.5;
 
-  const camX = playerGroup.position.x + Math.sin(state.cameraYaw) * Math.cos(state.cameraPitch) * state.cameraDistance;
-  const camY = playerGroup.position.y + 1.8 + Math.sin(state.cameraPitch) * state.cameraDistance;
-  const camZ = playerGroup.position.z + Math.cos(state.cameraYaw) * Math.cos(state.cameraPitch) * state.cameraDistance;
+    const dx = pPos.x - npcPos.x;
+    const dz = pPos.z - npcPos.z;
+    const len = Math.hypot(dx, dz) || 1;
+    const perpX = (-dz / len) * state.cinema.camSide;
+    const perpZ = (dx / len) * state.cinema.camSide;
 
-  _camGoalVec.set(camX, camY, camZ);
-  camera.position.lerp(_camGoalVec, 0.12);
-  camera.lookAt(playerGroup.position.x, playerGroup.position.y + state.lookAtY, playerGroup.position.z);
+    const isMobilePortrait = window.innerWidth < 640 && window.innerHeight > window.innerWidth;
+    const camDist = isMobilePortrait ? 7.4 : 6.0;
+    const camHeight = isMobilePortrait ? 2.65 : 2.35;
+
+    _camGoalVec.set(midX + perpX * camDist, camHeight, midZ + perpZ * camDist);
+    _camTargetLookVec.set(midX, 1.55, midZ);
+    camera.position.lerp(_camGoalVec, 0.085);
+    _camLookVec.lerp(_camTargetLookVec, 0.1);
+    camera.lookAt(_camLookVec.x, _camLookVec.y, _camLookVec.z);
+
+    // Projeter les bulles flottantes exactement au-dessus des têtes 3D
+    projectSpeechBubble(
+      document.getElementById('npc-speech-bubble'),
+      npcPos.x,
+      2.65,
+      npcPos.z
+    );
+    projectSpeechBubble(
+      document.getElementById('player-speech-bubble'),
+      pPos.x,
+      2.65,
+      pPos.z
+    );
+  } else {
+    const targetLookY = (state.activeNpc && window.innerWidth < 640) ? -0.35 : 1.4;
+    state.lookAtY += (targetLookY - state.lookAtY) * 0.1;
+
+    const camX = playerGroup.position.x + Math.sin(state.cameraYaw) * Math.cos(state.cameraPitch) * state.cameraDistance;
+    const camY = playerGroup.position.y + 1.8 + Math.sin(state.cameraPitch) * state.cameraDistance;
+    const camZ = playerGroup.position.z + Math.cos(state.cameraYaw) * Math.cos(state.cameraPitch) * state.cameraDistance;
+
+    _camGoalVec.set(camX, camY, camZ);
+    _camTargetLookVec.set(playerGroup.position.x, playerGroup.position.y + state.lookAtY, playerGroup.position.z);
+    camera.position.lerp(_camGoalVec, 0.12);
+    _camLookVec.lerp(_camTargetLookVec, 0.16);
+    camera.lookAt(_camLookVec.x, _camLookVec.y, _camLookVec.z);
+  }
 
   renderer.render(scene, camera);
 }
@@ -3364,7 +4235,8 @@ function renderQuiz(loc) {
   });
 }
 
-function openDialogue(loc) {
+function openDialogue(loc, initialTab = 'dialogue', autoSpeak = false) {
+  if (state.cinema.active) exitCinematicDialogue(false);
   state.activeNpc = loc;
   state.quizIndex = 0;
   state.quizAnswered = false;
@@ -3399,7 +4271,7 @@ function openDialogue(loc) {
   renderVocabPanel(loc);
   renderQuiz(loc);
   updateDialogueStatusBadges(loc);
-  switchTab('dialogue');
+  switchTab(initialTab || 'dialogue');
 
   const sheet = document.getElementById('dialogue-sheet');
   sheet.style.transform = '';
@@ -3410,18 +4282,22 @@ function openDialogue(loc) {
     document.getElementById('dpad-controls').classList.add('hidden');
   }
 
-  const firstLine = loc.dialogues && loc.dialogues[0] ? loc.dialogues[0].en : '';
-  if (firstLine) speakEnglish(firstLine, false, loc.voice);
+  if (autoSpeak && initialTab === 'dialogue') {
+    const firstLine = loc.dialogues && loc.dialogues[0] ? loc.dialogues[0].en : '';
+    if (firstLine) speakEnglish(firstLine, false, loc.voice, loc.id);
+  }
 }
 
-function closeDialogue() {
+function closeDialogue(silent = false) {
   state.activeNpc = null;
   hideQuizFeedbackBanner();
   document.getElementById('dialogue-modal').classList.add('hidden');
   const sheet = document.getElementById('dialogue-sheet');
   if (sheet) sheet.style.transform = '';
-  document.getElementById('dpad-controls').classList.remove('hidden');
-  stopCurrentSpeech();
+  if (!state.cinema.active) {
+    document.getElementById('dpad-controls').classList.remove('hidden');
+  }
+  if (!silent) stopCurrentSpeech();
 }
 
 function switchTab(tabName) {
@@ -3589,6 +4465,7 @@ function resetProgress() {
   saveProgress();
   closeResetModal();
   closeProfileModal();
+  exitCinematicDialogue(true);
   closeDialogue();
   syncProgressUI();
   playFX('click');
@@ -3635,18 +4512,28 @@ function bindUIEvents() {
       if (!resetModal.classList.contains('hidden')) closeResetModal();
       else if (!profileModal.classList.contains('hidden')) closeProfileModal();
       else if (!helpModal.classList.contains('hidden')) helpModal.classList.add('hidden');
+      else if (state.cinema.active) exitCinematicDialogue(true);
       else if (state.activeNpc) closeDialogue();
       return;
     }
 
     if (isTyping || isAnyBlockingModalOpen()) return;
 
-    if (e.key === ' ' && state.nearbyNpc && !state.activeNpc) {
-      e.preventDefault();
-      openDialogue(state.nearbyNpc);
-      return;
+    if (e.key === ' ') {
+      if (state.cinema.active) {
+        e.preventDefault();
+        advanceCinemaTurn();
+        return;
+      }
+      if (state.nearbyNpc && !state.activeNpc) {
+        e.preventDefault();
+        startCinematicDialogue(state.nearbyNpc);
+        return;
+      }
     }
-    mapKey(e.key, true);
+    if (!state.cinema.active) {
+      mapKey(e.key, true);
+    }
   });
 
   window.addEventListener('keyup', e => mapKey(e.key, false));
@@ -3823,10 +4710,33 @@ function bindUIEvents() {
 
   document.getElementById('btn-talk-nearby').addEventListener('click', () => {
     initAudioFX();
-    if (state.nearbyNpc) openDialogue(state.nearbyNpc);
+    if (state.nearbyNpc) startCinematicDialogue(state.nearbyNpc);
   });
 
-  document.getElementById('btn-close-dialogue').addEventListener('click', closeDialogue);
+  // Contrôles de la scène de dialogue 3D (mode film avec bulles flottantes)
+  document.getElementById('btn-cinema-replay').addEventListener('click', () => {
+    initAudioFX();
+    if (state.cinema.active) playCinemaTurn(state.cinema.turnIndex);
+  });
+  document.getElementById('btn-cinema-next').addEventListener('click', () => {
+    initAudioFX();
+    advanceCinemaTurn();
+  });
+  document.getElementById('btn-cinema-course').addEventListener('click', () => {
+    initAudioFX();
+    const targetTab = state.cinema.finished ? 'quiz' : 'dialogue';
+    openCourseFromCinema(targetTab);
+  });
+  document.getElementById('btn-cinema-grammar').addEventListener('click', () => {
+    initAudioFX();
+    openCourseFromCinema('grammar');
+  });
+  document.getElementById('btn-cinema-exit').addEventListener('click', () => {
+    playFX('click');
+    exitCinematicDialogue(true);
+  });
+
+  document.getElementById('btn-close-dialogue').addEventListener('click', () => closeDialogue(false));
 
   // Glisser vers le bas pour fermer le bottom sheet sur mobile
   const dragZone = document.getElementById('dialogue-drag-zone');

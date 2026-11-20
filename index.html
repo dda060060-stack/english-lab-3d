@@ -23,6 +23,37 @@
   <!-- Calque des étiquettes flottantes au-dessus des 8 personnages 3D -->
   <div id="labels-layer" aria-hidden="false"></div>
 
+  <!-- Calque des bulles de dialogue flottantes (scène de film 3D) -->
+  <div id="speech-bubbles-layer" class="speech-bubbles-layer" aria-live="polite">
+    <div id="npc-speech-bubble" class="speech-bubble hidden" role="status">
+      <div class="speech-bubble-head">
+        <span id="npc-bubble-avatar" class="speech-bubble-avatar"></span>
+        <span id="npc-bubble-speaker" class="speech-bubble-speaker">Moussa</span>
+        <span id="npc-bubble-wave" class="speaking-wave hidden" aria-hidden="true">
+          <i></i><i></i><i></i>
+        </span>
+        <span id="npc-bubble-turn" class="speech-bubble-turn">1/8</span>
+      </div>
+      <p id="npc-bubble-en" class="speech-bubble-en"></p>
+      <p id="npc-bubble-fr" class="speech-bubble-fr"></p>
+      <span class="speech-bubble-tail" aria-hidden="true"></span>
+    </div>
+
+    <div id="player-speech-bubble" class="speech-bubble is-player hidden" role="status">
+      <div class="speech-bubble-head">
+        <span id="player-bubble-avatar" class="speech-bubble-avatar"></span>
+        <span id="player-bubble-speaker" class="speech-bubble-speaker">Vous</span>
+        <span id="player-bubble-wave" class="speaking-wave hidden" aria-hidden="true">
+          <i></i><i></i><i></i>
+        </span>
+        <span id="player-bubble-turn" class="speech-bubble-turn">2/8</span>
+      </div>
+      <p id="player-bubble-en" class="speech-bubble-en"></p>
+      <p id="player-bubble-fr" class="speech-bubble-fr"></p>
+      <span class="speech-bubble-tail" aria-hidden="true"></span>
+    </div>
+  </div>
+
   <!-- Barre supérieure principale DAVID Speak -->
   <header id="top-hud" class="top-hud">
     <div class="hud-bar">
@@ -105,6 +136,55 @@
       <span id="proximity-text" class="proximity-text">Parler à Moussa</span>
       <kbd class="kbd-badge">Espace</kbd>
     </button>
+  </div>
+
+  <!-- Barre de contrôles discrète pendant la scène de dialogue 3D -->
+  <div id="cinema-controls" class="cinema-controls hidden" role="region" aria-label="Contrôles de la scène de dialogue">
+    <div class="cinema-bar">
+      <div class="cinema-meta">
+        <span id="cinema-unit-pill" class="badge badge-blue">Unité 1</span>
+        <span id="cinema-status-text" class="cinema-status-text">Dialogue en cours...</span>
+      </div>
+
+      <div class="cinema-actions">
+        <button id="btn-cinema-replay" type="button" class="duo-btn duo-btn-white cinema-btn" title="Réécouter la réplique">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M5 9.5V14.5H9L14.5 19V5L9 9.5H5Z" fill="currentColor" />
+            <path d="M17.5 8.5C18.7 9.7 19.3 10.8 19.3 12C19.3 13.2 18.7 14.3 17.5 15.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+          </svg>
+          <span class="cinema-btn-label">Réécouter</span>
+        </button>
+
+        <button id="btn-cinema-next" type="button" class="duo-btn duo-btn-blue cinema-btn" title="Réplique suivante">
+          <span id="cinema-next-label">Suivant</span>
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+
+        <button id="btn-cinema-grammar" type="button" class="duo-btn duo-btn-white cinema-btn hidden">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M5 4.5C5 3.67 5.67 3 6.5 3H18.5C19.33 3 20 3.67 20 4.5V19.5C20 20.33 19.33 21 18.5 21H6.5C5.67 21 5 20.33 5 19.5V4.5Z" stroke="currentColor" stroke-width="2.1" />
+            <path d="M9 8H16M9 12H16M9 16H13" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" />
+          </svg>
+          <span>Voir la grammaire</span>
+        </button>
+
+        <button id="btn-cinema-course" type="button" class="duo-btn duo-btn-green cinema-btn">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="2.2" />
+            <path d="M8.5 12.3L10.8 14.6L15.8 9.6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <span id="cinema-course-label">Ouvrir le cours &amp; Quiz</span>
+        </button>
+
+        <button id="btn-cinema-exit" type="button" class="mini-icon-btn duo-btn-white cinema-exit-btn" title="Quitter la scène" aria-label="Quitter la scène de dialogue">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+          </svg>
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- Pad directionnel tactile / souris -->

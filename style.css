@@ -2033,6 +2033,226 @@ input {
 }
 
 /* ==========================================================================
+   Scène de Film 3D : Bulles de dialogue flottantes & Barre de contrôles
+   ========================================================================== */
+
+.speech-bubbles-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 18;
+  overflow: hidden;
+}
+
+.speech-bubble {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  width: min(320px, calc(100vw - 28px));
+  background: var(--bg-white);
+  border: 2px solid var(--border);
+  border-bottom: 4px solid var(--border-strong);
+  border-radius: 18px;
+  padding: 12px 14px;
+  box-shadow: 0 12px 28px rgba(45, 55, 72, 0.18);
+  pointer-events: auto;
+  animation: bubblePop 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: left 0.08s linear, top 0.08s linear;
+}
+
+.speech-bubble.is-player {
+  background: #F4FBFF;
+  border-color: var(--blue-border);
+  border-bottom-color: var(--blue);
+}
+
+@keyframes bubblePop {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -90%) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -100%) scale(1);
+  }
+}
+
+.speech-bubble-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.speech-bubble-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 2px solid var(--border);
+  background: var(--bg-soft);
+}
+
+.speech-bubble-avatar svg,
+.speech-bubble-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.speech-bubble-speaker {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--blue-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.speech-bubble.is-player .speech-bubble-speaker {
+  color: var(--green-text);
+}
+
+.speech-bubble-turn {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text-muted);
+  background: var(--bg-soft);
+  padding: 2px 7px;
+  border-radius: 999px;
+}
+
+.speaking-wave {
+  display: inline-flex;
+  align-items: center;
+  gap: 2.5px;
+  height: 14px;
+}
+
+.speaking-wave i {
+  display: block;
+  width: 3px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--blue);
+  animation: waveBar 0.55s ease-in-out infinite alternate;
+}
+
+.speech-bubble.is-player .speaking-wave i {
+  background: var(--green);
+}
+
+.speaking-wave i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.speaking-wave i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes waveBar {
+  from { height: 4px; }
+  to { height: 14px; }
+}
+
+.speech-bubble-en {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-main);
+  line-height: 1.38;
+}
+
+.speech-bubble-fr {
+  margin: 6px 0 0;
+  padding-top: 6px;
+  border-top: 1.5px solid rgba(229, 229, 229, 0.85);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+.speech-bubble-tail {
+  position: absolute;
+  left: 50%;
+  bottom: -10px;
+  width: 16px;
+  height: 16px;
+  background: var(--bg-white);
+  border-right: 2px solid var(--border-strong);
+  border-bottom: 2px solid var(--border-strong);
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.speech-bubble.is-player .speech-bubble-tail {
+  background: #F4FBFF;
+  border-right-color: var(--blue);
+  border-bottom-color: var(--blue);
+}
+
+/* Barre de contrôles discrète en bas pendant la scène 3D */
+.cinema-controls {
+  position: fixed;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 25;
+  width: min(740px, calc(100vw - 24px));
+  pointer-events: auto;
+  animation: sheetIn 0.2s ease-out;
+}
+
+.cinema-bar {
+  background: var(--bg-white);
+  border: 2px solid var(--border);
+  border-bottom: 4px solid var(--border-strong);
+  border-radius: 20px;
+  padding: 10px 14px;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.cinema-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.cinema-status-text {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.cinema-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+.cinema-btn {
+  min-height: 40px;
+  padding: 8px 14px;
+  font-size: 13px;
+  border-radius: 13px;
+}
+
+.cinema-exit-btn {
+  width: 40px;
+  height: 40px;
+}
+
+/* ==========================================================================
    Responsive Tablette & Smartphone
    ========================================================================== */
 
@@ -2234,5 +2454,77 @@ input {
     right: 12px;
     transform: none;
     text-align: center;
+  }
+
+  .speech-bubble {
+    width: min(296px, calc(100vw - 24px));
+    padding: 10px 12px;
+  }
+
+  .speech-bubble-en {
+    font-size: 14px;
+  }
+
+  .speech-bubble-fr {
+    font-size: 12px;
+  }
+
+  .cinema-controls {
+    bottom: max(10px, env(safe-area-inset-bottom));
+    width: calc(100vw - 16px);
+  }
+
+  .cinema-bar {
+    padding: 8px 10px;
+    gap: 7px;
+    border-radius: 16px;
+  }
+
+  .cinema-meta {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .cinema-actions {
+    width: 100%;
+    margin-left: 0;
+    justify-content: space-between;
+    gap: 6px;
+  }
+
+  .cinema-btn {
+    min-height: 38px;
+    padding: 7px 10px;
+    font-size: 12px;
+    gap: 5px;
+    white-space: nowrap;
+  }
+
+  #btn-cinema-replay {
+    width: 40px;
+    padding: 0;
+    flex: 0 0 auto;
+  }
+
+  #btn-cinema-next {
+    flex: 0 1 auto;
+  }
+
+  #btn-cinema-course {
+    flex: 1 1 auto;
+  }
+
+  #btn-cinema-grammar {
+    flex: 1 1 auto;
+  }
+
+  .cinema-btn-label {
+    display: none;
+  }
+
+  .cinema-exit-btn {
+    width: 38px;
+    height: 38px;
+    flex: 0 0 auto;
   }
 }
