@@ -242,6 +242,9 @@ const NEIGHBORHOOD_DATA = [
     placeName: 'Place de la Nation',
     shortName: 'Place Nation',
     npcName: 'Moussa',
+    gender: 'male',
+    hairStyle: 'short',
+    outfitStyle: 'tunic',
     voice: 'en-US-GuyNeural',
     unitTitle: "What's your name?",
     theme: 'Salutations et présentations',
@@ -298,6 +301,10 @@ const NEIGHBORHOOD_DATA = [
     placeName: 'Librairie / Campus',
     shortName: 'Campus',
     npcName: 'Aminata',
+    gender: 'female',
+    hairStyle: 'headwrap',
+    outfitStyle: 'pagne-skirt',
+    skirtColor: 0x0f5c8c,
     voice: 'en-US-JennyNeural',
     unitTitle: 'Where are my keys?',
     theme: 'Objets du quotidien et prépositions',
@@ -331,6 +338,9 @@ const NEIGHBORHOOD_DATA = [
     placeName: 'Maquis / Café Le Faso',
     shortName: 'Maquis Le Faso',
     npcName: 'Ibrahim',
+    gender: 'male',
+    hairStyle: 'short',
+    outfitStyle: 'tunic',
     voice: 'en-US-GuyNeural',
     unitTitle: 'Where are you from?',
     theme: 'Pays, villes, nationalités et descriptions',
@@ -364,6 +374,10 @@ const NEIGHBORHOOD_DATA = [
     placeName: 'Boutique Faso Dan Fani',
     shortName: 'Faso Dan Fani',
     npcName: 'Fatimata',
+    gender: 'female',
+    hairStyle: 'headwrap',
+    outfitStyle: 'dress',
+    skirtColor: 0xa21caf,
     voice: 'en-US-AriaNeural',
     unitTitle: 'Is this coat yours?',
     theme: 'Vêtements, couleurs et météo',
@@ -397,6 +411,9 @@ const NEIGHBORHOOD_DATA = [
     placeName: 'Gare Routière / Arrêt de Bus',
     shortName: 'Gare Routière',
     npcName: 'Salif',
+    gender: 'male',
+    hairStyle: 'short',
+    outfitStyle: 'tunic',
     voice: 'en-US-GuyNeural',
     unitTitle: 'What time is it?',
     theme: 'Heure et actions en cours',
@@ -430,6 +447,10 @@ const NEIGHBORHOOD_DATA = [
     placeName: 'Cour Familiale',
     shortName: 'Cour Familiale',
     npcName: 'Mariam',
+    gender: 'female',
+    hairStyle: 'braids-wrap',
+    outfitStyle: 'dress',
+    skirtColor: 0xb45309,
     voice: 'en-US-JennyNeural',
     unitTitle: 'I ride my bike to school.',
     theme: 'Transports, famille et routine quotidienne',
@@ -463,6 +484,9 @@ const NEIGHBORHOOD_DATA = [
     placeName: 'Villa / Résidence',
     shortName: 'Villa',
     npcName: 'Wendpanga',
+    gender: 'male',
+    hairStyle: 'short',
+    outfitStyle: 'tunic',
     voice: 'en-US-GuyNeural',
     unitTitle: 'Does it have a view?',
     theme: 'Maison, pièces et meubles',
@@ -496,6 +520,10 @@ const NEIGHBORHOOD_DATA = [
     placeName: 'Atelier & Bureau Tech',
     shortName: 'Bureau Tech',
     npcName: 'Awa',
+    gender: 'female',
+    hairStyle: 'bun',
+    outfitStyle: 'pagne-skirt',
+    skirtColor: 0x155e75,
     voice: 'en-US-AriaNeural',
     unitTitle: 'Where do you work?',
     theme: 'Métiers et lieux de travail',
@@ -1127,6 +1155,8 @@ let burkinaFlagPivot = null;
 const npcEntities = [];
 const clickableMeshes = [];
 const worldColliders = [];
+const backgroundCitizens = [];
+const trafficVehicles = [];
 let clock = null;
 let stepTimer = 0;
 
@@ -1293,6 +1323,8 @@ function initThreeScene() {
   worldColliders.length = 0;
   npcEntities.length = 0;
   clickableMeshes.length = 0;
+  backgroundCitizens.length = 0;
+  trafficVehicles.length = 0;
   clock = new THREE.Clock();
   _camGoalVec = new THREE.Vector3();
   _camLookVec = new THREE.Vector3(0, 1.4, 7.6);
@@ -1301,28 +1333,55 @@ function initThreeScene() {
   const container = document.getElementById('canvas-container');
   scene = new THREE.Scene();
 
-  scene.background = new THREE.Color(0x8abce6);
-  scene.fog = new THREE.Fog(0xd4e2ec, 50, 128);
+  // Ambiance fin d'après-midi chaleureuse : fond doux + brouillard doré léger à l'horizon
+  scene.background = new THREE.Color(0x9bc4e2);
+  scene.fog = new THREE.Fog(0xe8c7a3, 46, 126);
 
   state.cameraDistance = getDefaultCameraDistance();
   const initialFov = (window.innerWidth < 640 && window.innerHeight > window.innerWidth) ? 56 : 50;
-  camera = new THREE.PerspectiveCamera(initialFov, container.clientWidth / container.clientHeight, 0.1, 190);
+  camera = new THREE.PerspectiveCamera(initialFov, container.clientWidth / container.clientHeight, 0.1, 210);
 
   renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'default' });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
   renderer.setSize(container.clientWidth, container.clientHeight);
+  if (renderer.shadowMap) {
+    renderer.shadowMap.enabled = true;
+    if (THREE.PCFSoftShadowMap !== undefined) {
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    }
+  }
   container.appendChild(renderer.domElement);
 
   raycaster = new THREE.Raycaster();
   mouse = new THREE.Vector2();
 
-  const hemiLight = new THREE.HemisphereLight(0xfffaf0, 0xb5764c, 0.98);
+  // Éclairage naturel chaud fin d'après-midi : ciel doré + rebond terre de latérite
+  const hemiLight = new THREE.HemisphereLight(0xfff1d6, 0xb06a3c, 0.92);
   hemiLight.position.set(0, 38, 0);
   scene.add(hemiLight);
 
-  const sunLight = new THREE.DirectionalLight(0xffebc8, 1.05);
-  sunLight.position.set(28, 42, 20);
+  const sunLight = new THREE.DirectionalLight(0xffd79b, 1.16);
+  sunLight.position.set(36, 28, -28);
+  sunLight.castShadow = true;
+  if (sunLight.shadow && sunLight.shadow.mapSize) {
+    sunLight.shadow.mapSize.width = 1024;
+    sunLight.shadow.mapSize.height = 1024;
+    if (sunLight.shadow.camera) {
+      sunLight.shadow.camera.near = 5;
+      sunLight.shadow.camera.far = 115;
+      sunLight.shadow.camera.left = -36;
+      sunLight.shadow.camera.right = 36;
+      sunLight.shadow.camera.top = 38;
+      sunLight.shadow.camera.bottom = -38;
+    }
+    sunLight.shadow.bias = -0.0008;
+  }
   scene.add(sunLight);
+
+  // Contre-jour bleu ciel très doux pour sculpter les visages sans les assombrir
+  const fillLight = new THREE.DirectionalLight(0xbcdbff, 0.28);
+  fillLight.position.set(-24, 18, 28);
+  scene.add(fillLight);
 
   buildSkyAndSun();
   buildNeighborhoodGround();
@@ -1330,6 +1389,8 @@ function initThreeScene() {
   buildMonumentDesMartyrs();
   buildEnvironmentDecor();
   buildAllLocationsAndNPCs();
+  buildBackgroundPopulation();
+  buildRoadTraffic();
   buildPlayerAvatar();
 
   setupCanvasEvents(renderer.domElement);
@@ -1339,20 +1400,54 @@ function initThreeScene() {
 }
 
 function buildSkyAndSun() {
+  // Dôme de ciel dégradé léger (bleu doux au zénith -> doré/orangé doux à l'horizon)
+  try {
+    if (typeof document !== 'undefined' && typeof THREE.CanvasTexture === 'function') {
+      const skyCanvas = document.createElement('canvas');
+      skyCanvas.width = 2;
+      skyCanvas.height = 128;
+      const ctx = skyCanvas.getContext && skyCanvas.getContext('2d');
+      if (ctx) {
+        const grad = ctx.createLinearGradient(0, 0, 0, 128);
+        grad.addColorStop(0.0, '#5a9ed6');
+        grad.addColorStop(0.34, '#8ec0e6');
+        grad.addColorStop(0.50, '#e9cfa9');
+        grad.addColorStop(0.60, '#f3ba7d');
+        grad.addColorStop(1.0, '#d89a64');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 2, 128);
+        const skyTex = new THREE.CanvasTexture(skyCanvas);
+        const skyDome = new THREE.Mesh(
+          new THREE.SphereGeometry(165, 16, 12),
+          new THREE.MeshBasicMaterial({ map: skyTex, side: THREE.BackSide, fog: false, depthWrite: false })
+        );
+        scene.add(skyDome);
+      }
+    }
+  } catch (_) {
+    // Repli automatique sur scene.background si CanvasTexture indisponible
+  }
+
+  // Soleil bas de fin d'après-midi avec halo doré chaleureux
   const sunGroup = new THREE.Group();
   const sunCore = new THREE.Mesh(
-    new THREE.IcosahedronGeometry(3.2, 1),
-    new THREE.MeshBasicMaterial({ color: 0xfff8d6 })
+    new THREE.IcosahedronGeometry(3.5, 1),
+    new THREE.MeshBasicMaterial({ color: 0xfff4c2, fog: false })
   );
-  const sunHalo = new THREE.Mesh(
-    new THREE.IcosahedronGeometry(5.2, 1),
-    new THREE.MeshBasicMaterial({ color: 0xfef08a, transparent: true, opacity: 0.18 })
+  const sunHaloInner = new THREE.Mesh(
+    new THREE.IcosahedronGeometry(6.0, 1),
+    new THREE.MeshBasicMaterial({ color: 0xffd17a, transparent: true, opacity: 0.24, fog: false })
   );
-  sunGroup.add(sunCore, sunHalo);
-  sunGroup.position.set(38, 38, -58);
+  const sunHaloOuter = new THREE.Mesh(
+    new THREE.IcosahedronGeometry(9.2, 1),
+    new THREE.MeshBasicMaterial({ color: 0xf7a859, transparent: true, opacity: 0.11, fog: false })
+  );
+  sunGroup.add(sunCore, sunHaloInner, sunHaloOuter);
+  sunGroup.position.set(52, 24, -64);
   scene.add(sunGroup);
 
-  const cloudMat = new THREE.MeshLambertMaterial({ color: 0xfaf8f5 });
+  // Nuages légers légèrement dorés par le soleil couchant
+  const cloudMat = new THREE.MeshLambertMaterial({ color: 0xfff3e2 });
   const cloudCoords = [
     [-40, 23, -34], [-14, 25, -44], [18, 24, -38], [44, 22, -24],
     [-34, 24, 18], [34, 23, 24]
@@ -1379,6 +1474,7 @@ function buildNeighborhoodGround() {
     new THREE.MeshLambertMaterial({ color: 0xb86a3e })
   );
   lateriteGround.rotation.x = -Math.PI / 2;
+  lateriteGround.receiveShadow = true;
   scene.add(lateriteGround);
 
   const warmSandMat = new THREE.MeshLambertMaterial({ color: 0xc98556 });
@@ -1431,22 +1527,26 @@ function buildNeighborhoodGround() {
   [-1.7, 5.7].forEach(z => {
     const sw = new THREE.Mesh(new THREE.BoxGeometry(86, 0.12, 1.7), sidewalkMat);
     sw.position.set(0, 0.06, z);
+    sw.receiveShadow = true;
     scene.add(sw);
   });
 
   [-3.7, 3.7].forEach(x => {
     const sw = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.12, 36), sidewalkMat);
     sw.position.set(x, 0.06, 10.5);
+    sw.receiveShadow = true;
     scene.add(sw);
   });
 
   const asphaltMat = new THREE.MeshLambertMaterial({ color: 0x67625d });
   const roadH = new THREE.Mesh(new THREE.BoxGeometry(86, 0.08, 5.8), asphaltMat);
   roadH.position.set(0, 0.04, 2);
+  roadH.receiveShadow = true;
   scene.add(roadH);
 
   const roadV = new THREE.Mesh(new THREE.BoxGeometry(5.8, 0.08, 35), asphaltMat);
   roadV.position.set(0, 0.04, 10.5);
+  roadV.receiveShadow = true;
   scene.add(roadV);
 
   const curbRedMat = new THREE.MeshLambertMaterial({ color: 0xc05e36 });
@@ -1869,6 +1969,14 @@ function createSolarLamp(rotY = 0) {
   led.position.set(0, 4.84, 1.24);
   lamp.add(led);
 
+  // Halo lumineux discret de fin d'après-midi sur le lampadaire solaire
+  const lampHalo = new THREE.Mesh(
+    new THREE.SphereGeometry(0.46, 8, 6),
+    new THREE.MeshBasicMaterial({ color: 0xffe08a, transparent: true, opacity: 0.24, depthWrite: false })
+  );
+  lampHalo.position.set(0, 4.74, 1.24);
+  lamp.add(lampHalo);
+
   const solarFrame = new THREE.Mesh(new THREE.BoxGeometry(0.84, 0.06, 0.54), frameMat);
   solarFrame.position.set(0, 4.95, 0);
   solarFrame.rotation.x = 0.32;
@@ -1888,6 +1996,7 @@ function createYStreetLamp(rotY = 0) {
   const poleMat = new THREE.MeshLambertMaterial({ color: 0x9aa4ae });
   const headMat = new THREE.MeshLambertMaterial({ color: 0xe2e8f0 });
   const bulbMat = new THREE.MeshBasicMaterial({ color: 0xfef3c7 });
+  const haloMat = new THREE.MeshBasicMaterial({ color: 0xffe08a, transparent: true, opacity: 0.22, depthWrite: false });
 
   const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.09, 4.5, 6), poleMat);
   pole.position.y = 2.25;
@@ -1903,7 +2012,9 @@ function createYStreetLamp(rotY = 0) {
     head.position.set(side * 0.98, 4.92, 0);
     const bulb = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.05, 0.16), bulbMat);
     bulb.position.set(side * 0.98, 4.86, 0);
-    lamp.add(head, bulb);
+    const halo = new THREE.Mesh(new THREE.SphereGeometry(0.42, 8, 6), haloMat);
+    halo.position.set(side * 0.98, 4.78, 0);
+    lamp.add(head, bulb, halo);
   });
 
   lamp.rotation.y = rotY;
@@ -2095,56 +2206,96 @@ function buildEnvironmentDecor() {
  * couleurs et accessoires cohérents avec chaque portrait 2D.
  */
 function createCharacterMesh(locOrConfig, isPlayer = false) {
+  const cfg = locOrConfig || {};
   const group = new THREE.Group();
-  const skinColor = isPlayer ? 0x7a482b : (locOrConfig.skinColor || 0x6e3f22);
-  const shirtColor = isPlayer ? 0x58cc02 : (locOrConfig.shirtColor || 0x1cb0f6);
-  const trimColor = isPlayer ? 0xff9600 : (locOrConfig.trimColor || 0xfcd116);
-  const headwrapColor = isPlayer ? null : locOrConfig.headwrapColor;
-  const accessory = isPlayer ? 'none' : (locOrConfig.accessory || 'none');
+  const isFemale = !isPlayer && cfg.gender === 'female';
+  const skinColor = isPlayer ? 0x7a482b : (cfg.skinColor || 0x6e3f22);
+  const shirtColor = isPlayer ? 0x58cc02 : (cfg.shirtColor || 0x1cb0f6);
+  const trimColor = isPlayer ? 0xff9600 : (cfg.trimColor || 0xfcd116);
+  const skirtColor = cfg.skirtColor || shirtColor;
+  const headwrapColor = isPlayer ? null : (cfg.headwrapColor || null);
+  const hairStyle = isPlayer ? 'short' : (cfg.hairStyle || (headwrapColor ? 'headwrap' : 'short'));
+  const outfitStyle = isPlayer ? 'tunic' : (cfg.outfitStyle || (isFemale ? 'dress' : 'tunic'));
+  const accessory = isPlayer ? 'none' : (cfg.accessory || 'none');
 
   const skinMat = new THREE.MeshLambertMaterial({ color: skinColor });
   const shirtMat = new THREE.MeshLambertMaterial({ color: shirtColor });
+  const skirtMat = new THREE.MeshLambertMaterial({ color: skirtColor });
   const trimMat = new THREE.MeshLambertMaterial({ color: trimColor });
-  const pantsMat = new THREE.MeshLambertMaterial({ color: isPlayer ? 0x2b3a4a : 0x334155 });
-  const shoeMat = new THREE.MeshLambertMaterial({ color: isPlayer ? 0xffffff : 0x1f2937 });
+  const pantsMat = new THREE.MeshLambertMaterial({
+    color: isPlayer ? 0x2b3a4a : (cfg.pantsColor || (isFemale ? 0x2c2430 : 0x334155))
+  });
+  const shoeMat = new THREE.MeshLambertMaterial({ color: isPlayer ? 0xffffff : (isFemale ? 0x3a2018 : 0x1f2937) });
   const hairMat = new THREE.MeshLambertMaterial({ color: 0x1a1715 });
   const whiteMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
   const pupilMat = new THREE.MeshBasicMaterial({ color: 0x141414 });
   const mouthInsideMat = new THREE.MeshBasicMaterial({ color: 0x3a1216 });
-  const lipMat = new THREE.MeshLambertMaterial({ color: 0x9b3b3b });
-  const blushMat = new THREE.MeshBasicMaterial({ color: 0xff8b8b, transparent: true, opacity: 0.42 });
+  const lipMat = new THREE.MeshLambertMaterial({ color: isFemale ? 0xb54454 : 0x9b3b3b });
+  const blushMat = new THREE.MeshBasicMaterial({ color: 0xff8b8b, transparent: true, opacity: isFemale ? 0.48 : 0.36 });
+
+  const markShadow = (mesh) => {
+    mesh.castShadow = true;
+    return mesh;
+  };
 
   // Ombre douce au sol
   const shadow = new THREE.Mesh(
-    new THREE.CircleGeometry(0.58, 12),
-    new THREE.MeshBasicMaterial({ color: 0x3b1f0e, transparent: true, opacity: 0.24 })
+    new THREE.CircleGeometry(isFemale ? 0.54 : 0.58, 12),
+    new THREE.MeshBasicMaterial({ color: 0x3b1f0e, transparent: true, opacity: 0.22 })
   );
   shadow.rotation.x = -Math.PI / 2;
   shadow.position.y = 0.03;
   group.add(shadow);
 
-  // Jambes arrondies avec pivots à la hanche
+  // Jambes articulées (Hanche -> Cuisse -> Genou -> Mollet -> Chaussure)
+  const hipX = isFemale ? 0.135 : 0.16;
+  const thighRTop = isFemale ? 0.095 : 0.115;
+  const thighRBot = isFemale ? 0.082 : 0.10;
+  const shinRBot = isFemale ? 0.068 : 0.085;
+  const legSkinMat = (isFemale && (outfitStyle === 'dress' || outfitStyle === 'pagne-skirt')) ? skinMat : pantsMat;
+
   const buildLeg = (xPos) => {
-    const legPivot = new THREE.Group();
-    legPivot.position.set(xPos, 0.72, 0);
+    const hipPivot = new THREE.Group();
+    hipPivot.position.set(xPos, 0.72, 0);
 
-    const thigh = new THREE.Mesh(new THREE.CylinderGeometry(0.115, 0.105, 0.56, 10), pantsMat);
-    thigh.position.y = -0.30;
-    legPivot.add(thigh);
+    const thigh = markShadow(new THREE.Mesh(
+      new THREE.CylinderGeometry(thighRTop, thighRBot, 0.34, 9),
+      isFemale ? skirtMat : pantsMat
+    ));
+    thigh.position.y = -0.17;
+    hipPivot.add(thigh);
 
-    const shoe = new THREE.Mesh(new THREE.SphereGeometry(0.135, 10, 8), shoeMat);
-    shoe.scale.set(0.95, 0.65, 1.35);
-    shoe.position.set(0, -0.63, 0.04);
-    legPivot.add(shoe);
+    const kneePivot = new THREE.Group();
+    kneePivot.position.set(0, -0.34, 0);
+    hipPivot.add(kneePivot);
 
-    return legPivot;
+    const kneeCap = new THREE.Mesh(new THREE.SphereGeometry(thighRBot * 0.96, 8, 6), legSkinMat);
+    kneePivot.add(kneeCap);
+
+    const shin = markShadow(new THREE.Mesh(
+      new THREE.CylinderGeometry(thighRBot * 0.9, shinRBot, 0.32, 9),
+      legSkinMat
+    ));
+    shin.position.y = -0.16;
+    kneePivot.add(shin);
+
+    const shoe = markShadow(new THREE.Mesh(new THREE.SphereGeometry(isFemale ? 0.115 : 0.132, 9, 7), shoeMat));
+    shoe.scale.set(0.92, 0.6, 1.35);
+    shoe.position.set(0, -0.34, 0.04);
+    kneePivot.add(shoe);
+
+    return { hipPivot, kneePivot };
   };
 
-  const leftLeg = buildLeg(-0.16);
-  const rightLeg = buildLeg(0.16);
+  const leftLegBuilt = buildLeg(-hipX);
+  const rightLegBuilt = buildLeg(hipX);
+  const leftLeg = leftLegBuilt.hipPivot;
+  const rightLeg = rightLegBuilt.hipPivot;
+  const leftKnee = leftLegBuilt.kneePivot;
+  const rightKnee = rightLegBuilt.kneePivot;
   group.add(leftLeg, rightLeg);
 
-  // Pivot du haut du corps (respiration + léger balancement naturel)
+  // Pivot du haut du corps (respiration + balancement naturel)
   const bodyPivot = new THREE.Group();
   bodyPivot.position.y = 0.72;
   group.add(bodyPivot);
@@ -2152,179 +2303,336 @@ function createCharacterMesh(locOrConfig, isPlayer = false) {
   const torsoGroup = new THREE.Group();
   bodyPivot.add(torsoGroup);
 
-  const torsoCyl = new THREE.Mesh(new THREE.CylinderGeometry(0.27, 0.34, 0.68, 12), shirtMat);
-  torsoCyl.position.y = 0.34;
-  torsoGroup.add(torsoCyl);
+  let skirtMesh = null;
 
-  const torsoTop = new THREE.Mesh(new THREE.SphereGeometry(0.27, 12, 8), shirtMat);
-  torsoTop.scale.set(1, 0.55, 0.92);
-  torsoTop.position.y = 0.66;
-  torsoGroup.add(torsoTop);
+  if (isFemale) {
+    // Silhouette féminine affinée : épaules douces, taille marquée, robe ou pagne Faso Dan Fani
+    const upperBodice = markShadow(new THREE.Mesh(
+      new THREE.CylinderGeometry(0.24, 0.185, 0.42, 12),
+      shirtMat
+    ));
+    upperBodice.position.y = 0.45;
+    torsoGroup.add(upperBodice);
 
-  const torsoBottom = new THREE.Mesh(new THREE.SphereGeometry(0.34, 12, 8), shirtMat);
-  torsoBottom.scale.set(1, 0.4, 0.92);
-  torsoBottom.position.y = 0.0;
-  torsoGroup.add(torsoBottom);
+    const shoulderCap = markShadow(new THREE.Mesh(new THREE.SphereGeometry(0.235, 10, 8), shirtMat));
+    shoulderCap.scale.set(1.02, 0.5, 0.86);
+    shoulderCap.position.y = 0.65;
+    torsoGroup.add(shoulderCap);
 
-  // Bande Faso Dan Fani colorée + col
-  const trimBand = new THREE.Mesh(new THREE.CylinderGeometry(0.325, 0.345, 0.13, 12), trimMat);
-  trimBand.position.y = 0.12;
-  torsoGroup.add(trimBand);
+    // Taille marquée + ceinture Faso Dan Fani
+    const waist = markShadow(new THREE.Mesh(
+      new THREE.CylinderGeometry(0.185, 0.25, 0.22, 12),
+      shirtMat
+    ));
+    waist.position.y = 0.14;
+    torsoGroup.add(waist);
 
-  const collar = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.04, 6, 12), trimMat);
-  collar.rotation.x = Math.PI / 2;
-  collar.position.y = 0.75;
-  torsoGroup.add(collar);
+    const belt = new THREE.Mesh(new THREE.CylinderGeometry(0.205, 0.215, 0.09, 12), trimMat);
+    belt.position.y = 0.23;
+    torsoGroup.add(belt);
 
-  // Bras arrondis (épaule sphérique + manche cylindre + main sphérique)
+    const collar = new THREE.Mesh(new THREE.TorusGeometry(0.14, 0.032, 6, 12), trimMat);
+    collar.rotation.x = Math.PI / 2;
+    collar.position.y = 0.73;
+    torsoGroup.add(collar);
+
+    // Jupe / Pagne / Robe évasée inspirée du Faso Dan Fani
+    const skirtHeight = outfitStyle === 'dress' ? 0.60 : 0.52;
+    const skirtGroup = new THREE.Group();
+    skirtGroup.position.y = 0.08;
+
+    const skirtBody = markShadow(new THREE.Mesh(
+      new THREE.CylinderGeometry(0.235, 0.39, skirtHeight, 12),
+      outfitStyle === 'dress' ? shirtMat : skirtMat
+    ));
+    skirtBody.position.y = -skirtHeight / 2;
+    skirtGroup.add(skirtBody);
+
+    // Bande tissée colorée en bas du pagne / robe
+    const hemTrim = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.355, 0.395, 0.10, 12),
+      trimMat
+    );
+    hemTrim.position.y = -skirtHeight + 0.07;
+    skirtGroup.add(hemTrim);
+
+    // Motif géométrique discret sur le pagne
+    const midStripe = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.29, 0.325, 0.055, 12),
+      trimMat
+    );
+    midStripe.position.y = -skirtHeight * 0.45;
+    skirtGroup.add(midStripe);
+
+    bodyPivot.add(skirtGroup);
+    skirtMesh = skirtGroup;
+  } else {
+    // Silhouette masculine arrondie style Duolingo
+    const torsoCyl = markShadow(new THREE.Mesh(new THREE.CylinderGeometry(0.275, 0.33, 0.68, 12), shirtMat));
+    torsoCyl.position.y = 0.34;
+    torsoGroup.add(torsoCyl);
+
+    const torsoTop = markShadow(new THREE.Mesh(new THREE.SphereGeometry(0.275, 10, 8), shirtMat));
+    torsoTop.scale.set(1, 0.54, 0.9);
+    torsoTop.position.y = 0.66;
+    torsoGroup.add(torsoTop);
+
+    const torsoBottom = new THREE.Mesh(new THREE.SphereGeometry(0.33, 10, 8), shirtMat);
+    torsoBottom.scale.set(1, 0.38, 0.9);
+    torsoBottom.position.y = 0.0;
+    torsoGroup.add(torsoBottom);
+
+    const trimBand = new THREE.Mesh(new THREE.CylinderGeometry(0.318, 0.335, 0.12, 12), trimMat);
+    trimBand.position.y = 0.12;
+    torsoGroup.add(trimBand);
+
+    const collar = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.038, 6, 12), trimMat);
+    collar.rotation.x = Math.PI / 2;
+    collar.position.y = 0.75;
+    torsoGroup.add(collar);
+  }
+
+  // Bras articulés (Épaule -> Bras supérieur -> Coude -> Avant-bras -> Main)
+  const shoulderX = isFemale ? 0.32 : 0.385;
+  const upperArmR = isFemale ? 0.082 : 0.102;
+  const foreArmR = isFemale ? 0.068 : 0.082;
+
   const buildArm = (xPos) => {
-    const pivot = new THREE.Group();
-    pivot.position.set(xPos, 0.63, 0);
+    const shoulderPivot = new THREE.Group();
+    shoulderPivot.position.set(xPos, isFemale ? 0.61 : 0.63, 0);
 
-    const shoulder = new THREE.Mesh(new THREE.SphereGeometry(0.125, 8, 8), shirtMat);
-    pivot.add(shoulder);
+    const shoulder = new THREE.Mesh(new THREE.SphereGeometry(upperArmR * 1.15, 8, 6), shirtMat);
+    shoulderPivot.add(shoulder);
 
-    const sleeve = new THREE.Mesh(new THREE.CylinderGeometry(0.105, 0.095, 0.36, 8), shirtMat);
-    sleeve.position.y = -0.20;
-    pivot.add(sleeve);
+    const upperArm = markShadow(new THREE.Mesh(
+      new THREE.CylinderGeometry(upperArmR, upperArmR * 0.9, 0.28, 8),
+      shirtMat
+    ));
+    upperArm.position.y = -0.14;
+    shoulderPivot.add(upperArm);
 
-    const forearm = new THREE.Mesh(new THREE.CylinderGeometry(0.082, 0.075, 0.22, 8), skinMat);
-    forearm.position.y = -0.45;
-    pivot.add(forearm);
+    const elbowPivot = new THREE.Group();
+    elbowPivot.position.set(0, -0.28, 0);
+    shoulderPivot.add(elbowPivot);
 
-    const hand = new THREE.Mesh(new THREE.SphereGeometry(0.092, 8, 8), skinMat);
-    hand.position.y = -0.57;
-    pivot.add(hand);
+    const elbowJoint = new THREE.Mesh(new THREE.SphereGeometry(foreArmR * 1.02, 7, 6), skinMat);
+    elbowPivot.add(elbowJoint);
 
-    return pivot;
+    const forearm = markShadow(new THREE.Mesh(
+      new THREE.CylinderGeometry(foreArmR, foreArmR * 0.88, 0.25, 8),
+      skinMat
+    ));
+    forearm.position.y = -0.13;
+    elbowPivot.add(forearm);
+
+    const hand = new THREE.Mesh(new THREE.SphereGeometry(isFemale ? 0.078 : 0.09, 8, 6), skinMat);
+    hand.position.y = -0.27;
+    elbowPivot.add(hand);
+
+    return { shoulderPivot, elbowPivot, hand };
   };
 
-  const leftArmPivot = buildArm(-0.39);
-  const rightArmPivot = buildArm(0.39);
+  const leftArmBuilt = buildArm(-shoulderX);
+  const rightArmBuilt = buildArm(shoulderX);
+  const leftArmPivot = leftArmBuilt.shoulderPivot;
+  const rightArmPivot = rightArmBuilt.shoulderPivot;
+  const leftElbow = leftArmBuilt.elbowPivot;
+  const rightElbow = rightArmBuilt.elbowPivot;
   bodyPivot.add(leftArmPivot, rightArmPivot);
 
-  // Cou + Tête sphérique chaleureuse style Duolingo
-  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.13, 0.18, 10), skinMat);
-  neck.position.y = 0.82;
+  // Cou + Tête sphérique chaleureuse
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(isFemale ? 0.095 : 0.11, isFemale ? 0.11 : 0.13, 0.18, 9), skinMat);
+  neck.position.y = isFemale ? 0.80 : 0.82;
   bodyPivot.add(neck);
 
   const headGroup = new THREE.Group();
-  headGroup.position.y = 1.16;
+  headGroup.position.y = isFemale ? 1.13 : 1.16;
 
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.36, 14, 12), skinMat);
-  head.scale.set(1.02, 1.0, 0.98);
+  const headRadius = isFemale ? 0.335 : 0.355;
+  const head = markShadow(new THREE.Mesh(new THREE.SphereGeometry(headRadius, 14, 12), skinMat));
+  head.scale.set(isFemale ? 0.98 : 1.02, 1.0, 0.98);
   headGroup.add(head);
 
-  // Oreilles arrondies
-  [-0.35, 0.35].forEach(ex => {
-    const ear = new THREE.Mesh(new THREE.SphereGeometry(0.075, 8, 8), skinMat);
+  // Oreilles + boucles d'oreilles discrètes
+  const earOffset = headRadius * 0.96;
+  [-earOffset, earOffset].forEach(ex => {
+    const ear = new THREE.Mesh(new THREE.SphereGeometry(0.068, 7, 6), skinMat);
     ear.position.set(ex, -0.02, 0);
     headGroup.add(ear);
 
-    if (accessory === 'earrings') {
-      const hoop = new THREE.Mesh(new THREE.TorusGeometry(0.048, 0.012, 6, 10), trimMat);
-      hoop.position.set(ex * 1.06, -0.10, 0);
+    if (accessory === 'earrings' || isFemale) {
+      const hoop = new THREE.Mesh(
+        new THREE.TorusGeometry(accessory === 'earrings' ? 0.048 : 0.032, 0.011, 6, 10),
+        trimMat
+      );
+      hoop.position.set(ex * 1.05, -0.09, 0);
       headGroup.add(hoop);
     }
   });
 
-  // Grands yeux expressifs groupés pour clignements naturels
+  // Grands yeux expressifs + cils subtils pour les personnages féminins
+  const eyeZ = headRadius * 0.86;
   const buildEye = (ex) => {
     const eyeGroup = new THREE.Group();
-    eyeGroup.position.set(ex, 0.04, 0.31);
+    eyeGroup.position.set(ex, 0.04, eyeZ);
 
-    const sclera = new THREE.Mesh(new THREE.SphereGeometry(0.068, 10, 8), whiteMat);
+    const sclera = new THREE.Mesh(new THREE.SphereGeometry(0.064, 10, 8), whiteMat);
     sclera.scale.set(1, 1.08, 0.55);
     eyeGroup.add(sclera);
 
-    const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.039, 8, 8), pupilMat);
+    const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.037, 8, 8), pupilMat);
     pupil.scale.set(1, 1.05, 0.6);
-    pupil.position.set(0, 0, 0.035);
+    pupil.position.set(0, 0, 0.033);
     eyeGroup.add(pupil);
 
-    const glint = new THREE.Mesh(new THREE.SphereGeometry(0.015, 6, 6), whiteMat);
-    glint.position.set(0.016, 0.02, 0.058);
+    const glint = new THREE.Mesh(new THREE.SphereGeometry(0.014, 6, 6), whiteMat);
+    glint.position.set(0.015, 0.019, 0.055);
     eyeGroup.add(glint);
 
-    const brow = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.024, 0.025), hairMat);
-    brow.position.set(ex, 0.145, 0.32);
-    brow.rotation.z = ex < 0 ? 0.1 : -0.1;
+    if (isFemale) {
+      const lash = new THREE.Mesh(new THREE.BoxGeometry(0.065, 0.016, 0.016), hairMat);
+      lash.position.set(ex < 0 ? -0.045 : 0.045, 0.048, 0.028);
+      lash.rotation.z = ex < 0 ? -0.35 : 0.35;
+      eyeGroup.add(lash);
+    }
+
+    const brow = new THREE.Mesh(new THREE.BoxGeometry(isFemale ? 0.095 : 0.11, isFemale ? 0.018 : 0.024, 0.022), hairMat);
+    brow.position.set(ex, 0.138, eyeZ + 0.01);
+    brow.rotation.z = ex < 0 ? 0.12 : -0.12;
     headGroup.add(brow);
 
     return eyeGroup;
   };
 
-  const leftEyeGroup = buildEye(-0.125);
-  const rightEyeGroup = buildEye(0.125);
+  const leftEyeGroup = buildEye(-0.118);
+  const rightEyeGroup = buildEye(0.118);
   headGroup.add(leftEyeGroup, rightEyeGroup);
 
   // Joues rosées subtiles
-  [-0.19, 0.19].forEach(cx => {
-    const cheek = new THREE.Mesh(new THREE.CircleGeometry(0.048, 8), blushMat);
-    cheek.position.set(cx, -0.05, 0.32);
+  [-0.18, 0.18].forEach(cx => {
+    const cheek = new THREE.Mesh(new THREE.CircleGeometry(0.045, 8), blushMat);
+    cheek.position.set(cx, -0.048, eyeZ + 0.008);
     cheek.rotation.y = cx < 0 ? -0.45 : 0.45;
     headGroup.add(cheek);
   });
 
-  // Bouche au repos : sourire chaleureux visible
-  const mouthClosed = new THREE.Mesh(new THREE.TorusGeometry(0.092, 0.022, 6, 10, Math.PI), whiteMat);
+  // Bouche au repos : sourire chaleureux
+  const mouthClosed = new THREE.Mesh(new THREE.TorusGeometry(0.086, 0.02, 6, 10, Math.PI), whiteMat);
   mouthClosed.rotation.z = Math.PI;
-  mouthClosed.position.set(0, -0.068, 0.326);
+  mouthClosed.position.set(0, -0.064, eyeZ + 0.016);
   headGroup.add(mouthClosed);
 
-  // Bouche parlante animée (Lip-Sync) : cavité + dents + lèvre inférieure mobile
+  // Bouche parlante animée (Lip-Sync)
   const mouthOpen = new THREE.Group();
-  mouthOpen.position.set(0, -0.102, 0.326);
+  mouthOpen.position.set(0, -0.096, eyeZ + 0.016);
   mouthOpen.visible = false;
 
-  const mouthCavity = new THREE.Mesh(new THREE.SphereGeometry(0.082, 10, 8), mouthInsideMat);
-  mouthCavity.scale.set(1.12, 0.88, 0.45);
+  const mouthCavity = new THREE.Mesh(new THREE.SphereGeometry(0.078, 10, 8), mouthInsideMat);
+  mouthCavity.scale.set(1.1, 0.86, 0.45);
   mouthOpen.add(mouthCavity);
 
-  const upperTeeth = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.026, 0.03), whiteMat);
-  upperTeeth.position.set(0, 0.036, 0.026);
+  const upperTeeth = new THREE.Mesh(new THREE.BoxGeometry(0.102, 0.024, 0.028), whiteMat);
+  upperTeeth.position.set(0, 0.033, 0.024);
   mouthOpen.add(upperTeeth);
 
-  const lowerLip = new THREE.Mesh(new THREE.TorusGeometry(0.078, 0.017, 6, 10, Math.PI), lipMat);
+  const lowerLip = new THREE.Mesh(new THREE.TorusGeometry(0.074, 0.016, 6, 10, Math.PI), lipMat);
   lowerLip.rotation.z = Math.PI;
-  lowerLip.position.set(0, -0.015, 0.024);
+  lowerLip.position.set(0, -0.014, 0.022);
   mouthOpen.add(lowerLip);
 
   headGroup.add(mouthOpen);
 
-  // Coiffure / Foulard / Accessoires cohérents avec le portrait 2D
-  if (headwrapColor) {
-    const wrapMat = new THREE.MeshLambertMaterial({ color: headwrapColor });
-    const wrapCrown = new THREE.Mesh(
-      new THREE.SphereGeometry(0.385, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.56),
-      wrapMat
+  // Coiffures variées : tresses longues, chignon haut, foulard/turban coloré, casquette, coupe courte
+  if (hairStyle === 'bun') {
+    const hairCap = new THREE.Mesh(
+      new THREE.SphereGeometry(headRadius * 1.05, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.56),
+      hairMat
     );
+    hairCap.position.y = 0.04;
+    headGroup.add(hairCap);
+
+    // Chignon haut élégant + bandeau coloré
+    const bun = markShadow(new THREE.Mesh(new THREE.SphereGeometry(0.15, 10, 8), hairMat));
+    bun.position.set(0, headRadius + 0.09, -0.06);
+    headGroup.add(bun);
+
+    const bandMat = headwrapColor ? new THREE.MeshLambertMaterial({ color: headwrapColor }) : trimMat;
+    const headband = new THREE.Mesh(new THREE.TorusGeometry(headRadius * 0.97, 0.036, 6, 14), bandMat);
+    headband.rotation.x = Math.PI / 2 - 0.2;
+    headband.position.y = 0.14;
+    headGroup.add(headband);
+  } else if (hairStyle === 'braids' || hairStyle === 'braids-wrap') {
+    if (headwrapColor) {
+      const wrapMat = new THREE.MeshLambertMaterial({ color: headwrapColor });
+      const wrapCrown = new THREE.Mesh(
+        new THREE.SphereGeometry(headRadius * 1.08, 12, 9, 0, Math.PI * 2, 0, Math.PI * 0.54),
+        wrapMat
+      );
+      wrapCrown.position.y = 0.06;
+      headGroup.add(wrapCrown);
+
+      const wrapBand = new THREE.Mesh(new THREE.TorusGeometry(headRadius * 0.99, 0.04, 6, 14), trimMat);
+      wrapBand.rotation.x = Math.PI / 2 - 0.12;
+      wrapBand.position.y = 0.13;
+      headGroup.add(wrapBand);
+    } else {
+      const hairCap = new THREE.Mesh(
+        new THREE.SphereGeometry(headRadius * 1.05, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.55),
+        hairMat
+      );
+      hairCap.position.y = 0.04;
+      headGroup.add(hairCap);
+    }
+
+    // Tresses longues descendant sur les côtés et la nuque (low-poly)
+    const braidSpecs = [
+      [-0.27, -0.18, -0.05, 0.44],
+      [0.27, -0.18, -0.05, 0.44],
+      [-0.20, -0.22, -0.22, 0.48],
+      [0.20, -0.22, -0.22, 0.48],
+      [0, -0.24, -0.28, 0.50]
+    ];
+    braidSpecs.forEach(([bx, by, bz, len]) => {
+      const braid = new THREE.Mesh(new THREE.CylinderGeometry(0.042, 0.032, len, 6), hairMat);
+      braid.position.set(bx, by, bz);
+      headGroup.add(braid);
+
+      const bead = new THREE.Mesh(new THREE.SphereGeometry(0.036, 6, 5), trimMat);
+      bead.position.set(bx, by - len / 2 - 0.01, bz);
+      headGroup.add(bead);
+    });
+  } else if (headwrapColor || hairStyle === 'headwrap') {
+    const wrapMat = new THREE.MeshLambertMaterial({ color: headwrapColor || 0xef4444 });
+    const wrapCrown = markShadow(new THREE.Mesh(
+      new THREE.SphereGeometry(headRadius * 1.1, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.56),
+      wrapMat
+    ));
     wrapCrown.position.y = 0.06;
     headGroup.add(wrapCrown);
 
-    const wrapBand = new THREE.Mesh(new THREE.TorusGeometry(0.355, 0.045, 6, 14), trimMat);
+    const wrapBand = new THREE.Mesh(new THREE.TorusGeometry(headRadius * 1.01, 0.044, 6, 14), trimMat);
     wrapBand.rotation.x = Math.PI / 2 - 0.12;
     wrapBand.position.y = 0.14;
     headGroup.add(wrapBand);
 
-    const wrapKnot = new THREE.Mesh(new THREE.SphereGeometry(0.115, 8, 8), wrapMat);
-    wrapKnot.position.set(0.24, 0.32, 0.05);
+    const wrapKnot = new THREE.Mesh(new THREE.SphereGeometry(0.11, 8, 8), wrapMat);
+    wrapKnot.position.set(0.22, 0.30, 0.05);
     headGroup.add(wrapKnot);
   } else if (accessory === 'cap') {
     const capDome = new THREE.Mesh(
-      new THREE.SphereGeometry(0.38, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.52),
+      new THREE.SphereGeometry(headRadius * 1.07, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.52),
       shirtMat
     );
     capDome.position.y = 0.05;
     headGroup.add(capDome);
 
     const visor = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.32, 0.04, 10, 1, false, -0.8, 1.6), trimMat);
-    visor.position.set(0, 0.14, 0.25);
+    visor.position.set(0, 0.14, 0.24);
     visor.rotation.x = 0.15;
     headGroup.add(visor);
   } else {
     const hairCap = new THREE.Mesh(
-      new THREE.SphereGeometry(0.372, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.52),
+      new THREE.SphereGeometry(headRadius * 1.05, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.52),
       hairMat
     );
     hairCap.position.y = 0.045;
@@ -2333,7 +2641,7 @@ function createCharacterMesh(locOrConfig, isPlayer = false) {
 
   if (accessory === 'beard') {
     const beardMesh = new THREE.Mesh(
-      new THREE.SphereGeometry(0.34, 10, 8, 0, Math.PI * 2, Math.PI * 0.62, Math.PI * 0.36),
+      new THREE.SphereGeometry(headRadius * 0.95, 10, 8, 0, Math.PI * 2, Math.PI * 0.62, Math.PI * 0.36),
       hairMat
     );
     beardMesh.position.set(0, -0.02, 0.04);
@@ -2342,13 +2650,13 @@ function createCharacterMesh(locOrConfig, isPlayer = false) {
 
   if (accessory === 'glasses') {
     const frameMat = new THREE.MeshLambertMaterial({ color: 0x1e293b });
-    [-0.125, 0.125].forEach(gx => {
-      const rim = new THREE.Mesh(new THREE.TorusGeometry(0.088, 0.015, 6, 12), frameMat);
-      rim.position.set(gx, 0.04, 0.355);
+    [-0.118, 0.118].forEach(gx => {
+      const rim = new THREE.Mesh(new THREE.TorusGeometry(0.082, 0.014, 6, 12), frameMat);
+      rim.position.set(gx, 0.04, eyeZ + 0.045);
       headGroup.add(rim);
     });
-    const bridge = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.02, 0.02), frameMat);
-    bridge.position.set(0, 0.05, 0.355);
+    const bridge = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.018, 0.018), frameMat);
+    bridge.position.set(0, 0.05, eyeZ + 0.045);
     headGroup.add(bridge);
   }
 
@@ -2359,10 +2667,17 @@ function createCharacterMesh(locOrConfig, isPlayer = false) {
     parts: {
       bodyPivot,
       torsoGroup,
+      skirtMesh,
       leftLeg,
       rightLeg,
+      leftKnee,
+      rightKnee,
       leftArmPivot,
       rightArmPivot,
+      leftElbow,
+      rightElbow,
+      leftHand: leftArmBuilt.hand,
+      rightHand: rightArmBuilt.hand,
       head: headGroup,
       leftEyeGroup,
       rightEyeGroup,
@@ -2378,37 +2693,34 @@ function createAnimState(phase = 0) {
     nextBlinkAt: 2.0 + (phase * 1.37) % 3.2,
     blinkTimer: 0,
     mouthLevel: 0,
-    walkCycle: 0
+    walkCycle: phase
   };
 }
 
 /**
- * Contrôleur d'animation organique pour chaque personnage 3D :
- * - Respiration subtile + léger balancement naturel au repos
- * - Clignements d'yeux occasionnels
- * - Marche naturelle (jambes + bras + rebond)
- * - Salut de la main à l'approche
- * - Lip-Sync fluide de la bouche + gestes de conversation quand il parle
- * - Hochements de tête doux quand il écoute
+ * Contrôleur d'animation articulée réaliste (genoux, coudes, buste, tête, yeux & bouche) :
+ * Supporte : marche articulée, repos vivant, salut, parole (lip-sync), écoute,
+ * lecture assise, smartphone assis/debout, cycliste qui pédale et motard.
  */
 function updateCharacterAnimation(parts, anim, opts, elapsed, dt) {
   if (!parts || !anim) return;
   const {
+    pose = 'default', // 'default' | 'sit-book' | 'sit-phone' | 'stand-phone' | 'cycle' | 'moto'
     isMoving = false,
+    moveSpeed = 1,
     isSpeaking = false,
     isListening = false,
     isGreeting = false,
-    headLookYaw = 0
+    headLookYaw = 0,
+    pedalPhase = 0
   } = opts;
 
   const t = elapsed + anim.phase;
-  const lerpK = Math.min(1, dt * 10);
+  const lerpK = Math.min(1, dt * 11);
 
-  // 1. Respiration subtile & léger balancement naturel (Idle toujours vivant)
+  // 1. Respiration subtile & léger balancement naturel
   const breath = Math.sin(t * 2.1);
-  parts.torsoGroup.scale.set(1 + breath * 0.018, 1 + breath * 0.022, 1 + breath * 0.018);
-  const idleSwayZ = isMoving ? 0 : Math.sin(t * 1.15) * 0.025;
-  parts.bodyPivot.rotation.z += (idleSwayZ - parts.bodyPivot.rotation.z) * lerpK;
+  parts.torsoGroup.scale.set(1 + breath * 0.017, 1 + breath * 0.022, 1 + breath * 0.017);
 
   // 2. Clignements d'yeux occasionnels
   anim.nextBlinkAt -= dt;
@@ -2419,82 +2731,179 @@ function updateCharacterAnimation(parts, anim, opts, elapsed, dt) {
   let eyeScaleY = 1;
   if (anim.blinkTimer > 0) {
     anim.blinkTimer = Math.max(0, anim.blinkTimer - dt);
-    const p = anim.blinkTimer / 0.14; // 1 -> 0
+    const p = anim.blinkTimer / 0.14;
     eyeScaleY = 0.12 + Math.abs(p - 0.5) * 1.76;
   }
   parts.leftEyeGroup.scale.y = eyeScaleY;
   parts.rightEyeGroup.scale.y = eyeScaleY;
 
-  // 3. Marche naturelle vs posture de repos / conversation
+  // 3. Angles cibles articulés (hanches, genoux, épaules, coudes, buste, tête)
   let targetLeftLegX = 0;
   let targetRightLegX = 0;
+  let targetLeftKneeX = 0.06;
+  let targetRightKneeX = 0.06;
   let targetLeftArmX = 0;
   let targetRightArmX = 0;
   let targetLeftArmZ = 0.08;
   let targetRightArmZ = -0.08;
+  let targetLeftElbowX = -0.18;
+  let targetRightElbowX = -0.18;
   let targetBodyY = 0.72 + breath * 0.012;
+  let targetBodyPitch = 0;
+  let targetBodySwayZ = isMoving ? 0 : Math.sin(t * 1.15) * 0.022;
+  let targetHeadX = Math.sin(t * 1.3) * 0.025;
+  let targetHeadY = headLookYaw;
+  let targetHeadZ = Math.cos(t * 1.05) * 0.02;
 
-  if (isMoving) {
-    anim.walkCycle += dt * 11.5;
-    const swing = Math.sin(anim.walkCycle) * 0.68;
-    targetLeftLegX = swing;
-    targetRightLegX = -swing;
-    targetLeftArmX = -swing * 0.68;
-    targetRightArmX = swing * 0.68;
-    targetBodyY = 0.72 + Math.abs(Math.sin(anim.walkCycle)) * 0.045;
-  } else if (isSpeaking) {
-    // Gestes naturels de conversation avec les deux bras et les mains
-    targetLeftArmX = -0.62 + Math.sin(t * 5.2) * 0.24;
-    targetRightArmX = -0.68 + Math.cos(t * 4.6 + 0.8) * 0.28;
-    targetLeftArmZ = 0.28 + Math.sin(t * 3.4) * 0.12;
-    targetRightArmZ = -0.28 - Math.cos(t * 3.9) * 0.12;
-  } else if (isGreeting) {
-    // Salut chaleureux de la main droite
-    targetRightArmZ = -2.35 + Math.sin(elapsed * 8.5) * 0.34;
-    targetRightArmX = -0.18;
+  if (pose === 'sit-book') {
+    targetLeftLegX = -1.45;
+    targetRightLegX = -1.45;
+    targetLeftKneeX = 1.48;
+    targetRightKneeX = 1.48;
+    targetBodyY = 0.56 + breath * 0.01;
+    targetBodyPitch = 0.14;
+    targetLeftArmX = -0.68;
+    targetRightArmX = -0.68;
+    targetLeftArmZ = -0.18;
+    targetRightArmZ = 0.18;
+    targetLeftElbowX = -0.92;
+    targetRightElbowX = -0.92;
+    targetHeadX = 0.34 + Math.sin(t * 1.1) * 0.04;
+    targetHeadY = Math.sin(t * 0.85) * 0.16;
+  } else if (pose === 'sit-phone') {
+    targetLeftLegX = -1.42;
+    targetRightLegX = -1.35;
+    targetLeftKneeX = 1.46;
+    targetRightKneeX = 1.38;
+    targetBodyY = 0.56 + breath * 0.01;
+    targetBodyPitch = 0.12;
+    targetLeftArmX = -0.58;
+    targetLeftArmZ = -0.18;
+    targetLeftElbowX = -1.05;
+    targetRightArmX = -0.56 + Math.sin(t * 3.4) * 0.05;
+    targetRightArmZ = 0.22;
+    targetRightElbowX = -1.08 + Math.sin(t * 4.2) * 0.09;
+    targetHeadX = 0.36 + Math.sin(t * 1.5) * 0.035;
+    targetHeadZ = Math.sin(t * 0.9) * 0.05;
+  } else if (pose === 'stand-phone') {
+    targetLeftLegX = -0.05;
+    targetRightLegX = 0.05;
+    targetLeftArmX = -0.52;
+    targetLeftArmZ = -0.16;
+    targetLeftElbowX = -1.12;
+    targetRightArmX = -0.50 + Math.sin(t * 3.2) * 0.05;
+    targetRightArmZ = 0.20;
+    targetRightElbowX = -1.14 + Math.sin(t * 4.5) * 0.11;
+    targetHeadX = 0.32 + Math.sin(t * 1.4) * 0.03;
+    targetHeadZ = Math.sin(t * 0.8) * 0.04;
+  } else if (pose === 'cycle') {
+    // Jambes qui pédalent réellement en phase opposée
+    const lPhase = pedalPhase;
+    const rPhase = pedalPhase + Math.PI;
+    targetLeftLegX = -0.82 - Math.sin(lPhase) * 0.42;
+    targetRightLegX = -0.82 - Math.sin(rPhase) * 0.42;
+    targetLeftKneeX = 0.92 + Math.cos(lPhase) * 0.46;
+    targetRightKneeX = 0.92 + Math.cos(rPhase) * 0.46;
+    targetBodyY = 0.66 + Math.sin(pedalPhase * 2) * 0.015;
+    targetBodyPitch = 0.24;
+    targetBodySwayZ = Math.sin(pedalPhase) * 0.04;
+    targetLeftArmX = -0.95;
+    targetRightArmX = -0.95;
+    targetLeftArmZ = 0.06;
+    targetRightArmZ = -0.06;
+    targetLeftElbowX = -0.35;
+    targetRightElbowX = -0.35;
+    targetHeadX = -0.14;
+  } else if (pose === 'moto') {
+    targetLeftLegX = -1.12;
+    targetRightLegX = -1.12;
+    targetLeftKneeX = 1.25;
+    targetRightKneeX = 1.25;
+    targetBodyY = 0.64 + Math.sin(t * 18) * 0.008;
+    targetBodyPitch = 0.18;
+    targetBodySwayZ = 0;
+    targetLeftArmX = -0.92;
+    targetRightArmX = -0.92;
     targetLeftArmZ = 0.12;
-  } else if (isListening) {
-    // Posture calme et attentive
-    targetLeftArmX = -0.10 + Math.sin(t * 1.6) * 0.04;
-    targetRightArmX = -0.10 - Math.sin(t * 1.6) * 0.04;
+    targetRightArmZ = -0.12;
+    targetLeftElbowX = -0.38;
+    targetRightElbowX = -0.38;
+    targetHeadX = -0.10;
+  } else if (isMoving) {
+    // Marche articulée réaliste : genoux et coudes se plient naturellement
+    anim.walkCycle += dt * (8.2 + moveSpeed * 3.4);
+    const c = anim.walkCycle;
+    const stride = Math.sin(c);
+    targetLeftLegX = stride * 0.56;
+    targetRightLegX = -stride * 0.56;
+    // Genou se plie vers l'arrière quand la jambe avance/décolle du sol
+    targetLeftKneeX = Math.max(0.06, (-Math.cos(c) * 0.5 + 0.42) * 0.78);
+    targetRightKneeX = Math.max(0.06, (Math.cos(c) * 0.5 + 0.42) * 0.78);
+    targetLeftArmX = -stride * 0.48;
+    targetRightArmX = stride * 0.48;
+    targetLeftElbowX = -0.26 - Math.max(0, stride) * 0.32;
+    targetRightElbowX = -0.26 - Math.max(0, -stride) * 0.32;
+    targetBodyY = 0.72 + Math.abs(Math.sin(c)) * 0.042;
+    targetBodyPitch = 0.06;
+    targetBodySwayZ = Math.sin(c) * 0.032;
+    targetHeadZ = -Math.sin(c) * 0.025;
+  } else if (isSpeaking) {
+    // Gestes naturels de conversation avec coudes pliés
+    targetLeftArmX = -0.45 + Math.sin(t * 4.8) * 0.18;
+    targetRightArmX = -0.50 + Math.cos(t * 4.3 + 0.8) * 0.22;
+    targetLeftArmZ = 0.22 + Math.sin(t * 3.2) * 0.10;
+    targetRightArmZ = -0.22 - Math.cos(t * 3.6) * 0.10;
+    targetLeftElbowX = -0.88 + Math.sin(t * 5.6) * 0.24;
+    targetRightElbowX = -0.92 + Math.cos(t * 5.0) * 0.26;
+    targetHeadX = Math.sin(t * 6.0) * 0.075;
+    targetHeadZ = Math.sin(t * 3.0) * 0.065;
+  } else if (isGreeting) {
+    // Salut chaleureux avec coude plié naturel
+    targetRightArmZ = -2.05 + Math.sin(elapsed * 8.0) * 0.28;
+    targetRightArmX = -0.22;
+    targetRightElbowX = -0.55 + Math.sin(elapsed * 8.0) * 0.18;
     targetLeftArmZ = 0.10;
-    targetRightArmZ = -0.10;
+    targetHeadZ = 0.08;
+  } else if (isListening) {
+    targetLeftArmX = -0.08 + Math.sin(t * 1.5) * 0.03;
+    targetRightArmX = -0.08 - Math.sin(t * 1.5) * 0.03;
+    targetLeftElbowX = -0.28;
+    targetRightElbowX = -0.28;
+    const nodPulse = Math.max(0, Math.sin(elapsed * 2.2));
+    targetHeadX = Math.pow(nodPulse, 3) * 0.17;
+    targetHeadZ = Math.sin(t * 1.4) * 0.04;
   } else {
-    // Repos naturel avec léger mouvement de bras
     targetLeftArmX = Math.sin(t * 1.4) * 0.05;
     targetRightArmX = -Math.sin(t * 1.4) * 0.05;
+    targetLeftElbowX = -0.18 - Math.sin(t * 1.4) * 0.04;
+    targetRightElbowX = -0.18 + Math.sin(t * 1.4) * 0.04;
   }
 
   parts.leftLeg.rotation.x += (targetLeftLegX - parts.leftLeg.rotation.x) * lerpK;
   parts.rightLeg.rotation.x += (targetRightLegX - parts.rightLeg.rotation.x) * lerpK;
+  if (parts.leftKnee) parts.leftKnee.rotation.x += (targetLeftKneeX - parts.leftKnee.rotation.x) * lerpK;
+  if (parts.rightKnee) parts.rightKnee.rotation.x += (targetRightKneeX - parts.rightKnee.rotation.x) * lerpK;
   parts.leftArmPivot.rotation.x += (targetLeftArmX - parts.leftArmPivot.rotation.x) * lerpK;
   parts.rightArmPivot.rotation.x += (targetRightArmX - parts.rightArmPivot.rotation.x) * lerpK;
   parts.leftArmPivot.rotation.z += (targetLeftArmZ - parts.leftArmPivot.rotation.z) * lerpK;
   parts.rightArmPivot.rotation.z += (targetRightArmZ - parts.rightArmPivot.rotation.z) * lerpK;
+  if (parts.leftElbow) parts.leftElbow.rotation.x += (targetLeftElbowX - parts.leftElbow.rotation.x) * lerpK;
+  if (parts.rightElbow) parts.rightElbow.rotation.x += (targetRightElbowX - parts.rightElbow.rotation.x) * lerpK;
+
   parts.bodyPivot.position.y += (targetBodyY - parts.bodyPivot.position.y) * lerpK;
+  parts.bodyPivot.rotation.x += (targetBodyPitch - parts.bodyPivot.rotation.x) * lerpK;
+  parts.bodyPivot.rotation.z += (targetBodySwayZ - parts.bodyPivot.rotation.z) * lerpK;
 
-  // 4. Mouvements expressifs de la tête (regard, parole, hochement d'écoute)
-  let targetHeadX = Math.sin(t * 1.3) * 0.025;
-  let targetHeadZ = Math.cos(t * 1.05) * 0.02;
-  let targetHeadY = headLookYaw;
-
-  if (isSpeaking) {
-    targetHeadX = Math.sin(t * 6.4) * 0.08;
-    targetHeadZ = Math.sin(t * 3.1) * 0.07;
-  } else if (isListening) {
-    // Hochement de tête périodique et naturel pendant que l'autre parle
-    const nodPulse = Math.max(0, Math.sin(elapsed * 2.2));
-    targetHeadX = Math.pow(nodPulse, 3) * 0.17;
-    targetHeadZ = Math.sin(t * 1.4) * 0.04;
-  } else if (isGreeting) {
-    targetHeadZ = 0.08;
+  if (parts.skirtMesh) {
+    const skirtLift = (pose === 'sit-book' || pose === 'sit-phone' || pose === 'cycle' || pose === 'moto') ? -0.42 : 0;
+    parts.skirtMesh.rotation.x += (skirtLift - parts.skirtMesh.rotation.x) * lerpK;
   }
 
   parts.head.rotation.x += (targetHeadX - parts.head.rotation.x) * lerpK;
   parts.head.rotation.y += (targetHeadY - parts.head.rotation.y) * lerpK;
   parts.head.rotation.z += (targetHeadZ - parts.head.rotation.z) * lerpK;
 
-  // 5. Bouche animée (Lip-Sync fluide pendant la parole, refermée dès la fin)
+  // 4. Bouche animée (Lip-Sync fluide pendant la parole, refermée dès la fin)
   let targetMouth = 0;
   if (isSpeaking) {
     const syllable =
@@ -3114,6 +3523,711 @@ function buildPlayerAvatar() {
 }
 
 /* ===========================================================================
+   7B. POPULATION VIVANTE (10 HABITANTS DE FOND ACTIFS & CRÉDIBLES)
+   =========================================================================== */
+function createOpenBookProp() {
+  const book = new THREE.Group();
+  const coverMat = new THREE.MeshLambertMaterial({ color: 0x1cb0f6 });
+  const pageMat = new THREE.MeshLambertMaterial({ color: 0xfffcf5 });
+
+  const leftPage = new THREE.Mesh(new THREE.BoxGeometry(0.20, 0.025, 0.28), pageMat);
+  leftPage.position.set(-0.095, 0.015, 0);
+  leftPage.rotation.z = -0.24;
+  const rightPage = new THREE.Mesh(new THREE.BoxGeometry(0.20, 0.025, 0.28), pageMat);
+  rightPage.position.set(0.095, 0.015, 0);
+  rightPage.rotation.z = 0.24;
+
+  const leftCover = new THREE.Mesh(new THREE.BoxGeometry(0.21, 0.015, 0.295), coverMat);
+  leftCover.position.set(-0.095, 0, 0);
+  leftCover.rotation.z = -0.24;
+  const rightCover = new THREE.Mesh(new THREE.BoxGeometry(0.21, 0.015, 0.295), coverMat);
+  rightCover.position.set(0.095, 0, 0);
+  rightCover.rotation.z = 0.24;
+
+  book.add(leftCover, rightCover, leftPage, rightPage);
+  return book;
+}
+
+function createSmartphoneProp() {
+  const phone = new THREE.Group();
+  const body = new THREE.Mesh(
+    new THREE.BoxGeometry(0.11, 0.19, 0.018),
+    new THREE.MeshLambertMaterial({ color: 0x1e293b })
+  );
+  const screen = new THREE.Mesh(
+    new THREE.BoxGeometry(0.092, 0.155, 0.02),
+    new THREE.MeshBasicMaterial({ color: 0x7dd3fc })
+  );
+  screen.position.z = 0.002;
+  // Discret halo lumineux d'écran
+  const glow = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.14, 0.21),
+    new THREE.MeshBasicMaterial({ color: 0xbae6fd, transparent: true, opacity: 0.26, depthWrite: false, side: THREE.DoubleSide })
+  );
+  glow.position.z = 0.015;
+  phone.add(body, screen, glow);
+  return phone;
+}
+
+function buildBackgroundPopulation() {
+  // 1) 5 piétons autonomes marchant sur les trottoirs sans jamais traverser d'obstacles
+  const pedestrianSpecs = [
+    {
+      cfg: { gender: 'female', hairStyle: 'braids', outfitStyle: 'dress', shirtColor: 0xea580c, trimColor: 0xfcd116, skinColor: 0x734124 },
+      waypoints: [[-17.8, -1.55], [-9.4, -1.55], [-9.4, -2.2], [-17.8, -2.2]],
+      speed: 1.55,
+      phase: 0.4
+    },
+    {
+      cfg: { gender: 'male', hairStyle: 'short', outfitStyle: 'tunic', shirtColor: 0x2563eb, trimColor: 0xfef08a, skinColor: 0x5c3317 },
+      waypoints: [[9.4, -1.55], [17.8, -1.55], [17.8, -2.2], [9.4, -2.2]],
+      speed: 1.72,
+      phase: 1.7
+    },
+    {
+      cfg: { gender: 'female', hairStyle: 'bun', outfitStyle: 'pagne-skirt', shirtColor: 0x16a34a, skirtColor: 0x14532d, trimColor: 0xfcd116, skinColor: 0x7a482b },
+      waypoints: [[-17.8, 5.55], [-9.4, 5.55], [-9.4, 6.2], [-17.8, 6.2]],
+      speed: 1.48,
+      phase: 2.9
+    },
+    {
+      cfg: { gender: 'female', hairStyle: 'headwrap', outfitStyle: 'dress', shirtColor: 0xf43f5e, headwrapColor: 0xf59e0b, trimColor: 0xfef08a, skinColor: 0x6b3b20 },
+      waypoints: [[9.4, 5.55], [17.8, 5.55], [17.8, 6.2], [9.4, 6.2]],
+      speed: 1.62,
+      phase: 4.1
+    },
+    {
+      cfg: { gender: 'male', hairStyle: 'short', outfitStyle: 'tunic', shirtColor: 0xd97706, trimColor: 0xffffff, skinColor: 0x62371e },
+      waypoints: [[-3.38, 11.2], [-3.38, 22.8], [-3.72, 22.8], [-3.72, 11.2]],
+      speed: 1.65,
+      phase: 5.3
+    }
+  ];
+
+  pedestrianSpecs.forEach((spec, idx) => {
+    const built = createCharacterMesh(spec.cfg, false);
+    const startPt = spec.waypoints[0];
+    built.group.position.set(startPt[0], 0, startPt[1]);
+    scene.add(built.group);
+
+    backgroundCitizens.push({
+      id: `bg-ped-${idx}`,
+      kind: 'pedestrian',
+      group: built.group,
+      parts: built.parts,
+      anim: createAnimState(spec.phase),
+      waypoints: spec.waypoints,
+      wpIndex: 1,
+      speed: spec.speed,
+      waitTimer: 0
+    });
+  });
+
+  // 2) Personne assise sur le banc Ouest de la place centrale en train de LIRE UN LIVRE OUVERT
+  const reader = createCharacterMesh({
+    gender: 'female',
+    hairStyle: 'bun',
+    outfitStyle: 'dress',
+    shirtColor: 0x9333ea,
+    headwrapColor: 0xfcd116,
+    trimColor: 0xfde047,
+    skinColor: 0x784629
+  }, false);
+  reader.group.position.set(-5.64, 0.14, 2.0);
+  reader.group.rotation.y = Math.PI / 2;
+  const openBook = createOpenBookProp();
+  openBook.position.set(0, 0.36, 0.44);
+  openBook.rotation.x = 0.42;
+  reader.parts.bodyPivot.add(openBook);
+  scene.add(reader.group);
+  backgroundCitizens.push({
+    id: 'bg-reader',
+    kind: 'sit-book',
+    group: reader.group,
+    parts: reader.parts,
+    anim: createAnimState(1.2)
+  });
+
+  // 3) Personne assise sur le banc Est de la place centrale manipulant un SMARTPHONE lumineux
+  const benchPhoneUser = createCharacterMesh({
+    gender: 'male',
+    hairStyle: 'short',
+    outfitStyle: 'tunic',
+    shirtColor: 0x0284c7,
+    trimColor: 0xfbbf24,
+    skinColor: 0x61361c
+  }, false);
+  benchPhoneUser.group.position.set(5.64, 0.14, 2.0);
+  benchPhoneUser.group.rotation.y = -Math.PI / 2;
+  const phone1 = createSmartphoneProp();
+  phone1.position.set(-0.04, 0.36, 0.40);
+  phone1.rotation.set(-0.55, 0.15, 0);
+  benchPhoneUser.parts.bodyPivot.add(phone1);
+  scene.add(benchPhoneUser.group);
+  backgroundCitizens.push({
+    id: 'bg-sit-phone',
+    kind: 'sit-phone',
+    group: benchPhoneUser.group,
+    parts: benchPhoneUser.parts,
+    anim: createAnimState(2.6)
+  });
+
+  // 4) Personne debout sur le trottoir Est consultant son SMARTPHONE
+  const standPhoneUser = createCharacterMesh({
+    gender: 'female',
+    hairStyle: 'braids',
+    outfitStyle: 'pagne-skirt',
+    shirtColor: 0xff9600,
+    skirtColor: 0x9a3412,
+    trimColor: 0xfef08a,
+    skinColor: 0x7c4a2d
+  }, false);
+  standPhoneUser.group.position.set(3.55, 0, 12.2);
+  standPhoneUser.group.rotation.y = -Math.PI / 2;
+  const phone2 = createSmartphoneProp();
+  phone2.position.set(-0.04, 0.34, 0.38);
+  phone2.rotation.set(-0.48, 0.12, 0);
+  standPhoneUser.parts.bodyPivot.add(phone2);
+  scene.add(standPhoneUser.group);
+  addCircleCollider(3.55, 12.2, 0.52, 'citizen');
+  backgroundCitizens.push({
+    id: 'bg-stand-phone',
+    kind: 'stand-phone',
+    group: standPhoneUser.group,
+    parts: standPhoneUser.parts,
+    anim: createAnimState(3.5)
+  });
+
+  // 5) Deux habitants près du Maquis Le Faso en train de DISCUTER ensemble (gestes & hochements alternés)
+  const chatA = createCharacterMesh({
+    gender: 'male',
+    hairStyle: 'short',
+    outfitStyle: 'tunic',
+    shirtColor: 0x15803d,
+    trimColor: 0xfcd116,
+    skinColor: 0x5c3317
+  }, false);
+  chatA.group.position.set(-10.8, 0, -6.4);
+  chatA.group.rotation.y = Math.PI / 2;
+  scene.add(chatA.group);
+  addCircleCollider(-10.8, -6.4, 0.52, 'citizen');
+
+  const chatB = createCharacterMesh({
+    gender: 'female',
+    hairStyle: 'headwrap',
+    outfitStyle: 'dress',
+    shirtColor: 0xe11d48,
+    headwrapColor: 0x1cb0f6,
+    trimColor: 0xfcd116,
+    skinColor: 0x734124
+  }, false);
+  chatB.group.position.set(-9.35, 0, -6.4);
+  chatB.group.rotation.y = -Math.PI / 2;
+  scene.add(chatB.group);
+  addCircleCollider(-9.35, -6.4, 0.52, 'citizen');
+
+  backgroundCitizens.push(
+    { id: 'bg-chat-a', kind: 'chat', chatSlot: 0, group: chatA.group, parts: chatA.parts, anim: createAnimState(0.8) },
+    { id: 'bg-chat-b', kind: 'chat', chatSlot: 1, group: chatB.group, parts: chatB.parts, anim: createAnimState(2.1) }
+  );
+}
+
+function updateBackgroundPopulation(elapsed, dt) {
+  const pPos = playerGroup ? playerGroup.position : null;
+
+  backgroundCitizens.forEach(cit => {
+    if (cit.kind === 'pedestrian') {
+      const targetPt = cit.waypoints[cit.wpIndex];
+      const dx = targetPt[0] - cit.group.position.x;
+      const dz = targetPt[1] - cit.group.position.z;
+      const distToWp = Math.hypot(dx, dz);
+
+      // Éviter poliment le joueur s'il est juste devant
+      let blockedByPlayer = false;
+      let headYaw = 0;
+      if (pPos) {
+        const pdx = pPos.x - cit.group.position.x;
+        const pdz = pPos.z - cit.group.position.z;
+        const pDist = Math.hypot(pdx, pdz);
+        if (pDist < 1.55) {
+          blockedByPlayer = true;
+          const toPlayer = Math.atan2(pdx, pdz);
+          let diff = toPlayer - cit.group.rotation.y;
+          while (diff > Math.PI) diff -= Math.PI * 2;
+          while (diff < -Math.PI) diff += Math.PI * 2;
+          headYaw = Math.max(-0.55, Math.min(0.55, diff));
+        }
+      }
+
+      if (blockedByPlayer) {
+        updateCharacterAnimation(cit.parts, cit.anim, {
+          pose: 'default',
+          isMoving: false,
+          headLookYaw: headYaw
+        }, elapsed, dt);
+      } else if (distToWp < 0.25) {
+        cit.wpIndex = (cit.wpIndex + 1) % cit.waypoints.length;
+        updateCharacterAnimation(cit.parts, cit.anim, { pose: 'default', isMoving: true, moveSpeed: 0.6 }, elapsed, dt);
+      } else {
+        const step = Math.min(distToWp, cit.speed * dt);
+        cit.group.position.x += (dx / distToWp) * step;
+        cit.group.position.z += (dz / distToWp) * step;
+        resolveCollisions(cit.group.position, 0.44, null);
+
+        const desiredYaw = Math.atan2(dx, dz);
+        cit.group.rotation.y = lerpAngle(cit.group.rotation.y, desiredYaw, Math.min(1, dt * 8));
+
+        updateCharacterAnimation(cit.parts, cit.anim, {
+          pose: 'default',
+          isMoving: true,
+          moveSpeed: cit.speed / 2.2
+        }, elapsed, dt);
+      }
+    } else if (cit.kind === 'sit-book') {
+      updateCharacterAnimation(cit.parts, cit.anim, { pose: 'sit-book' }, elapsed, dt);
+    } else if (cit.kind === 'sit-phone') {
+      updateCharacterAnimation(cit.parts, cit.anim, { pose: 'sit-phone' }, elapsed, dt);
+    } else if (cit.kind === 'stand-phone') {
+      updateCharacterAnimation(cit.parts, cit.anim, { pose: 'stand-phone' }, elapsed, dt);
+    } else if (cit.kind === 'chat') {
+      const turn = Math.floor(elapsed / 4.2) % 2;
+      const isSpeaking = turn === cit.chatSlot;
+      updateCharacterAnimation(cit.parts, cit.anim, {
+        pose: 'default',
+        isSpeaking,
+        isListening: !isSpeaking
+      }, elapsed, dt);
+    }
+  });
+}
+
+/* ===========================================================================
+   7C. CIRCULATION ROUTIÈRE FLUIDE (2 MOTOS, 2 VÉLOS, 2 VOITURES SUR CHAUSSÉES)
+   =========================================================================== */
+function buildClosedRoadPath(points) {
+  const segs = [];
+  let totalLen = 0;
+  for (let i = 0; i < points.length; i++) {
+    const a = points[i];
+    const b = points[(i + 1) % points.length];
+    const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    if (len > 0.001) {
+      segs.push({ ax: a[0], az: a[1], bx: b[0], bz: b[1], len, start: totalLen });
+      totalLen += len;
+    }
+  }
+  return { segs, totalLen };
+}
+
+function sampleClosedRoadPath(pathData, dist) {
+  const total = pathData.totalLen;
+  let d = ((dist % total) + total) % total;
+  for (let i = 0; i < pathData.segs.length; i++) {
+    const s = pathData.segs[i];
+    if (d <= s.start + s.len || i === pathData.segs.length - 1) {
+      const u = Math.max(0, Math.min(1, (d - s.start) / s.len));
+      const x = s.ax + (s.bx - s.ax) * u;
+      const z = s.az + (s.bz - s.az) * u;
+      const yaw = Math.atan2(s.bx - s.ax, s.bz - s.az);
+      return { x, z, yaw };
+    }
+  }
+  return { x: 0, z: 2, yaw: 0 };
+}
+
+function buildMainBoulevardCircuit() {
+  const pts = [];
+  const rRound = 4.68;
+  // Voie Sud (direction Est) avant le rond-point
+  pts.push([-32.5, 3.35], [-18.0, 3.35], [-6.5, 3.35]);
+  // Contournement Sud du rond-point central (0, 2)
+  for (let i = 0; i <= 8; i++) {
+    const a = Math.PI - 0.30 - (i / 8) * (Math.PI - 0.60);
+    pts.push([Math.cos(a) * rRound, 2.0 + Math.sin(a) * rRound]);
+  }
+  // Voie Sud (direction Est) après le rond-point
+  pts.push([6.5, 3.35], [18.0, 3.35], [32.5, 3.35]);
+  // Demi-tour doux hors zone Est
+  for (let i = 1; i <= 5; i++) {
+    const a = Math.PI / 2 - (i / 6) * Math.PI;
+    pts.push([32.5 + Math.cos(a) * 1.35, 2.0 + Math.sin(a) * 1.35]);
+  }
+  // Voie Nord (direction Ouest) avant le rond-point
+  pts.push([32.5, 0.65], [18.0, 0.65], [6.5, 0.65]);
+  // Contournement Nord du rond-point central (0, 2)
+  for (let i = 0; i <= 8; i++) {
+    const a = -0.30 - (i / 8) * (Math.PI - 0.60);
+    pts.push([Math.cos(a) * rRound, 2.0 + Math.sin(a) * rRound]);
+  }
+  // Voie Nord (direction Ouest) après le rond-point
+  pts.push([-6.5, 0.65], [-18.0, 0.65], [-32.5, 0.65]);
+  // Demi-tour doux hors zone Ouest
+  for (let i = 1; i <= 5; i++) {
+    const a = -Math.PI / 2 - (i / 6) * Math.PI;
+    pts.push([-32.5 + Math.cos(a) * 1.35, 2.0 + Math.sin(a) * 1.35]);
+  }
+  return buildClosedRoadPath(pts);
+}
+
+function buildSouthAvenueCircuit() {
+  const pts = [];
+  // Voie Ouest vers le Sud
+  pts.push([-1.45, 9.4], [-1.45, 16.0], [-1.45, 22.4]);
+  // Demi-tour Sud sur la chaussée
+  for (let i = 1; i <= 5; i++) {
+    const a = Math.PI - (i / 6) * Math.PI;
+    pts.push([Math.cos(a) * 1.45, 22.4 + Math.sin(a) * 1.45]);
+  }
+  // Voie Est vers le Nord
+  pts.push([1.45, 22.4], [1.45, 16.0], [1.45, 9.4]);
+  // Demi-tour Nord sur la chaussée
+  for (let i = 1; i <= 5; i++) {
+    const a = -(i / 6) * Math.PI;
+    pts.push([Math.cos(a) * 1.45, 9.4 + Math.sin(a) * 1.45]);
+  }
+  return buildClosedRoadPath(pts);
+}
+
+function createStylizedCar(bodyColor = 0x16a34a, roofColor = 0xfefce8) {
+  const car = new THREE.Group();
+  const bodyMat = new THREE.MeshLambertMaterial({ color: bodyColor });
+  const roofMat = new THREE.MeshLambertMaterial({ color: roofColor });
+  const glassMat = new THREE.MeshLambertMaterial({ color: 0x334155 });
+  const tireMat = new THREE.MeshLambertMaterial({ color: 0x1e242b });
+  const rimMat = new THREE.MeshLambertMaterial({ color: 0xdbe2e8 });
+  const headMat = new THREE.MeshBasicMaterial({ color: 0xfff3b0 });
+  const tailMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
+
+  // Ombre douce au sol
+  const shadow = new THREE.Mesh(
+    new THREE.PlaneGeometry(1.85, 3.25),
+    new THREE.MeshBasicMaterial({ color: 0x261810, transparent: true, opacity: 0.25 })
+  );
+  shadow.rotation.x = -Math.PI / 2;
+  shadow.position.y = 0.05;
+  car.add(shadow);
+
+  // Carrosserie orientée vers +Z (avant = +Z)
+  const chassis = new THREE.Mesh(new THREE.BoxGeometry(1.52, 0.56, 2.86), bodyMat);
+  chassis.position.y = 0.56;
+  chassis.castShadow = true;
+  car.add(chassis);
+
+  const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.36, 0.54, 1.50), roofMat);
+  cabin.position.set(0, 1.06, -0.14);
+  cabin.castShadow = true;
+  car.add(cabin);
+
+  const windshield = new THREE.Mesh(new THREE.BoxGeometry(1.24, 0.40, 1.54), glassMat);
+  windshield.position.set(0, 1.04, -0.14);
+  car.add(windshield);
+
+  const sideWindows = new THREE.Mesh(new THREE.BoxGeometry(1.39, 0.36, 1.24), glassMat);
+  sideWindows.position.set(0, 1.04, -0.14);
+  car.add(sideWindows);
+
+  // Phares avant (+Z) & feux arrière (-Z)
+  [-0.50, 0.50].forEach(lx => {
+    const hl = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.14, 0.08), headMat);
+    hl.position.set(lx, 0.58, 1.44);
+    const tl = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.14, 0.08), tailMat);
+    tl.position.set(lx, 0.58, -1.44);
+    car.add(hl, tl);
+  });
+
+  // 4 roues qui tournent réellement autour de X
+  const wheels = [];
+  const wheelCoords = [[-0.78, 0.30, 0.88], [0.78, 0.30, 0.88], [-0.78, 0.30, -0.88], [0.78, 0.30, -0.88]];
+  wheelCoords.forEach(([wx, wy, wz]) => {
+    const wPivot = new THREE.Group();
+    wPivot.position.set(wx, wy, wz);
+    const tire = new THREE.Mesh(new THREE.CylinderGeometry(0.29, 0.29, 0.20, 10), tireMat);
+    tire.rotation.z = Math.PI / 2;
+    const rim = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.22, 0.08), rimMat);
+    wPivot.add(tire, rim);
+    car.add(wPivot);
+    wheels.push(wPivot);
+  });
+
+  return { group: car, wheels, rider: null };
+}
+
+function createTrafficMotorbike(bodyColor, riderCfg) {
+  const moto = new THREE.Group();
+  const tireMat = new THREE.MeshLambertMaterial({ color: 0x1f242b });
+  const rimMat = new THREE.MeshLambertMaterial({ color: 0xcbd5e1 });
+  const bodyMat = new THREE.MeshLambertMaterial({ color: bodyColor });
+  const headMat = new THREE.MeshBasicMaterial({ color: 0xfff3b0 });
+  const tailMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
+
+  // Orientée vers +Z (avant = +Z)
+  const wheels = [];
+  [0.58, -0.58].forEach(wz => {
+    const wPivot = new THREE.Group();
+    wPivot.position.set(0, 0.31, wz);
+    const tire = new THREE.Mesh(new THREE.TorusGeometry(0.26, 0.075, 6, 12), tireMat);
+    tire.rotation.y = Math.PI / 2;
+    const spoke = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.44, 0.05), rimMat);
+    wPivot.add(tire, spoke);
+    moto.add(wPivot);
+    wheels.push(wPivot);
+  });
+
+  const frame = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.34, 1.06), bodyMat);
+  frame.position.set(0, 0.62, -0.02);
+  frame.castShadow = true;
+  const seat = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.14, 0.62), tireMat);
+  seat.position.set(0, 0.84, -0.20);
+  const fork = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.64, 0.10), rimMat);
+  fork.position.set(0, 0.68, 0.46);
+  fork.rotation.x = -0.28;
+  const handle = new THREE.Mesh(new THREE.BoxGeometry(0.66, 0.08, 0.08), rimMat);
+  handle.position.set(0, 0.98, 0.36);
+
+  const headlight = new THREE.Mesh(new THREE.SphereGeometry(0.10, 8, 6), headMat);
+  headlight.position.set(0, 0.86, 0.56);
+  const taillight = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.08, 0.06), tailMat);
+  taillight.position.set(0, 0.72, -0.58);
+  moto.add(frame, seat, fork, handle, headlight, taillight);
+
+  // Conducteur articulé assis sur la moto
+  const rider = createCharacterMesh(riderCfg, false);
+  rider.group.position.set(0, 0.28, -0.18);
+  moto.add(rider.group);
+
+  return { group: moto, wheels, rider: { parts: rider.parts, anim: createAnimState(1.1) } };
+}
+
+function createTrafficBicycle(frameColor, riderCfg) {
+  const bike = new THREE.Group();
+  const tireMat = new THREE.MeshLambertMaterial({ color: 0x1f242b });
+  const rimMat = new THREE.MeshLambertMaterial({ color: 0xdbe2e8 });
+  const frameMat = new THREE.MeshLambertMaterial({ color: frameColor });
+
+  // Orienté vers +Z (avant = +Z)
+  const wheels = [];
+  [0.54, -0.54].forEach(wz => {
+    const wPivot = new THREE.Group();
+    wPivot.position.set(0, 0.32, wz);
+    const tire = new THREE.Mesh(new THREE.TorusGeometry(0.30, 0.045, 6, 12), tireMat);
+    tire.rotation.y = Math.PI / 2;
+    const spoke = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.54, 0.03), rimMat);
+    wPivot.add(tire, spoke);
+    bike.add(wPivot);
+    wheels.push(wPivot);
+  });
+
+  const topBar = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, 0.92), frameMat);
+  topBar.position.set(0, 0.66, 0);
+  const seatPost = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.44, 6), frameMat);
+  seatPost.position.set(0, 0.62, -0.22);
+  const saddle = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.07, 0.28), tireMat);
+  saddle.position.set(0, 0.85, -0.24);
+  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.54, 6), rimMat);
+  stem.position.set(0, 0.68, 0.42);
+  stem.rotation.x = -0.22;
+  const handle = new THREE.Mesh(new THREE.BoxGeometry(0.54, 0.05, 0.05), tireMat);
+  handle.position.set(0, 0.94, 0.34);
+  bike.add(topBar, seatPost, saddle, stem, handle);
+
+  // Cycliste articulé qui pédale réellement
+  const rider = createCharacterMesh(riderCfg, false);
+  rider.group.position.set(0, 0.26, -0.20);
+  bike.add(rider.group);
+
+  return { group: bike, wheels, rider: { parts: rider.parts, anim: createAnimState(2.4) } };
+}
+
+function buildRoadTraffic() {
+  const mainCircuit = buildMainBoulevardCircuit();
+  const southCircuit = buildSouthAvenueCircuit();
+
+  const specs = [
+    // 2 voitures stylisées sur le grand boulevard + rond-point
+    {
+      kind: 'car',
+      circuit: mainCircuit,
+      circuitId: 'main',
+      startFrac: 0.04,
+      cruiseSpeed: 5.2,
+      radius: 1.18,
+      minGap: 9.0,
+      built: createStylizedCar(0x16a34a, 0xfefce8)
+    },
+    {
+      kind: 'car',
+      circuit: mainCircuit,
+      circuitId: 'main',
+      startFrac: 0.54,
+      cruiseSpeed: 5.0,
+      radius: 1.18,
+      minGap: 9.0,
+      built: createStylizedCar(0x2563eb, 0xf8fafc)
+    },
+    // 1 moto + 1 vélo sur le grand boulevard
+    {
+      kind: 'moto',
+      circuit: mainCircuit,
+      circuitId: 'main',
+      startFrac: 0.28,
+      cruiseSpeed: 5.6,
+      radius: 0.82,
+      minGap: 7.2,
+      built: createTrafficMotorbike(0xdc2626, {
+        gender: 'male', hairStyle: 'short', shirtColor: 0x0ea5e9, trimColor: 0xfcd116, skinColor: 0x5c3317
+      })
+    },
+    {
+      kind: 'bicycle',
+      circuit: mainCircuit,
+      circuitId: 'main',
+      startFrac: 0.78,
+      cruiseSpeed: 3.5,
+      radius: 0.72,
+      minGap: 6.0,
+      built: createTrafficBicycle(0x0d9488, {
+        gender: 'female', hairStyle: 'braids', outfitStyle: 'pagne-skirt',
+        shirtColor: 0xf59e0b, skirtColor: 0x0f766e, trimColor: 0xfef08a, skinColor: 0x7a482b
+      })
+    },
+    // 1 moto + 1 vélo sur l'avenue Nord-Sud
+    {
+      kind: 'moto',
+      circuit: southCircuit,
+      circuitId: 'south',
+      startFrac: 0.05,
+      cruiseSpeed: 4.5,
+      radius: 0.82,
+      minGap: 7.0,
+      built: createTrafficMotorbike(0xea580c, {
+        gender: 'male', accessory: 'cap', shirtColor: 0x15803d, trimColor: 0xfde047, skinColor: 0x62371e
+      })
+    },
+    {
+      kind: 'bicycle',
+      circuit: southCircuit,
+      circuitId: 'south',
+      startFrac: 0.55,
+      cruiseSpeed: 3.2,
+      radius: 0.72,
+      minGap: 6.0,
+      built: createTrafficBicycle(0xdc2626, {
+        gender: 'male', hairStyle: 'short', shirtColor: 0x0891b2, trimColor: 0xffffff, skinColor: 0x6c3d21
+      })
+    }
+  ];
+
+  specs.forEach(s => {
+    const startDist = s.startFrac * s.circuit.totalLen;
+    const pose = sampleClosedRoadPath(s.circuit, startDist);
+    s.built.group.position.set(pose.x, 0, pose.z);
+    s.built.group.rotation.y = pose.yaw;
+    scene.add(s.built.group);
+
+    trafficVehicles.push({
+      kind: s.kind,
+      circuit: s.circuit,
+      circuitId: s.circuitId,
+      dist: startDist,
+      cruiseSpeed: s.cruiseSpeed,
+      speed: s.cruiseSpeed,
+      radius: s.radius,
+      minGap: s.minGap,
+      pedalPhase: Math.random() * Math.PI * 2,
+      group: s.built.group,
+      wheels: s.built.wheels,
+      rider: s.built.rider
+    });
+  });
+}
+
+function updateRoadTraffic(elapsed, dt) {
+  const pPos = playerGroup ? playerGroup.position : null;
+
+  trafficVehicles.forEach(v => {
+    let targetSpeed = v.cruiseSpeed;
+
+    // 1. Espacement propre entre véhicules sur le même circuit
+    const total = v.circuit.totalLen;
+    for (let i = 0; i < trafficVehicles.length; i++) {
+      const other = trafficVehicles[i];
+      if (other === v || other.circuitId !== v.circuitId) continue;
+      let gap = ((other.dist - v.dist) % total + total) % total;
+      if (gap < v.minGap) {
+        targetSpeed = Math.min(targetSpeed, Math.max(0, other.speed * 0.65));
+        if (gap < v.minGap * 0.58) targetSpeed = 0;
+      }
+    }
+
+    // 2. Ralentir ou s'arrêter brièvement si le joueur traverse devant le véhicule
+    if (pPos) {
+      const fwdX = Math.sin(v.group.rotation.y);
+      const fwdZ = Math.cos(v.group.rotation.y);
+      const relX = pPos.x - v.group.position.x;
+      const relZ = pPos.z - v.group.position.z;
+      const forwardDist = relX * fwdX + relZ * fwdZ;
+      const lateralDist = Math.abs(relX * fwdZ - relZ * fwdX);
+      const stopZone = v.kind === 'car' ? 5.2 : 4.2;
+      if (forwardDist > -0.4 && forwardDist < stopZone && lateralDist < v.radius + 1.05) {
+        targetSpeed = 0;
+      }
+    }
+
+    // Accélération / freinage progressifs fluides
+    const accelRate = targetSpeed < v.speed ? 9.5 : 4.2;
+    v.speed += (targetSpeed - v.speed) * Math.min(1, dt * accelRate);
+    if (v.speed < 0.04 && targetSpeed === 0) v.speed = 0;
+
+    v.dist = (v.dist + v.speed * dt) % total;
+    const pose = sampleClosedRoadPath(v.circuit, v.dist);
+    v.group.position.set(pose.x, 0, pose.z);
+    v.group.rotation.y = lerpAngle(v.group.rotation.y, pose.yaw, Math.min(1, dt * 10));
+
+    // Rotation réelle des roues proportionnelle à la distance parcourue
+    const wheelSpin = (v.speed * dt) / 0.29;
+    v.wheels.forEach(w => { w.rotation.x += wheelSpin; });
+
+    // Animation du cycliste qui pédale ou du conducteur de moto
+    if (v.rider) {
+      if (v.kind === 'bicycle') {
+        v.pedalPhase += v.speed * dt * 2.6;
+        updateCharacterAnimation(v.rider.parts, v.rider.anim, {
+          pose: 'cycle',
+          pedalPhase: v.pedalPhase
+        }, elapsed, dt);
+      } else if (v.kind === 'moto') {
+        updateCharacterAnimation(v.rider.parts, v.rider.anim, {
+          pose: 'moto'
+        }, elapsed, dt);
+      }
+    }
+  });
+}
+
+function resolveVehicleCollisions(pos, radius = PLAYER_RADIUS) {
+  let hit = false;
+  for (let i = 0; i < trafficVehicles.length; i++) {
+    const v = trafficVehicles[i];
+    const dx = pos.x - v.group.position.x;
+    const dz = pos.z - v.group.position.z;
+    const minDist = radius + v.radius;
+    const distSq = dx * dx + dz * dz;
+    if (distSq < minDist * minDist) {
+      const dist = Math.sqrt(distSq);
+      if (dist > 0.0001) {
+        const push = minDist - dist;
+        pos.x += (dx / dist) * push;
+        pos.z += (dz / dist) * push;
+      } else {
+        pos.z += minDist;
+      }
+      hit = true;
+    }
+  }
+  return hit;
+}
+
+/* ===========================================================================
    8. CONTRÔLES CAMÉRA (SOURIS + TACTILE + PINCH-TO-ZOOM) & BOUCLE 3D
    =========================================================================== */
 function setupCanvasEvents(dom) {
@@ -3625,6 +4739,15 @@ function animate() {
     playerGroup.rotation.y = lerpAngle(playerGroup.rotation.y, faceNpcYaw, Math.min(1, dt * 10));
   }
 
+  // Mettre à jour la circulation routière & la population vivante du quartier
+  updateRoadTraffic(elapsed, dt);
+  if (!state.cinema.active) {
+    if (resolveVehicleCollisions(playerGroup.position, PLAYER_RADIUS)) {
+      resolveCollisions(playerGroup.position, PLAYER_RADIUS, null);
+    }
+  }
+  updateBackgroundPopulation(elapsed, dt);
+
   if (playerIsMoving) {
     stepTimer += dt;
     if (stepTimer > 0.34) {
@@ -3633,14 +4756,16 @@ function animate() {
     }
   }
 
-  // Animer le personnage joueur (respiration, clignements, marche, parole & écoute)
+  // Animer le personnage joueur (respiration, clignements, marche articulée, parole & écoute)
   const playerIsSpeaking = state.speakingTarget === 'player';
   const playerIsListening = state.cinema.active && Boolean(state.speakingTarget) && state.speakingTarget !== 'player';
   updateCharacterAnimation(
     playerParts,
     playerAnim,
     {
+      pose: 'default',
       isMoving: playerIsMoving,
+      moveSpeed: 1.0,
       isSpeaking: playerIsSpeaking,
       isListening: playerIsListening,
       isGreeting: false,
@@ -3659,7 +4784,6 @@ function animate() {
     const dz = playerGroup.position.z - npc.group.position.z;
     const dist = Math.hypot(dx, dz);
 
-    // Maintien de la position valide du NPC (aucun chevauchement avec le décor)
     npc.ring.scale.setScalar(1 + Math.sin(elapsed * 3 + npc.phase) * 0.07);
 
     const isCinemaNpc = state.cinema.active && state.cinema.npcEntity === npc;
@@ -3684,6 +4808,7 @@ function animate() {
       npc.parts,
       npc.anim,
       {
+        pose: 'default',
         isMoving: false,
         isSpeaking,
         isListening,
@@ -3731,7 +4856,10 @@ function animate() {
     promptEl.classList.add('hidden');
   }
 
-  // Caméra : cadrage film 2-plans pendant le dialogue 3D, sinon orbite libre fluide
+  // Caméra : cadrage film 2-plans pendant le dialogue 3D, sinon suivi tiers-personne amorti (damping fluide)
+  const camDampPos = 1 - Math.exp(-7.5 * dt);
+  const camDampLook = 1 - Math.exp(-10.5 * dt);
+
   if (state.cinema.active && state.cinema.npcEntity) {
     const npcPos = state.cinema.npcEntity.group.position;
     const pPos = playerGroup.position;
@@ -3750,11 +4878,10 @@ function animate() {
 
     _camGoalVec.set(midX + perpX * camDist, camHeight, midZ + perpZ * camDist);
     _camTargetLookVec.set(midX, 1.55, midZ);
-    camera.position.lerp(_camGoalVec, 0.085);
-    _camLookVec.lerp(_camTargetLookVec, 0.1);
+    camera.position.lerp(_camGoalVec, 1 - Math.exp(-5.8 * dt));
+    _camLookVec.lerp(_camTargetLookVec, 1 - Math.exp(-7.2 * dt));
     camera.lookAt(_camLookVec.x, _camLookVec.y, _camLookVec.z);
 
-    // Projeter les bulles flottantes exactement au-dessus des têtes 3D
     projectSpeechBubble(
       document.getElementById('npc-speech-bubble'),
       npcPos.x,
@@ -3768,17 +4895,22 @@ function animate() {
       pPos.z
     );
   } else {
-    const targetLookY = (state.activeNpc && window.innerWidth < 640) ? -0.35 : 1.4;
-    state.lookAtY += (targetLookY - state.lookAtY) * 0.1;
+    const targetLookY = (state.activeNpc && window.innerWidth < 640) ? -0.35 : 1.45;
+    state.lookAtY += (targetLookY - state.lookAtY) * (1 - Math.exp(-8.0 * dt));
+
+    // Légère anticipation du regard dans le sens de marche pour un suivi tiers-personne cinématographique
+    const leadDist = playerIsMoving ? 0.65 : 0;
+    const leadX = Math.sin(playerGroup.rotation.y) * leadDist;
+    const leadZ = Math.cos(playerGroup.rotation.y) * leadDist;
 
     const camX = playerGroup.position.x + Math.sin(state.cameraYaw) * Math.cos(state.cameraPitch) * state.cameraDistance;
-    const camY = playerGroup.position.y + 1.8 + Math.sin(state.cameraPitch) * state.cameraDistance;
+    const camY = playerGroup.position.y + 1.85 + Math.sin(state.cameraPitch) * state.cameraDistance;
     const camZ = playerGroup.position.z + Math.cos(state.cameraYaw) * Math.cos(state.cameraPitch) * state.cameraDistance;
 
     _camGoalVec.set(camX, camY, camZ);
-    _camTargetLookVec.set(playerGroup.position.x, playerGroup.position.y + state.lookAtY, playerGroup.position.z);
-    camera.position.lerp(_camGoalVec, 0.12);
-    _camLookVec.lerp(_camTargetLookVec, 0.16);
+    _camTargetLookVec.set(playerGroup.position.x + leadX, playerGroup.position.y + state.lookAtY, playerGroup.position.z + leadZ);
+    camera.position.lerp(_camGoalVec, camDampPos);
+    _camLookVec.lerp(_camTargetLookVec, camDampLook);
     camera.lookAt(_camLookVec.x, _camLookVec.y, _camLookVec.z);
   }
 
