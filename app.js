@@ -799,12 +799,65 @@ function compressProfileImage(file) {
 }
 
 /* ===========================================================================
-   5. AUDIO (EFFETS TONE.JS + EDGE-TTS /tts + SECOURS SPEECHSYNTHESIS)
+   5. AUDIO (EFFETS TONE.JS + MP3 STATIQUES GITHUB PAGES + /tts LOCAL + SPEECHSYNTHESIS)
    =========================================================================== */
 let synthFX = null;
 let chimeFX = null;
 let currentAudio = null;
 let speechRequestId = 0;
+let audioManifest = null;
+
+function normalizeAudioText(text) {
+  return String(text || '').trim().replace(/\s+/g, ' ').toLowerCase();
+}
+
+function normalizeAudioVoice(voice) {
+  return voice === 'en-US-GuyNeural' ? 'en-US-GuyNeural' : 'en-US-JennyNeural';
+}
+
+function isLocalTtsHost() {
+  if (typeof window === 'undefined' || !window.location) return false;
+  const host = window.location.hostname;
+  return host === '127.0.0.1' || host === 'localhost';
+}
+
+async function loadAudioManifest() {
+  try {
+    const res = await fetch('./audio/manifest.json', { cache: 'default' });
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data && typeof data === 'object') {
+      audioManifest = data;
+    }
+  } catch (_) {
+    // Silencieux si audio/manifest.json n'existe pas encore
+  }
+}
+
+function resolveStaticAudioUrl(text, voice) {
+  if (!audioManifest) return null;
+  const normText = normalizeAudioText(text);
+  if (!normText) return null;
+
+  const rawVoice = String(voice || '').trim();
+  const normVoice = normalizeAudioVoice(rawVoice);
+  const entries = audioManifest.entries || audioManifest;
+  const byText = audioManifest.byText || null;
+
+  let relPath = null;
+  if (entries && typeof entries === 'object') {
+    relPath =
+      entries[`${rawVoice}|${normText}`] ||
+      entries[`${normVoice}|${normText}`] ||
+      entries[normText] ||
+      null;
+  }
+  if (!relPath && byText && typeof byText === 'object') {
+    relPath = byText[normText] || null;
+  }
+  if (!relPath || typeof relPath !== 'string') return null;
+  return `./${relPath.replace(/^\.?\//, '')}`;
+}
 
 async function initAudioFX() {
   if (state.toneReady || typeof Tone === 'undefined') return;
@@ -851,14 +904,95 @@ function stopCurrentSpeech() {
   clearCinemaAutoAdvance();
   state.speakingTarget = null;
   if (currentAudio) {
-    currentAudio.pause();
-    currentAudio.currentTime = 0;
+    const audioToStop = currentAudio;
     currentAudio = null;
+    try {
+      audioToStop.pause();
+      audioToStop.currentTime = 0;
+    } catch (_) {}
+    if (typeof audioToStop._abortResolve === 'function') {
+      audioToStop._abortResolve();
+    }
   }
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
   const statusEl = document.getElementById('voice-status');
   if (statusEl) statusEl.classList.add('hidden');
   updateBubbleSpeakingWaves(false);
+}
+
+function playAudioElement(audioUrl, playbackRate, myReqId, startSpeaking, finishSpeaking, revokeOnDone = false) {
+  return new Promise((resolve, reject) => {
+    if (myReqId !== speechRequestId) {
+      if (revokeOnDone && typeof URL !== 'undefined' && URL.revokeObjectURL) URL.revokeObjectURL(audioUrl);
+      resolve();
+      return;
+    }
+
+    const audio = new Audio(audioUrl);
+    audio.playbackRate = playbackRate;
+    currentAudio = audio;
+
+    let settled = false;
+    let started = false;
+
+    const cleanup = () => {
+      audio.onended = null;
+      audio.onerror = null;
+      audio._abortResolve = null;
+      if (revokeOnDone && typeof URL !== 'undefined' && URL.revokeObjectURL) {
+        URL.revokeObjectURL(audioUrl);
+      }
+      if (currentAudio === audio) currentAudio = null;
+    };
+
+    const completeOk = () => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      finishSpeaking();
+      resolve();
+    };
+
+    const failBeforeStart = (err) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      if (started) {
+        finishSpeaking();
+        resolve();
+      } else {
+        reject(err || new Error('Audio playback failed'));
+      }
+    };
+
+    audio._abortResolve = () => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      resolve();
+    };
+
+    audio.onended = completeOk;
+    audio.onerror = () => failBeforeStart(new Error(`Audio introuvable : ${audioUrl}`));
+
+    const playResult = audio.play();
+    if (playResult && typeof playResult.then === 'function') {
+      playResult
+        .then(() => {
+          if (settled || myReqId !== speechRequestId) {
+            try { audio.pause(); } catch (_) {}
+            completeOk();
+            return;
+          }
+          started = true;
+          startSpeaking();
+        })
+        .catch(failBeforeStart);
+    } else {
+      started = true;
+      startSpeaking();
+    }
+  });
 }
 
 function playSingleUtterance(text, slow, chosenVoice, myReqId, speakerTarget = null) {
@@ -887,66 +1021,79 @@ function playSingleUtterance(text, slow, chosenVoice, myReqId, speakerTarget = n
         state.speakingTarget = null;
         updateBubbleSpeakingWaves(false);
       }
-      resolve();
     };
 
-    try {
-      const url = `/tts?text=${encodeURIComponent(text)}&voice=${encodeURIComponent(chosenVoice)}&rate=${encodeURIComponent(rateParam)}`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('Local TTS indisponible');
-      const blob = await res.blob();
-      if (myReqId !== speechRequestId) {
+    // PRIORITÉ 1 : Fichier MP3 statique pré-généré via audio/manifest.json (100 % autonome GitHub Pages)
+    const staticUrl = resolveStaticAudioUrl(text, chosenVoice);
+    if (staticUrl) {
+      try {
+        await playAudioElement(staticUrl, slow ? 0.72 : 1.0, myReqId, startSpeaking, finishSpeaking, false);
         resolve();
         return;
+      } catch (_) {
+        if (myReqId !== speechRequestId) {
+          resolve();
+          return;
+        }
       }
+    }
 
-      const audioUrl = URL.createObjectURL(blob);
-      const audio = new Audio(audioUrl);
-      currentAudio = audio;
-      let finished = false;
-      const done = () => {
-        if (finished) return;
-        finished = true;
-        URL.revokeObjectURL(audioUrl);
-        if (currentAudio === audio) currentAudio = null;
-        finishSpeaking();
-      };
-      audio.onended = done;
-      audio.onerror = done;
-      startSpeaking();
-      await audio.play();
-    } catch (e) {
-      if (myReqId !== speechRequestId) {
+    // PRIORITÉ 2 : Secours serveur local server.py (/tts) uniquement sur localhost / 127.0.0.1
+    if (isLocalTtsHost()) {
+      try {
+        const url = `/tts?text=${encodeURIComponent(text)}&voice=${encodeURIComponent(chosenVoice)}&rate=${encodeURIComponent(rateParam)}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('Local TTS indisponible');
+        const blob = await res.blob();
+        if (myReqId !== speechRequestId) {
+          resolve();
+          return;
+        }
+        const blobUrl = URL.createObjectURL(blob);
+        await playAudioElement(blobUrl, 1.0, myReqId, startSpeaking, finishSpeaking, true);
         resolve();
         return;
+      } catch (_) {
+        if (myReqId !== speechRequestId) {
+          resolve();
+          return;
+        }
       }
-      if ('speechSynthesis' in window) {
-        let settled = false;
-        const finishUtter = () => {
-          if (settled) return;
-          settled = true;
-          clearTimeout(fallbackSafetyTimer);
-          finishSpeaking();
-        };
-        const utter = new SpeechSynthesisUtterance(text);
-        utter.lang = 'en-US';
-        utter.rate = slow ? 0.68 : 0.95;
-        utter.onstart = startSpeaking;
-        utter.onend = finishUtter;
-        utter.onerror = finishUtter;
-        // Filet de sécurité si le navigateur ne déclenche pas onend (ex: mode sans voix système)
-        const approxMs = Math.max(1800, Math.min(9000, text.length * (slow ? 85 : 62)));
-        const fallbackSafetyTimer = setTimeout(finishUtter, approxMs + 1200);
-        startSpeaking();
-        window.speechSynthesis.speak(utter);
-      } else {
-        // Mode silencieux : anime la bouche le temps naturel de lecture de la phrase
-        startSpeaking();
-        const approxMs = Math.max(1500, Math.min(5000, text.length * 55));
-        setTimeout(() => {
-          finishSpeaking();
-        }, approxMs);
-      }
+    }
+
+    // PRIORITÉ 3 : Secours universel Web Speech API (window.speechSynthesis en en-US)
+    if (myReqId !== speechRequestId) {
+      resolve();
+      return;
+    }
+    if ('speechSynthesis' in window) {
+      let settled = false;
+      const finishUtter = () => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(fallbackSafetyTimer);
+        finishSpeaking();
+        resolve();
+      };
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = 'en-US';
+      utter.rate = slow ? 0.68 : 0.95;
+      utter.onstart = startSpeaking;
+      utter.onend = finishUtter;
+      utter.onerror = finishUtter;
+      // Filet de sécurité si le navigateur ne déclenche pas onend (ex: mode sans voix système)
+      const approxMs = Math.max(1800, Math.min(9000, text.length * (slow ? 85 : 62)));
+      const fallbackSafetyTimer = setTimeout(finishUtter, approxMs + 1200);
+      startSpeaking();
+      window.speechSynthesis.speak(utter);
+    } else {
+      // Mode silencieux : anime la bouche le temps naturel de lecture de la phrase
+      startSpeaking();
+      const approxMs = Math.max(1500, Math.min(5000, text.length * 55));
+      setTimeout(() => {
+        finishSpeaking();
+        resolve();
+      }, approxMs);
     }
   });
 }
@@ -971,8 +1118,10 @@ async function speakDialogueSequence(loc, slow = false) {
   for (let i = 0; i < lines.length; i++) {
     if (myReqId !== speechRequestId) return;
     const role = getCinemaTurnRole(loc, lines[i], i);
-    const target = role === 'player' ? 'player' : loc.id;
-    const chosenVoice = role === 'player' ? getPlayerVoiceForNpc(loc.voice) : loc.voice;
+    const target = role === 'player' ? 'player' : (role === 'extra' ? 'extra' : loc.id);
+    const chosenVoice = role === 'player'
+      ? getPlayerVoiceForNpc(loc.voice)
+      : (role === 'extra' ? 'en-US-JennyNeural' : loc.voice);
     await playSingleUtterance(lines[i].en, slow, chosenVoice, myReqId, target);
   }
   const statusEl = document.getElementById('voice-status');
@@ -8055,6 +8204,7 @@ function bindUIEvents() {
 window.addEventListener('load', async () => {
   state.profile = loadProfile();
   const restored = loadProgress();
+  loadAudioManifest(); // Chargement non bloquant de audio/manifest.json pour GitHub Pages
   await loadLessonsFromJson();
   bindUIEvents();
   const sceneReady = initThreeScene();
