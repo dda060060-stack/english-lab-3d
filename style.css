@@ -586,6 +586,20 @@ input {
   flex-shrink: 0;
 }
 
+.install-pwa-btn {
+  min-height: 42px;
+  padding: 0 13px;
+  border-radius: 14px;
+  font-size: 13px;
+  gap: 6px;
+}
+
+.install-pwa-btn svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
 .profile-chip {
   min-height: 42px;
   padding: 4px 12px 4px 5px;
@@ -2345,6 +2359,13 @@ input {
   .hud-actions {
     order: 2;
     gap: 5px;
+  }
+
+  .install-pwa-btn {
+    min-height: 38px;
+    padding: 0 10px;
+    font-size: 12px;
+    border-radius: 12px;
   }
 
   .profile-chip {

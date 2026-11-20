@@ -4,8 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="description" content="DAVID-DA Speak — Apprendre l'anglais Niveau 0 • Unit 1 à Unit 8 en explorant un quartier vivant du Burkina Faso en 3D avec dialogues audio, grammaire, vocabulaire et quiz ludiques." />
-  <meta name="theme-color" content="#FFFFFF" />
+  <meta name="theme-color" content="#58CC02" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="DAVID-DA Speak" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" type="image/svg+xml" href="./icons/icon.svg" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
+  <link rel="apple-touch-icon" sizes="192x192" href="./icons/icon-192.png" />
   <title>DAVID-DA Speak — Apprendre l'anglais Niveau 0 • Unit 1 à Unit 8</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -109,6 +116,14 @@
 
       <!-- Profil utilisateur + actions rapides -->
       <div class="hud-actions">
+        <button id="btn-install-pwa" type="button" class="install-pwa-btn duo-btn duo-btn-green hidden" title="Installer DAVID-DA Speak sur cet appareil" aria-label="Installer DAVID-DA Speak">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 4.5V14.5M12 14.5L8 10.5M12 14.5L16 10.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M5 17.5V18.5C5 19.33 5.67 20 6.5 20H17.5C18.33 20 19 19.33 19 18.5V17.5" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" />
+          </svg>
+          <span class="install-pwa-label">Installer</span>
+        </button>
+
         <button id="btn-profile" type="button" class="profile-chip duo-btn-white" aria-label="Ouvrir mon profil">
           <span id="hud-user-avatar" class="avatar-circle avatar-sm"></span>
           <span id="hud-user-name" class="profile-chip-name">Invité</span>

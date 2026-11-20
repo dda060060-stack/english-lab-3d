@@ -8201,7 +8201,58 @@ function bindUIEvents() {
   });
 }
 
+/* ===========================================================================
+   12. PWA : SERVICE WORKER HORS-LIGNE (./sw.js) & BOUTON INSTALLER
+   =========================================================================== */
+let deferredInstallPrompt = null;
+
+function setupPwaInstallPrompt() {
+  const installBtn = document.getElementById('btn-install-pwa');
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    if (installBtn) installBtn.classList.remove('hidden');
+  });
+
+  window.addEventListener('appinstalled', () => {
+    deferredInstallPrompt = null;
+    if (installBtn) installBtn.classList.add('hidden');
+    playFX('success');
+    showToast('DAVID-DA Speak est installé sur votre appareil !');
+  });
+
+  if (installBtn) {
+    installBtn.addEventListener('click', async () => {
+      if (!deferredInstallPrompt) return;
+      playFX('click');
+      const promptEvent = deferredInstallPrompt;
+      deferredInstallPrompt = null;
+      try {
+        await promptEvent.prompt();
+        const choice = await promptEvent.userChoice;
+        if (choice && choice.outcome === 'accepted') {
+          installBtn.classList.add('hidden');
+        }
+      } catch (_) {
+        // Ignorer si l'utilisateur annule ou ferme la fenêtre
+      }
+    });
+  }
+}
+
+function registerServiceWorker() {
+  if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return;
+  if (typeof window !== 'undefined' && window.location && window.location.protocol === 'file:') return;
+  navigator.serviceWorker.register('./sw.js').catch(() => {
+    // Repli silencieux si le contexte ne permet pas les Service Workers
+  });
+}
+
+setupPwaInstallPrompt();
+
 window.addEventListener('load', async () => {
+  registerServiceWorker();
   state.profile = loadProfile();
   const restored = loadProgress();
   loadAudioManifest(); // Chargement non bloquant de audio/manifest.json pour GitHub Pages

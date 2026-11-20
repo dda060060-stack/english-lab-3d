@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" fill="none">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#62DB05" />
+      <stop offset="100%" stop-color="#58CC02" />
+    </linearGradient>
+    <filter id="bubbleShadow" x="-10%" y="-10%" width="120%" height="125%">
+      <feDropShadow dx="0" dy="12" stdDeviation="10" flood-color="#337A00" flood-opacity="0.28" />
+    </filter>
+  </defs>
+
+  <!-- Fond vert DAVID-DA Speak (compatible icône maskable) -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+  <path d="M0 392H512V400C512 461.856 461.856 512 400 512H112C50.144 512 0 461.856 0 400V392Z" fill="#46A302" opacity="0.38" />
+
+  <!-- Bulle de dialogue souriante au centre (zone de sécurité 70 %) -->
+  <g filter="url(#bubbleShadow)">
+    <path d="M116 218C116 154.5 170.5 106 238 106H274C341.5 106 396 154.5 396 218C396 281.5 341.5 330 274 330H214L142 396C133.5 403.5 120 397.4 120 385.8V316.5C117.3 300.5 116 236 116 218Z" fill="#FFFFFF" />
+  </g>
+
+  <!-- Yeux expressifs + reflets -->
+  <circle cx="212" cy="212" r="24" fill="#58CC02" />
+  <circle cx="300" cy="212" r="24" fill="#58CC02" />
+  <circle cx="220" cy="204" r="7.5" fill="#FFFFFF" />
+  <circle cx="308" cy="204" r="7.5" fill="#FFFFFF" />
+
+  <!-- Sourire chaleureux orange -->
+  <path d="M210 262C227 284 285 284 302 262" stroke="#FF9600" stroke-width="24" stroke-linecap="round" />
+
+  <!-- Petit badge bleu accent en haut à droite -->
+  <circle cx="384" cy="128" r="26" fill="#1CB0F6" stroke="#FFFFFF" stroke-width="8" />
+</svg>
