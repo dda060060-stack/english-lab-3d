@@ -1,557 +1,2521 @@
 {
-  "course": "Interchange Intro — English City 3D (Burkina Faso)",
-  "version": 2,
+  "course": "Interchange Intro (5th Edition) — English City 3D Burkina Faso (Unités 1 à 8)",
+  "version": 3,
   "units": [
     {
       "unit": 1,
-      "title": "It's nice to meet you.",
-      "theme": "Salutations et présentations",
+      "title": "What's your name?",
+      "theme": "Dire bonjour, se présenter, présenter ses amis, dire au revoir et échanger ses coordonnées",
       "placeName": "Place de la Nation",
       "npcName": "Moussa",
       "dialogues": [
         {
-          "speaker": "Moussa",
-          "en": "Hello! Good morning! My name is Moussa. Welcome to Ouagadougou!",
-          "phonetic": "/həˈloʊ! ɡʊd ˈmɔːrnɪŋ! maɪ neɪm ɪz ˈmuːsə. ˈwɛlkəm tuː ˌwɑːɡəˈduːɡuː!/",
-          "fr": "Bonjour ! Bon matin ! Je m'appelle Moussa. Bienvenue à Ouagadougou !"
+          "speaker": "Joshua Brown",
+          "en": "Hi. My name is Joshua Brown.",
+          "fr": "Salut. Je m'appelle Joshua Brown."
         },
         {
-          "speaker": "Moussa",
-          "en": "What's your name? It's nice to meet you!",
-          "phonetic": "/wɒts jʊər neɪm? ɪts naɪs tuː miːt juː!/",
-          "fr": "Comment vous appelez-vous ? Enchanté de vous rencontrer !"
+          "speaker": "Isabella Martins",
+          "en": "I'm Isabella Martins. It's nice to meet you.",
+          "fr": "Je suis Isabella Martins. Enchantée de vous rencontrer."
         },
         {
-          "speaker": "Réponse modèle",
-          "en": "Hi, Moussa! I'm glad to meet you. It's nice to meet you too!",
-          "phonetic": "/haɪ ˈmuːsə! aɪm ɡlæd tuː miːt juː. ɪts naɪs tuː miːt juː tuː!/",
-          "fr": "Salut Moussa ! Ravi(e) de te rencontrer. Enchanté(e) moi aussi !"
+          "speaker": "Joshua Brown",
+          "en": "Nice to meet you, too. I'm sorry. What's your last name again?",
+          "fr": "Enchanté moi aussi. Excusez-moi. Quel est votre nom de famille déjà ?"
+        },
+        {
+          "speaker": "Étudiant",
+          "en": "Excuse me. Are you Layla Moore?",
+          "fr": "Excusez-moi. Êtes-vous Layla Moore ?"
+        },
+        {
+          "speaker": "Camarade",
+          "en": "No, I'm not. She's over there.",
+          "fr": "Non, je ne le suis pas. Elle est là-bas."
+        },
+        {
+          "speaker": "Étudiant",
+          "en": "OK. Thanks.",
+          "fr": "D'accord. Merci."
+        },
+        {
+          "speaker": "Sergio Oliveira",
+          "en": "Nice to meet you. I'm Sergio Oliveira. You're in my English class.",
+          "fr": "Enchanté de vous rencontrer. Je suis Sergio Oliveira. Vous êtes dans mon cours d'anglais."
+        },
+        {
+          "speaker": "Layla Moore",
+          "en": "Yes, I am. It's nice to meet you too, Sergio.",
+          "fr": "Oui, j'y suis. Enchantée de vous rencontrer moi aussi, Sergio."
         }
       ],
       "grammar": [
         {
           "title": "Adjectifs possessifs : my, your, his, her",
-          "explanation": "En anglais, l'adjectif possessif s'accorde avec la personne qui possède : « my » (mon/ma), « your » (ton/votre), « his » (son, pour un homme), « her » (son/sa, pour une femme).",
+          "explanation": "Les adjectifs possessifs s'accordent avec le possesseur et précèdent toujours le nom : my (mon/ma/mes), your (ton/ta/tes/votre/vos), his (son/sa/ses pour un homme), her (son/sa/ses pour une femme).",
           "examples": [
-            { "en": "My name is Moussa.", "fr": "Je m'appelle Moussa." },
-            { "en": "What is your name?", "fr": "Quel est votre nom ?" },
-            { "en": "Her name is Aminata.", "fr": "Elle s'appelle Aminata." }
+            {
+              "en": "My name is Joshua Brown.",
+              "fr": "Je m'appelle Joshua Brown."
+            },
+            {
+              "en": "What's your last name again?",
+              "fr": "Quel est votre nom de famille déjà ?"
+            },
+            {
+              "en": "What's her first name? It's Elizabeth.",
+              "fr": "Quel est son prénom (à elle) ? C'est Elizabeth."
+            },
+            {
+              "en": "His first name is Peter. His nickname is Pete.",
+              "fr": "Son prénom (à lui) est Peter. Son surnom est Pete."
+            }
           ]
         },
         {
-          "title": "Le verbe « to be » au présent (formes contractées)",
-          "explanation": "À l'oral, on contracte presque toujours « to be » : I'm (I am), You're (You are), He's (He is), She's (She is), It's (It is).",
+          "title": "Le verbe « be » dans les questions",
+          "explanation": "Dans une question avec le verbe « be », le verbe se place toujours AVANT le nom ou le pronom sujet : Am / Is / Are + sujet... ?",
           "examples": [
-            { "en": "I'm a student.", "fr": "Je suis étudiant(e)." },
-            { "en": "It's nice to meet you.", "fr": "C'est un plaisir de vous rencontrer." }
+            {
+              "en": "Are you Joshua Brown?",
+              "fr": "Êtes-vous Joshua Brown ?"
+            },
+            {
+              "en": "Is he in our English class?",
+              "fr": "Est-il dans notre cours d'anglais ?"
+            },
+            {
+              "en": "Is she the teacher?",
+              "fr": "Est-elle la professeure ?"
+            }
+          ]
+        },
+        {
+          "title": "Réponses courtes avec « Yes » : ne JAMAIS contracter",
+          "explanation": "Dans une réponse courte affirmative avec « Yes », on ne contracte JAMAIS le verbe « be » : on dit « Yes, I am. » (et NON « Yes, I'm. »). À la forme négative avec « No », la contraction est courante (« No, I'm not. »).",
+          "examples": [
+            {
+              "en": "Are you Layla Moore? Yes, I am.",
+              "fr": "Êtes-vous Layla Moore ? Oui, je le suis."
+            },
+            {
+              "en": "Are you Layla Moore? No, I'm not.",
+              "fr": "Êtes-vous Layla Moore ? Non, je ne le suis pas."
+            },
+            {
+              "en": "Is she the teacher? Yes, she is.",
+              "fr": "Est-elle la professeure ? Oui, elle l'est."
+            }
           ]
         }
       ],
-      "tip": "Utilisez « Good morning » le matin, « Good afternoon » l'après-midi et « Good evening » le soir. Pour répondre à « Nice to meet you! », ajoutez simplement « too » : « Nice to meet you too! ».",
+      "tip": "Règle d'or de l'Unité 1 (Grammar Plus) : ne contractez jamais « be » dans une réponse courte affirmative — dites toujours « Yes, I am. » et jamais « Yes, I'm. ».",
       "vocab": [
-        { "en": "Hello! Good morning!", "phonetic": "/həˈloʊ! ɡʊd ˈmɔːrnɪŋ/", "fr": "Bonjour ! (le matin)" },
-        { "en": "My name is Moussa.", "phonetic": "/maɪ neɪm ɪz ˈmuːsə/", "fr": "Je m'appelle Moussa." },
-        { "en": "What's your name?", "phonetic": "/wɒts jʊər neɪm/", "fr": "Comment vous appelez-vous ?" },
-        { "en": "It's nice to meet you.", "phonetic": "/ɪts naɪs tuː miːt juː/", "fr": "Enchanté(e) !" },
-        { "en": "How are you? I'm fine, thanks.", "phonetic": "/haʊ ɑːr juː? aɪm faɪn θæŋks/", "fr": "Comment allez-vous ? Je vais bien, merci." },
-        { "en": "See you later!", "phonetic": "/siː juː ˈleɪtər/", "fr": "À plus tard !" }
+        {
+          "en": "first name",
+          "fr": "prénom"
+        },
+        {
+          "en": "last name",
+          "fr": "nom de famille"
+        },
+        {
+          "en": "nickname",
+          "fr": "surnom"
+        },
+        {
+          "en": "teacher",
+          "fr": "enseignant(e) / professeur(e)"
+        },
+        {
+          "en": "English class",
+          "fr": "cours d'anglais"
+        },
+        {
+          "en": "over there",
+          "fr": "là-bas"
+        },
+        {
+          "en": "hello",
+          "fr": "bonjour"
+        },
+        {
+          "en": "hi",
+          "fr": "salut"
+        },
+        {
+          "en": "good-bye",
+          "fr": "au revoir"
+        },
+        {
+          "en": "nice to meet you",
+          "fr": "enchanté(e) de vous rencontrer"
+        }
       ],
       "quizzes": [
         {
-          "question": "Moussa vous dit : « It's nice to meet you! ». Quelle est la meilleure réponse ?",
+          "question": "A: Excuse me. Are you Layla Moore? — B: No, ___. ___ over there.",
           "options": [
-            { "text": "It's nice to meet you too!", "correct": true },
-            { "text": "Good night, I am a pen.", "correct": false },
-            { "text": "Where is the bus stop?", "correct": false }
+            {
+              "text": "I'm — She's",
+              "correct": false
+            },
+            {
+              "text": "I'm not — She's",
+              "correct": true
+            },
+            {
+              "text": "I am — He's",
+              "correct": false
+            },
+            {
+              "text": "not I'm — Her is",
+              "correct": false
+            }
           ],
-          "explanation": "On répond poliment en reprenant la formule avec « too » (aussi)."
+          "explanation": "Réponse négative courte « No, I'm not. », suivie de « She's over there. » pour désigner Layla."
         },
         {
-          "question": "Complétez la phrase pour parler de votre amie Aminata : « ___ name is Aminata. »",
+          "question": "A: Hi. ___ ___ Layla Moore? — B: Yes, ___.",
           "options": [
-            { "text": "His", "correct": false },
-            { "text": "Her", "correct": true },
-            { "text": "Your", "correct": false }
+            {
+              "text": "Are you — I'm",
+              "correct": false
+            },
+            {
+              "text": "You are — I am",
+              "correct": false
+            },
+            {
+              "text": "Is you — I am",
+              "correct": false
+            },
+            {
+              "text": "Are you — I am",
+              "correct": true
+            }
           ],
-          "explanation": "Pour une femme (Aminata), on utilise l'adjectif possessif « Her »."
+          "explanation": "On place « be » avant le pronom dans la question (« Are you »), et on ne contracte JAMAIS une réponse courte avec Yes (« Yes, I am. »)."
+        },
+        {
+          "question": "A: Nice to meet you. ___ Sergio Oliveira. ___ in my English class. — B: Yes, I ___. ___ nice to meet you too, Sergio.",
+          "options": [
+            {
+              "text": "I am — Are you — am — She's",
+              "correct": false
+            },
+            {
+              "text": "I'm — You're — am — It's",
+              "correct": true
+            },
+            {
+              "text": "My — Your — is — He's",
+              "correct": false
+            },
+            {
+              "text": "I'm — Your — am — Its",
+              "correct": false
+            }
+          ],
+          "explanation": "« I'm Sergio Oliveira. You're in my English class. — Yes, I am. It's nice to meet you too, Sergio. »"
+        },
+        {
+          "question": "A: I'm sorry. What's ___ first name again? — B: It's Elizabeth. And what's Mr. Weber's first name? — A: ___ first name is Peter. — B: That's right. And ___ nickname is Pete.",
+          "options": [
+            {
+              "text": "his — Her — her",
+              "correct": false
+            },
+            {
+              "text": "she — He — his",
+              "correct": false
+            },
+            {
+              "text": "her — He's — his",
+              "correct": false
+            },
+            {
+              "text": "her — His — his",
+              "correct": true
+            }
+          ],
+          "explanation": "Pour Elizabeth (femme) : « her ». Pour Mr. Weber / Peter (homme) : « His » et « his »."
         }
       ]
     },
     {
       "unit": 2,
-      "title": "What's this?",
-      "theme": "Objets du quotidien et prépositions",
+      "title": "Where are my keys?",
+      "theme": "Nommer des objets personnels et de classe, demander et indiquer l'emplacement d'objets",
       "placeName": "Librairie / Campus",
       "npcName": "Aminata",
       "dialogues": [
         {
-          "speaker": "Aminata",
-          "en": "Hi! Look at my desk. This is my notebook, and these are my pens and keys.",
-          "phonetic": "/haɪ! lʊk æt maɪ dɛsk. ðɪs ɪz maɪ ˈnoʊtbʊk, ænd ðiːz ɑːr maɪ pɛnz ænd kiːz/",
-          "fr": "Salut ! Regarde mon bureau. Voici mon cahier, et voici mes stylos et mes clés."
+          "speaker": "A",
+          "en": "Is this your wallet?",
+          "fr": "Est-ce que c'est ton portefeuille ?"
         },
         {
-          "speaker": "Aminata",
-          "en": "Wait, where is my phone? Oh, it's in my backpack, next to my English book!",
-          "phonetic": "/weɪt, wɛər ɪz maɪ foʊn? oʊ, ɪts ɪn maɪ ˈbækpæk, nɛkst tuː maɪ ˈɪŋɡlɪʃ bʊk/",
-          "fr": "Attends, où est mon téléphone ? Oh, il est dans mon sac à dos, à côté de mon livre d'anglais !"
+          "speaker": "B",
+          "en": "Yes, it is. Thanks.",
+          "fr": "Oui, c'est le mien. Merci."
+        },
+        {
+          "speaker": "A",
+          "en": "And are these your sunglasses?",
+          "fr": "Et ce sont tes lunettes de soleil ?"
+        },
+        {
+          "speaker": "B",
+          "en": "Yes, they are.",
+          "fr": "Oui, ce sont les miennes."
+        },
+        {
+          "speaker": "A",
+          "en": "Well, they're very nice sunglasses.",
+          "fr": "Eh bien, ce sont de très jolies lunettes de soleil."
+        },
+        {
+          "speaker": "B",
+          "en": "Thank you!",
+          "fr": "Merci !"
+        },
+        {
+          "speaker": "A",
+          "en": "What are these?",
+          "fr": "Qu'est-ce que c'est (ces objets) ?"
+        },
+        {
+          "speaker": "B",
+          "en": "They're flash drives.",
+          "fr": "Ce sont des clés USB."
         }
       ],
       "grammar": [
         {
-          "title": "Articles indéfinis « a » / « an » et démonstratifs « this / these »",
-          "explanation": "Utilisez « a » devant un son consonne (a pen, a book) et « an » devant un son voyelle (an umbrella, an eraser). « This is » sert au singulier et « These are » au pluriel.",
+          "title": "Articles « a », « an », « the » et pluriels (-s / -es)",
+          "explanation": "Utilisez « a » devant un son consonne (a laptop, a desk), « an » devant un son voyelle (an eraser, an English book), et « the » pour un objet précis. Au pluriel, on ajoute généralement « -s » (keys, books) ou « -es » après -s, -sh, -ch, -x (classes, boxes).",
           "examples": [
-            { "en": "What's this? It's an English book.", "fr": "Qu'est-ce que c'est ? C'est un livre d'anglais." },
-            { "en": "What are these? They're my keys.", "fr": "Qu'est-ce que c'est (pluriel) ? Ce sont mes clés." }
+            {
+              "en": "It's a laptop and an eraser.",
+              "fr": "C'est un ordinateur portable et une gomme."
+            },
+            {
+              "en": "The keys are in the box.",
+              "fr": "Les clés sont dans la boîte."
+            },
+            {
+              "en": "They're flash drives.",
+              "fr": "Ce sont des clés USB."
+            }
           ]
         },
         {
-          "title": "Prépositions de lieu : in, on, under, next to, behind, in front of",
-          "explanation": "Elles indiquent où se trouve un objet : in (dans), on (sur), under (sous), next to (à côté de), in front of (devant), behind (derrière).",
+          "title": "Démonstratifs « this / these » et pronoms « it / they »",
+          "explanation": "Utilisez « this » avec les noms singuliers (« This is a laptop. ») et « these » avec les noms pluriels (« These are flash drives. »). Attention : on ne contracte PAS « What + are » — on dit « What are these? » et NON « What're these? ».",
           "examples": [
-            { "en": "The notebook is on the desk.", "fr": "Le cahier est sur le bureau." },
-            { "en": "The keys are in the bag.", "fr": "Les clés sont dans le sac." },
-            { "en": "My chair is next to the table.", "fr": "Ma chaise est à côté de la table." }
+            {
+              "en": "This is a laptop.",
+              "fr": "Ceci est un ordinateur portable."
+            },
+            {
+              "en": "These are flash drives.",
+              "fr": "Ce sont des clés USB."
+            },
+            {
+              "en": "What's this? It's a wallet.",
+              "fr": "Qu'est-ce que c'est ? C'est un portefeuille."
+            },
+            {
+              "en": "What are these? They're sunglasses.",
+              "fr": "Qu'est-ce que c'est ? Ce sont des lunettes de soleil."
+            }
+          ]
+        },
+        {
+          "title": "Questions Yes/No, « Where » avec « be » et prépositions de lieu",
+          "explanation": "Questions Yes/No : « Is this your wallet? — Yes, it is. / No, it's not. » ; « Are these your keys? — Yes, they are. / No, they're not. ». Pour localiser avec « Where » : in (dans), in front of (devant), behind (derrière), on (sur), next to (à côté de), under (sous).",
+          "examples": [
+            {
+              "en": "Where are my keys? They're in my pocket.",
+              "fr": "Où sont mes clés ? Elles sont dans ma poche."
+            },
+            {
+              "en": "The dictionary is on the desk, next to the notebook.",
+              "fr": "Le dictionnaire est sur le bureau, à côté du cahier."
+            },
+            {
+              "en": "My backpack is under the chair, behind the door.",
+              "fr": "Mon sac à dos est sous la chaise, derrière la porte."
+            },
+            {
+              "en": "The board is in front of the class.",
+              "fr": "Le tableau est devant la classe."
+            }
           ]
         }
       ],
-      "tip": "Pour un objet unique : « What's this? — It's a pen. » Pour plusieurs objets : « What are these? — They're pens. »",
+      "tip": "Retenez : « this » = singulier (« This is a laptop. »), « these » = pluriel (« These are flash drives. »), et ne contractez jamais « What are these? ».",
       "vocab": [
-        { "en": "A notebook", "phonetic": "/ə ˈnoʊtbʊk/", "fr": "Un cahier" },
-        { "en": "A backpack", "phonetic": "/ə ˈbækpæk/", "fr": "Un sac à dos" },
-        { "en": "An umbrella", "phonetic": "/æn ʌmˈbrɛlə/", "fr": "Un parapluie" },
-        { "en": "Keys", "phonetic": "/kiːz/", "fr": "Des clés" },
-        { "en": "On the desk", "phonetic": "/ɒn ðə dɛsk/", "fr": "Sur le bureau" },
-        { "en": "Next to the book", "phonetic": "/nɛkst tuː ðə bʊk/", "fr": "À côté du livre" }
+        {
+          "en": "backpack",
+          "fr": "sac à dos (Objet de classe)"
+        },
+        {
+          "en": "board",
+          "fr": "tableau (Objet de classe)"
+        },
+        {
+          "en": "English book",
+          "fr": "livre d'anglais (Objet de classe)"
+        },
+        {
+          "en": "chair",
+          "fr": "chaise (Objet de classe)"
+        },
+        {
+          "en": "clock",
+          "fr": "horloge (Objet de classe)"
+        },
+        {
+          "en": "desk",
+          "fr": "bureau / pupitre (Objet de classe)"
+        },
+        {
+          "en": "dictionary",
+          "fr": "dictionnaire (Objet de classe)"
+        },
+        {
+          "en": "door",
+          "fr": "porte (Objet de classe)"
+        },
+        {
+          "en": "eraser",
+          "fr": "gomme (Objet de classe)"
+        },
+        {
+          "en": "notebook",
+          "fr": "cahier (Objet de classe)"
+        },
+        {
+          "en": "bag",
+          "fr": "sac (Objet personnel)"
+        },
+        {
+          "en": "bicycle",
+          "fr": "vélo / bicyclette (Objet personnel)"
+        },
+        {
+          "en": "cell phone",
+          "fr": "téléphone portable (Objet personnel)"
+        },
+        {
+          "en": "credit card",
+          "fr": "carte de crédit (Objet personnel)"
+        },
+        {
+          "en": "energy bar",
+          "fr": "barre énergétique (Objet personnel)"
+        },
+        {
+          "en": "flash drive",
+          "fr": "clé USB (Objet personnel)"
+        },
+        {
+          "en": "glasses",
+          "fr": "lunettes (Objet personnel)"
+        },
+        {
+          "en": "hairbrush",
+          "fr": "brosse à cheveux (Objet personnel)"
+        },
+        {
+          "en": "headphones",
+          "fr": "casque audio / écouteurs (Objet personnel)"
+        },
+        {
+          "en": "student ID",
+          "fr": "carte d'étudiant (Objet personnel)"
+        },
+        {
+          "en": "car keys",
+          "fr": "clés de voiture (Objet personnel)"
+        },
+        {
+          "en": "wallet",
+          "fr": "portefeuille (Objet personnel)"
+        },
+        {
+          "en": "sunglasses",
+          "fr": "lunettes de soleil (Objet personnel)"
+        },
+        {
+          "en": "laptop",
+          "fr": "ordinateur portable (Objet personnel)"
+        },
+        {
+          "en": "cool",
+          "fr": "cool / chouette (Adjectif)"
+        },
+        {
+          "en": "different",
+          "fr": "différent(e) (Adjectif)"
+        },
+        {
+          "en": "great",
+          "fr": "super / génial(e) (Adjectif)"
+        },
+        {
+          "en": "interesting",
+          "fr": "intéressant(e) (Adjectif)"
+        },
+        {
+          "en": "box",
+          "fr": "boîte (Autre)"
+        },
+        {
+          "en": "car",
+          "fr": "voiture (Autre)"
+        },
+        {
+          "en": "classes",
+          "fr": "cours / classes (Autre)"
+        },
+        {
+          "en": "pocket",
+          "fr": "poche (Autre)"
+        },
+        {
+          "en": "restaurant",
+          "fr": "restaurant (Autre)"
+        },
+        {
+          "en": "quiz",
+          "fr": "quiz / contrôle (Autre)"
+        },
+        {
+          "en": "sentence",
+          "fr": "phrase (Autre)"
+        },
+        {
+          "en": "in",
+          "fr": "dans (Préposition de lieu)"
+        },
+        {
+          "en": "in front of",
+          "fr": "devant (Préposition de lieu)"
+        },
+        {
+          "en": "behind",
+          "fr": "derrière (Préposition de lieu)"
+        },
+        {
+          "en": "on",
+          "fr": "sur (Préposition de lieu)"
+        },
+        {
+          "en": "next to",
+          "fr": "à côté de (Préposition de lieu)"
+        },
+        {
+          "en": "under",
+          "fr": "sous (Préposition de lieu)"
+        }
       ],
       "quizzes": [
         {
-          "question": "Comment dire « Qu'est-ce que c'est ? — C'est un parapluie » ?",
+          "question": "Choisissez la forme correcte au singulier : \"___ is a laptop.\"",
           "options": [
-            { "text": "What's this? It's an umbrella.", "correct": true },
-            { "text": "What's this? It's a umbrella.", "correct": false },
-            { "text": "What are these? It's umbrella.", "correct": false }
+            {
+              "text": "They",
+              "correct": false
+            },
+            {
+              "text": "Are",
+              "correct": false
+            },
+            {
+              "text": "This",
+              "correct": true
+            },
+            {
+              "text": "These",
+              "correct": false
+            }
           ],
-          "explanation": "Devant le son voyelle de « umbrella », on utilise toujours « an »."
+          "explanation": "On utilise « This » avec un nom singulier (« a laptop »)."
         },
         {
-          "question": "Les clés sont DANS le sac à dos. Quelle phrase est correcte ?",
+          "question": "Choisissez la forme correcte au pluriel : \"___ are flash drives.\"",
           "options": [
-            { "text": "The keys are under the backpack.", "correct": false },
-            { "text": "The keys are in the backpack.", "correct": true },
-            { "text": "The keys is on the backpack.", "correct": false }
+            {
+              "text": "These",
+              "correct": true
+            },
+            {
+              "text": "This",
+              "correct": false
+            },
+            {
+              "text": "It",
+              "correct": false
+            },
+            {
+              "text": "That's",
+              "correct": false
+            }
           ],
-          "explanation": "« In » signifie « dans », et comme « keys » est pluriel, on utilise « are »."
+          "explanation": "On utilise « These » avec un nom pluriel (« flash drives »)."
+        },
+        {
+          "question": "Quelle question est grammaticalement correcte en anglais ?",
+          "options": [
+            {
+              "text": "What is these?",
+              "correct": false
+            },
+            {
+              "text": "What are this?",
+              "correct": false
+            },
+            {
+              "text": "What are these?",
+              "correct": true
+            },
+            {
+              "text": "What're these?",
+              "correct": false
+            }
+          ],
+          "explanation": "On ne contracte pas « What + are » : la forme correcte est « What are these? » (et non « What're these? »)."
+        },
+        {
+          "question": "A: Is this your wallet? — B: ___",
+          "options": [
+            {
+              "text": "Yes, it is.",
+              "correct": true
+            },
+            {
+              "text": "Yes, it's.",
+              "correct": false
+            },
+            {
+              "text": "Yes, they are.",
+              "correct": false
+            },
+            {
+              "text": "Yes, this is.",
+              "correct": false
+            }
+          ],
+          "explanation": "Pour un objet singulier (« wallet »), on répond « Yes, it is. » sans contraction."
+        },
+        {
+          "question": "A: And are these your sunglasses? — B: ___",
+          "options": [
+            {
+              "text": "Yes, it is.",
+              "correct": false
+            },
+            {
+              "text": "Yes, these are.",
+              "correct": false
+            },
+            {
+              "text": "Yes, they are.",
+              "correct": true
+            },
+            {
+              "text": "Yes, they're.",
+              "correct": false
+            }
+          ],
+          "explanation": "« Sunglasses » est toujours pluriel en anglais : la réponse courte affirmative est « Yes, they are. » (sans contraction)."
         }
       ]
     },
     {
       "unit": 3,
       "title": "Where are you from?",
-      "theme": "Pays, villes, nationalités et descriptions",
+      "theme": "Villes, pays, nationalités, langues, âges (nombres 11-103), apparences et personnalités",
       "placeName": "Maquis / Café Le Faso",
       "npcName": "Ibrahim",
       "dialogues": [
         {
-          "speaker": "Ibrahim",
-          "en": "Welcome to Café Le Faso! Where are you from? I'm from Bobo-Dioulasso, in Burkina Faso.",
-          "phonetic": "/ˈwɛlkəm tuː kæˈfeɪ lə ˈfɑːsoʊ! wɛər ɑːr juː frɒm? aɪm frɒm ˌboʊboʊ dʒuːˈlɑːsoʊ/",
-          "fr": "Bienvenue au Café Le Faso ! D'où venez-vous ? Je viens de Bobo-Dioulasso, au Burkina Faso."
+          "speaker": "A",
+          "en": "Is your English teacher from the U.S.?",
+          "fr": "Est-ce que votre professeur d'anglais vient des États-Unis ?"
         },
         {
-          "speaker": "Ibrahim",
-          "en": "Are you from Ouagadougou? People here are very warm, friendly, and funny!",
-          "phonetic": "/ɑːr juː frɒm ˌwɑːɡəˈduːɡuː? ˈpiːpəl hɪər ɑːr ˈvɛri wɔːrm, ˈfrɛndli, ænd ˈfʌni/",
-          "fr": "Êtes-vous de Ouagadougou ? Les gens ici sont très chaleureux, sympathiques et drôles !"
+          "speaker": "B",
+          "en": "No, she's not. She's from Canada. Montreal, Canada.",
+          "fr": "Non, elle n'en vient pas. Elle vient du Canada. De Montréal, au Canada."
+        },
+        {
+          "speaker": "A",
+          "en": "Is English her first language?",
+          "fr": "Est-ce que l'anglais est sa langue maternelle ?"
+        },
+        {
+          "speaker": "B",
+          "en": "No, it's not. Her first language is French.",
+          "fr": "Non, ce n'est pas le cas. Sa langue maternelle est le français."
+        },
+        {
+          "speaker": "A",
+          "en": "Annette, what's your best friend like?",
+          "fr": "Annette, comment est ta meilleure amie ?"
+        },
+        {
+          "speaker": "B",
+          "en": "She's very nice. Her name is Valentina. I call her Tina.",
+          "fr": "Elle est très gentille. Elle s'appelle Valentina. Je l'appelle Tina."
+        },
+        {
+          "speaker": "A",
+          "en": "Where is she from? Is she from Spain?",
+          "fr": "D'où vient-elle ? Vient-elle d'Espagne ?"
         }
       ],
       "grammar": [
         {
-          "title": "Questions avec « Where » et verbe « to be » (forme négative et interrogative)",
-          "explanation": "Pour poser une question avec « to be », on inverse le sujet et le verbe : « Are you from Burkina Faso? — Yes, I am. / No, I'm not. »",
+          "title": "Verbe « be » : phrases affirmatives et négatives",
+          "explanation": "À la forme négative, on place « not » après « be » : I'm not, you're not / you aren't, he's not / he isn't, she's not / she isn't, it's not / it isn't, we're not / we aren't, they're not / they aren't.",
           "examples": [
-            { "en": "Where are you from? I'm from Burkina Faso.", "fr": "D'où venez-vous ? Je viens du Burkina Faso." },
-            { "en": "Is he from Ghana? No, he isn't. He's from Mali.", "fr": "Vient-il du Ghana ? Non, il vient du Mali." }
+            {
+              "en": "We're not from Buenos Aires.",
+              "fr": "Nous ne venons pas de Buenos Aires."
+            },
+            {
+              "en": "My first language is not Korean.",
+              "fr": "Ma langue maternelle n'est pas le coréen."
+            },
+            {
+              "en": "My mother isn't from Italy.",
+              "fr": "Ma mère ne vient pas d'Italie."
+            }
           ]
         },
         {
-          "title": "Décrire une personne (adjectifs)",
-          "explanation": "Les adjectifs en anglais sont invariables (pas de « s » au pluriel) et se placent après « to be » : tall (grand), short (petit), friendly (sympathique), smart (intelligent).",
+          "title": "Questions Yes/No et réponses courtes avec « be »",
+          "explanation": "On inverse « be » et le sujet : « Is your first language Spanish? — Yes, it is. / No, it's not. » ; « Are Nadia and Rayan Lebanese? — Yes, they are. / No, they're not. ».",
           "examples": [
-            { "en": "Ibrahim is tall and friendly.", "fr": "Ibrahim est grand et sympathique." },
-            { "en": "What is she like? She's very nice.", "fr": "Comment est-elle (de caractère) ? Elle est très gentille." }
+            {
+              "en": "Is your first language Spanish? Yes, it is.",
+              "fr": "L'espagnol est-il votre langue maternelle ? Oui."
+            },
+            {
+              "en": "Are Nadia and Rayan Lebanese? Yes, they are.",
+              "fr": "Nadia et Rayan sont-ils libanais ? Oui."
+            }
+          ]
+        },
+        {
+          "title": "Wh-questions avec « be » : What, Where, How old, Who",
+          "explanation": "Structure : Mot interrogatif + be + sujet ? Utilisez « What ... like? » pour décrire une personne ou un lieu (caractère, apparence, ambiance), « Where ... from? » pour l'origine, « How old ...? » pour l'âge et « Who ...? » pour l'identité.",
+          "examples": [
+            {
+              "en": "What is her name?",
+              "fr": "Comment s'appelle-t-elle ?"
+            },
+            {
+              "en": "What is she like? She's very nice.",
+              "fr": "Comment est-elle ? Elle est très gentille."
+            },
+            {
+              "en": "How old is she? She is twenty-two.",
+              "fr": "Quel âge a-t-elle ? Elle a vingt-deux ans."
+            },
+            {
+              "en": "Where is your family from?",
+              "fr": "D'où vient votre famille ?"
+            },
+            {
+              "en": "What is Kyoto like?",
+              "fr": "Comment est Kyoto ?"
+            }
           ]
         }
       ],
-      "tip": "Pour indiquer votre origine : « I'm from + ville ou pays » (I'm from Ouagadougou / Burkina Faso) ou « I'm + nationalité » (I'm Burkinabè).",
+      "tip": "Pour demander comment est quelqu'un (personnalité ou description), on utilise « What is he/she like? » (et pour l'âge : « How old is he/she? »).",
       "vocab": [
-        { "en": "Where are you from?", "phonetic": "/wɛər ɑːr juː frɒm/", "fr": "D'où venez-vous ?" },
-        { "en": "I'm from Burkina Faso.", "phonetic": "/aɪm frɒm bʊrˈkiːnə ˈfɑːsoʊ/", "fr": "Je viens du Burkina Faso." },
-        { "en": "Friendly and warm", "phonetic": "/ˈfrɛndli ænd wɔːrm/", "fr": "Sympathique et chaleureux" },
-        { "en": "Tall and short", "phonetic": "/tɔːl ænd ʃɔːrt/", "fr": "Grand et petit" },
-        { "en": "Funny and smart", "phonetic": "/ˈfʌni ænd smɑːrt/", "fr": "Drôle et intelligent(e)" },
-        { "en": "What's your first language?", "phonetic": "/wɒts jʊər fɜːrst ˈlæŋɡwɪdʒ/", "fr": "Quelle est votre langue maternelle ?" }
+        {
+          "en": "brother",
+          "fr": "frère (Famille / Proches)"
+        },
+        {
+          "en": "daughter",
+          "fr": "fille (Famille / Proches)"
+        },
+        {
+          "en": "family",
+          "fr": "famille (Famille / Proches)"
+        },
+        {
+          "en": "father",
+          "fr": "père (Famille / Proches)"
+        },
+        {
+          "en": "best friend",
+          "fr": "meilleur(e) ami(e) (Famille / Proches)"
+        },
+        {
+          "en": "mother",
+          "fr": "mère (Famille / Proches)"
+        },
+        {
+          "en": "parents",
+          "fr": "parents (Famille / Proches)"
+        },
+        {
+          "en": "friendly",
+          "fr": "sympathique / amical(e) (Personnalité)"
+        },
+        {
+          "en": "funny",
+          "fr": "drôle / amusant(e) (Personnalité)"
+        },
+        {
+          "en": "kind",
+          "fr": "bienveillant(e) / gentil(le) (Personnalité)"
+        },
+        {
+          "en": "nice",
+          "fr": "gentil(le) / agréable (Personnalité)"
+        },
+        {
+          "en": "quiet",
+          "fr": "calme / silencieux(se) (Personnalité)"
+        },
+        {
+          "en": "serious",
+          "fr": "sérieux(se) (Personnalité)"
+        },
+        {
+          "en": "shy",
+          "fr": "timide (Personnalité)"
+        },
+        {
+          "en": "smart",
+          "fr": "intelligent(e) (Personnalité)"
+        },
+        {
+          "en": "talkative",
+          "fr": "bavard(e) (Personnalité)"
+        },
+        {
+          "en": "originally",
+          "fr": "à l'origine / originairement (Adverbe)"
+        },
+        {
+          "en": "really",
+          "fr": "vraiment (Adverbe)"
+        },
+        {
+          "en": "very",
+          "fr": "très (Adverbe)"
+        },
+        {
+          "en": "a little",
+          "fr": "un peu (Adverbe)"
+        },
+        {
+          "en": "from Brazil",
+          "fr": "du Brésil (Préposition)"
+        },
+        {
+          "en": "in Florida",
+          "fr": "en Floride (Préposition)"
+        },
+        {
+          "en": "but",
+          "fr": "mais (Conjonction)"
+        },
+        {
+          "en": "so",
+          "fr": "donc / alors (Conjonction)"
+        }
       ],
       "quizzes": [
         {
-          "question": "Comment demander à quelqu'un d'où il vient ?",
+          "question": "Forme négative (comme \"We're not from Buenos Aires.\") : \"My mother ___ from Italy.\"",
           "options": [
-            { "text": "Where are you from?", "correct": true },
-            { "text": "What time is it?", "correct": false },
-            { "text": "Whose shirt is this?", "correct": false }
+            {
+              "text": "am not",
+              "correct": false
+            },
+            {
+              "text": "isn't",
+              "correct": true
+            },
+            {
+              "text": "aren't",
+              "correct": false
+            },
+            {
+              "text": "not is",
+              "correct": false
+            }
           ],
-          "explanation": "« Where are you from? » est la formule incontournable pour demander l'origine."
+          "explanation": "Avec « My mother » (she), la forme négative de « be » est « is not » ou « isn't »."
         },
         {
-          "question": "Ibrahim vous demande : « Are you from France? » (Vous êtes du Burkina Faso). Quelle réponse est correcte ?",
+          "question": "A: ___ your first language Spanish? — B: Yes, it ___. My parents ___ from Ecuador.",
           "options": [
-            { "text": "No, I'm not. I'm from Burkina Faso.", "correct": true },
-            { "text": "No, I am. I from Burkina Faso.", "correct": false },
-            { "text": "Yes, he isn't.", "correct": false }
+            {
+              "text": "Are — is — is",
+              "correct": false
+            },
+            {
+              "text": "Is — it's — are",
+              "correct": false
+            },
+            {
+              "text": "Is — are — are",
+              "correct": false
+            },
+            {
+              "text": "Is — is — are",
+              "correct": true
+            }
           ],
-          "explanation": "La réponse négative courte est « No, I'm not », suivie de « I'm from... »."
+          "explanation": "« your first language » est singulier (« Is / is ») et « My parents » est pluriel (« are »)."
+        },
+        {
+          "question": "A: ___ Nadia and Rayan Lebanese? — B: Yes, ___ are. But ___ in France now.",
+          "options": [
+            {
+              "text": "Are — we — we're",
+              "correct": false
+            },
+            {
+              "text": "Are — they — they're",
+              "correct": true
+            },
+            {
+              "text": "Is — they — they're",
+              "correct": false
+            },
+            {
+              "text": "Are — they're — they",
+              "correct": false
+            }
+          ],
+          "explanation": "Nadia and Rayan = pluriel (« Are / they are » sans contraction, puis « they're in France now »)."
+        },
+        {
+          "question": "A: ___ is she like? — B: She's very nice and friendly.",
+          "options": [
+            {
+              "text": "How",
+              "correct": false
+            },
+            {
+              "text": "Where",
+              "correct": false
+            },
+            {
+              "text": "Who",
+              "correct": false
+            },
+            {
+              "text": "What",
+              "correct": true
+            }
+          ],
+          "explanation": "On utilise toujours « What is she like? » pour demander comment est une personne."
+        },
+        {
+          "question": "A: ___ old is she? — B: She is twenty-two.",
+          "options": [
+            {
+              "text": "Who",
+              "correct": false
+            },
+            {
+              "text": "How",
+              "correct": true
+            },
+            {
+              "text": "What",
+              "correct": false
+            },
+            {
+              "text": "Where",
+              "correct": false
+            }
+          ],
+          "explanation": "Pour demander l'âge, on utilise toujours « How old » + be + sujet."
         }
       ]
     },
     {
       "unit": 4,
       "title": "Is this coat yours?",
-      "theme": "Vêtements, couleurs et météo",
+      "theme": "Décrire les vêtements et les couleurs, parler de la météo, des saisons et de ce que portent les gens",
       "placeName": "Boutique Faso Dan Fani",
       "npcName": "Fatimata",
       "dialogues": [
         {
-          "speaker": "Fatimata",
-          "en": "Welcome to my Faso Dan Fani shop! Look at this bright yellow scarf and these blue shirts.",
-          "phonetic": "/ˈwɛlkəm tuː maɪ ˈfɑːsoʊ dɑːn ˈfɑːni ʃɒp! lʊk æt ðɪs braɪt ˈjɛloʊ skɑːrf/",
-          "fr": "Bienvenue dans ma boutique de Faso Dan Fani ! Regardez cette écharpe jaune vif et ces chemises bleues."
+          "speaker": "A",
+          "en": "This isn't my raincoat. Is it yours?",
+          "fr": "Ce n'est pas mon imperméable. Est-ce le vôtre ?"
         },
         {
-          "speaker": "Fatimata",
-          "en": "It's very sunny and hot today, so I'm wearing a light green dress. Is this hat yours?",
-          "phonetic": "/ɪts ˈvɛri ˈsʌni ænd hɒt təˈdeɪ, soʊ aɪm ˈwɛərɪŋ ə laɪt ɡriːn drɛs. ɪz ðɪs hæt jʊərz?/",
-          "fr": "Il fait très ensoleillé et chaud aujourd'hui, donc je porte une robe vert clair. Ce chapeau est-il à vous ?"
+          "speaker": "B",
+          "en": "No, it's not mine. Ask Emma. Maybe it's hers.",
+          "fr": "Non, ce n'est pas le mien. Demandez à Emma. C'est peut-être le sien."
+        },
+        {
+          "speaker": "A",
+          "en": "Hey! These aren't our sneakers!",
+          "fr": "Hé ! Ce ne sont pas nos baskets !"
+        },
+        {
+          "speaker": "B",
+          "en": "You're right. Ours are over there.",
+          "fr": "Vous avez raison. Les nôtres sont là-bas."
+        },
+        {
+          "speaker": "A",
+          "en": "Whose jacket is this? Is it yours, Ethan?",
+          "fr": "À qui est cette veste ? Est-ce la tienne, Ethan ?"
+        },
+        {
+          "speaker": "B",
+          "en": "No, it's not mine. Ask Matt. I think it's his.",
+          "fr": "Non, ce n'est pas la mienne. Demande à Matt. Je pense que c'est la sienne."
         }
       ],
       "grammar": [
         {
-          "title": "Pronoms possessifs (mine, yours, his, hers) et cas possessif ('s)",
-          "explanation": "« Whose hat is this? » = À qui est ce chapeau ? On répond : « It's mine » (c'est le mien), « It's yours » (le vôtre), ou « It's Fatimata's » (celui de Fatimata).",
+          "title": "Possessifs : adjectifs, pronoms, nom + 's et « Whose »",
+          "explanation": "Adjectifs possessifs (+ nom) : my, your, his, her, our, their. Pronoms possessifs (sans nom après) : mine, yours, his, hers, ours, theirs. Possessif avec un nom : Logan's, Rachel's. Question : « Whose + nom...? » (À qui est/sont... ?).",
           "examples": [
-            { "en": "Is this coat yours? Yes, it's mine.", "fr": "Ce manteau est-il à vous ? Oui, il est à moi." },
-            { "en": "Whose shoes are these? They're Moussa's.", "fr": "À qui sont ces chaussures ? Ce sont celles de Moussa." }
+            {
+              "en": "This isn't my raincoat. Is it yours?",
+              "fr": "Ce n'est pas mon imperméable. Est-ce le vôtre ?"
+            },
+            {
+              "en": "Whose sweaters are these? Are they Rachel's?",
+              "fr": "À qui sont ces pulls ? Sont-ils à Rachel ?"
+            },
+            {
+              "en": "No, they're not her sweaters. But these shorts are hers.",
+              "fr": "Non, ce ne sont pas ses pulls. Mais ce short est à elle."
+            },
+            {
+              "en": "These aren't our sneakers. Ours are over there.",
+              "fr": "Ce ne sont pas nos baskets. Les nôtres sont là-bas."
+            }
           ]
         },
         {
-          "title": "Ordre couleur + vêtement & Météo",
-          "explanation": "La couleur se place TOUJOURS avant le nom du vêtement (a red jacket). Pour la météo, on commence par « It's » (It's sunny, It's hot, It's raining).",
+          "title": "Present continuous (be + verb-ing) et deux contractions négatives",
+          "explanation": "Utilisez « be + verbe-ing » pour la météo actuelle et les vêtements portés maintenant (« It's raining. », « She's wearing a raincoat. »). À la forme négative, deux contractions ont exactement le même sens : « He's not / He isn't wearing a coat. », « We're not / We aren't wearing gloves. ».",
           "examples": [
-            { "en": "She is wearing a white and red dress.", "fr": "Elle porte une robe blanche et rouge." },
-            { "en": "It's sunny and warm in Ouagadougou.", "fr": "Il fait beau et chaud à Ouagadougou." }
+            {
+              "en": "It's raining. She's wearing a raincoat.",
+              "fr": "Il pleut. Elle porte un imperméable."
+            },
+            {
+              "en": "He's not wearing a coat. He isn't wearing a coat.",
+              "fr": "Il ne porte pas de manteau."
+            },
+            {
+              "en": "We're not wearing gloves. We aren't wearing gloves.",
+              "fr": "Nous ne portons pas de gants."
+            }
+          ]
+        },
+        {
+          "title": "Conjonctions : and, but, so",
+          "explanation": "« and » additionne deux idées, « but » marque une opposition/contraste, et « so » introduit une conséquence logique.",
+          "examples": [
+            {
+              "en": "It's very cold outside, but I'm not wearing a coat.",
+              "fr": "Il fait très froid dehors, mais je ne porte pas de manteau."
+            },
+            {
+              "en": "It's raining, so I need an umbrella.",
+              "fr": "Il pleut, donc j'ai besoin d'un parapluie."
+            },
+            {
+              "en": "It's sunny and warm today.",
+              "fr": "Il fait beau et chaud aujourd'hui."
+            }
           ]
         }
       ],
-      "tip": "En anglais, dites toujours la couleur AVANT le vêtement : « a blue shirt » (et jamais « a shirt blue »).",
+      "tip": "Ne confondez pas l'adjectif possessif suivi d'un nom (« my raincoat », « our sneakers ») et le pronom possessif seul (« mine », « yours », « hers », « ours »).",
       "vocab": [
-        { "en": "A blue shirt", "phonetic": "/ə bluː ʃɜːrt/", "fr": "Une chemise bleue" },
-        { "en": "A yellow scarf", "phonetic": "/ə ˈjɛloʊ skɑːrf/", "fr": "Une écharpe jaune" },
-        { "en": "Black shoes", "phonetic": "/blæk ʃuːz/", "fr": "Des chaussures noires" },
-        { "en": "A green dress", "phonetic": "/ə ɡriːn drɛs/", "fr": "Une robe verte" },
-        { "en": "It's sunny and hot.", "phonetic": "/ɪts ˈsʌni ænd hɒt/", "fr": "Il fait soleil et chaud." },
-        { "en": "It's raining.", "phonetic": "/ɪts ˈreɪnɪŋ/", "fr": "Il pleut." }
+        {
+          "en": "belt",
+          "fr": "ceinture (Vêtement)"
+        },
+        {
+          "en": "blouse",
+          "fr": "chemisier / blouse (Vêtement)"
+        },
+        {
+          "en": "boots",
+          "fr": "bottes (Vêtement)"
+        },
+        {
+          "en": "cap",
+          "fr": "casquette (Vêtement)"
+        },
+        {
+          "en": "coat",
+          "fr": "manteau (Vêtement)"
+        },
+        {
+          "en": "dress",
+          "fr": "robe (Vêtement)"
+        },
+        {
+          "en": "gloves",
+          "fr": "gants (Vêtement)"
+        },
+        {
+          "en": "hat",
+          "fr": "chapeau (Vêtement)"
+        },
+        {
+          "en": "high heels",
+          "fr": "talons hauts (Vêtement)"
+        },
+        {
+          "en": "jacket",
+          "fr": "veste / blouson (Vêtement)"
+        },
+        {
+          "en": "jeans",
+          "fr": "jean (Vêtement)"
+        },
+        {
+          "en": "pajamas",
+          "fr": "pyjama (Vêtement)"
+        },
+        {
+          "en": "pants",
+          "fr": "pantalon (Vêtement)"
+        },
+        {
+          "en": "raincoat",
+          "fr": "imperméable (Vêtement)"
+        },
+        {
+          "en": "scarf",
+          "fr": "écharpe / foulard (Vêtement)"
+        },
+        {
+          "en": "shirt",
+          "fr": "chemise (Vêtement)"
+        },
+        {
+          "en": "shoes",
+          "fr": "chaussures (Vêtement)"
+        },
+        {
+          "en": "shorts",
+          "fr": "short (Vêtement)"
+        },
+        {
+          "en": "skirt",
+          "fr": "jupe (Vêtement)"
+        },
+        {
+          "en": "sneakers",
+          "fr": "baskets (Vêtement)"
+        },
+        {
+          "en": "socks",
+          "fr": "chaussettes (Vêtement)"
+        },
+        {
+          "en": "suit",
+          "fr": "costume / tailleur (Vêtement)"
+        },
+        {
+          "en": "sweater",
+          "fr": "pull / chandail (Vêtement)"
+        },
+        {
+          "en": "T-shirt",
+          "fr": "T-shirt (Vêtement)"
+        },
+        {
+          "en": "beige",
+          "fr": "beige (Couleur)"
+        },
+        {
+          "en": "black",
+          "fr": "noir(e) (Couleur)"
+        },
+        {
+          "en": "dark blue",
+          "fr": "bleu foncé (Couleur)"
+        },
+        {
+          "en": "light blue",
+          "fr": "bleu clair (Couleur)"
+        },
+        {
+          "en": "dark brown",
+          "fr": "marron foncé (Couleur)"
+        },
+        {
+          "en": "light brown",
+          "fr": "marron clair (Couleur)"
+        },
+        {
+          "en": "dark gray",
+          "fr": "gris foncé (Couleur)"
+        },
+        {
+          "en": "light gray",
+          "fr": "gris clair (Couleur)"
+        },
+        {
+          "en": "dark green",
+          "fr": "vert foncé (Couleur)"
+        },
+        {
+          "en": "light green",
+          "fr": "vert clair (Couleur)"
+        },
+        {
+          "en": "orange",
+          "fr": "orange (Couleur)"
+        },
+        {
+          "en": "pink",
+          "fr": "rose (Couleur)"
+        },
+        {
+          "en": "purple",
+          "fr": "violet(te) (Couleur)"
+        },
+        {
+          "en": "white",
+          "fr": "blanc / blanche (Couleur)"
+        },
+        {
+          "en": "spring",
+          "fr": "printemps (Saison)"
+        },
+        {
+          "en": "summer",
+          "fr": "été (Saison)"
+        },
+        {
+          "en": "fall",
+          "fr": "automne (Saison)"
+        },
+        {
+          "en": "winter",
+          "fr": "hiver (Saison)"
+        },
+        {
+          "en": "cloudy",
+          "fr": "nuageux (Météo)"
+        },
+        {
+          "en": "cold",
+          "fr": "froid (Météo)"
+        },
+        {
+          "en": "cool",
+          "fr": "frais (Météo)"
+        },
+        {
+          "en": "hot",
+          "fr": "très chaud (Météo)"
+        },
+        {
+          "en": "humid",
+          "fr": "humide (Météo)"
+        },
+        {
+          "en": "sunny",
+          "fr": "ensoleillé (Météo)"
+        },
+        {
+          "en": "warm",
+          "fr": "chaud / doux (Météo)"
+        },
+        {
+          "en": "windy",
+          "fr": "venteux (Météo)"
+        },
+        {
+          "en": "rain",
+          "fr": "pluie / pleuvoir (Météo)"
+        },
+        {
+          "en": "snow",
+          "fr": "neige / neiger (Météo)"
+        },
+        {
+          "en": "wear",
+          "fr": "porter un vêtement (Verbe)"
+        }
       ],
       "quizzes": [
         {
-          "question": "Comment traduire correctement « une veste rouge » ?",
+          "question": "A: This isn't ___ raincoat. Is it ___? — B: No, it's not ___. Maybe it's ___.",
           "options": [
-            { "text": "A jacket red", "correct": false },
-            { "text": "A red jacket", "correct": true },
-            { "text": "Red a jacket", "correct": false }
+            {
+              "text": "my — yours — mine — hers",
+              "correct": true
+            },
+            {
+              "text": "mine — your — my — her",
+              "correct": false
+            },
+            {
+              "text": "my — your — mine — her",
+              "correct": false
+            },
+            {
+              "text": "mine — yours — mine — hers",
+              "correct": false
+            }
           ],
-          "explanation": "En anglais, l'adjectif de couleur précède toujours le nom."
+          "explanation": "Devant « raincoat » on met l'adjectif « my » ; sans nom après, on utilise les pronoms « yours », « mine » et « hers »."
         },
         {
-          "question": "Fatimata vous demande : « Is this scarf yours? ». Si elle est à vous, que répondez-vous ?",
+          "question": "A: ___ sweaters are these? Are they Rachel's? — B: No, they're not ___ sweaters. But these shorts are ___.",
           "options": [
-            { "text": "Yes, it's mine.", "correct": true },
-            { "text": "Yes, it's my.", "correct": false },
-            { "text": "Yes, it's sunny.", "correct": false }
+            {
+              "text": "Whose — hers — her",
+              "correct": false
+            },
+            {
+              "text": "Who — her — hers",
+              "correct": false
+            },
+            {
+              "text": "Whose — her — hers",
+              "correct": true
+            },
+            {
+              "text": "Who's — hers — her",
+              "correct": false
+            }
           ],
-          "explanation": "Sans nom derrière, on utilise le pronom possessif « mine » (et non « my »)."
+          "explanation": "« Whose » = À qui ; « her sweaters » (adjectif + nom) ; « are hers » (pronom seul)."
+        },
+        {
+          "question": "A: Hey! These aren't ___ sneakers! — B: You're right. ___ are over there.",
+          "options": [
+            {
+              "text": "our — Ours",
+              "correct": true
+            },
+            {
+              "text": "ours — Our",
+              "correct": false
+            },
+            {
+              "text": "we — Ours",
+              "correct": false
+            },
+            {
+              "text": "our — Us",
+              "correct": false
+            }
+          ],
+          "explanation": "« our sneakers » (adjectif devant le nom) et « Ours are over there. » (pronom possessif sujet)."
+        },
+        {
+          "question": "Complétez avec la bonne conjonction : \"It's raining, ___ I need an umbrella.\"",
+          "options": [
+            {
+              "text": "but",
+              "correct": false
+            },
+            {
+              "text": "or",
+              "correct": false
+            },
+            {
+              "text": "so",
+              "correct": true
+            }
+          ],
+          "explanation": "« so » (donc) exprime la conséquence : il pleut, donc j'ai besoin d'un parapluie."
+        },
+        {
+          "question": "Complétez avec la bonne conjonction : \"It's very cold outside, ___ I'm not wearing a coat.\"",
+          "options": [
+            {
+              "text": "and",
+              "correct": false
+            },
+            {
+              "text": "but",
+              "correct": true
+            },
+            {
+              "text": "so",
+              "correct": false
+            }
+          ],
+          "explanation": "« but » (mais) marque l'opposition entre le froid dehors et le fait de ne pas porter de manteau."
         }
       ]
     },
     {
       "unit": 5,
       "title": "What time is it?",
-      "theme": "Heure et actions en cours",
+      "theme": "Demander et dire l'heure dans différentes villes, moments de la journée et actions en cours",
       "placeName": "Gare Routière / Arrêt de Bus",
       "npcName": "Salif",
       "dialogues": [
         {
-          "speaker": "Salif",
-          "en": "Excuse me, what time is it? It's eight thirty in the morning!",
-          "phonetic": "/ɪkˈskjuːz miː, wɒt taɪm ɪz ɪt? ɪts eɪt ˈθɜːrti ɪn ðə ˈmɔːrnɪŋ/",
-          "fr": "Excusez-moi, quelle heure est-il ? Il est huit heures trente du matin !"
+          "speaker": "A",
+          "en": "What time is it?",
+          "fr": "Quelle heure est-il ?"
         },
         {
-          "speaker": "Salif",
-          "en": "I'm waiting for the bus to Bobo. What are you doing right now?",
-          "phonetic": "/aɪm ˈweɪtɪŋ fɔːr ðə bʌs tuː ˈboʊboʊ. wɒt ɑːr juː ˈduːɪŋ raɪt naʊ?/",
-          "fr": "J'attends le bus pour Bobo. Que faites-vous en ce moment ?"
+          "speaker": "B",
+          "en": "It's seven o'clock in the morning.",
+          "fr": "Il est sept heures du matin."
+        },
+        {
+          "speaker": "A",
+          "en": "What time is it in Mexico City?",
+          "fr": "Quelle heure est-il à Mexico ?"
+        },
+        {
+          "speaker": "B",
+          "en": "It's 12:00 P.M. It's noon.",
+          "fr": "Il est midi (12:00 P.M.)."
+        },
+        {
+          "speaker": "A",
+          "en": "What are you doing?",
+          "fr": "Que fais-tu en ce moment ?"
+        },
+        {
+          "speaker": "B",
+          "en": "I'm waiting for the bus.",
+          "fr": "J'attends le bus."
         }
       ],
       "grammar": [
         {
-          "title": "Dire l'heure en anglais",
-          "explanation": "Pour l'heure pile, on dit « o'clock » (It's eight o'clock). Pour les minutes, on lit simplement l'heure puis les minutes (8:15 = eight fifteen, 8:30 = eight thirty).",
+          "title": "Expressions de l'heure et moments de la journée",
+          "explanation": "On emploie « o'clock » pour l'heure pile, « A.M. » (de minuit à midi) et « P.M. » (de midi à minuit), « in the morning / in the afternoon / in the evening / at night », « noon » (12:00 P.M. = midi) et « midnight » (12:00 A.M. = minuit). Pour les minutes : « a quarter after » (+15 min), « a quarter to » (-15 min), « after » (« ten after eight » = 8:10) et « oh » pour les minutes de 01 à 09 (« nine-oh-three » = 9:03).",
           "examples": [
-            { "en": "It's nine o'clock in the morning.", "fr": "Il est neuf heures du matin." },
-            { "en": "It's two thirty in the afternoon.", "fr": "Il est deux heures trente de l'après-midi." }
+            {
+              "en": "It's seven o'clock in the morning.",
+              "fr": "Il est sept heures du matin."
+            },
+            {
+              "en": "It's a quarter to three in the afternoon.",
+              "fr": "Il est 14h45 (trois heures moins le quart)."
+            },
+            {
+              "en": "It's a quarter after six in the evening.",
+              "fr": "Il est 18h15 (six heures et quart du soir)."
+            },
+            {
+              "en": "It's nine-oh-three. It's ten after eight.",
+              "fr": "Il est 9h03. Il est 8h10."
+            },
+            {
+              "en": "It's noon. It's midnight.",
+              "fr": "Il est midi (12:00 P.M.). Il est minuit (12:00 A.M.)."
+            }
           ]
         },
         {
-          "title": "Le présent continu (be + verbe-ing) pour une action en cours",
-          "explanation": "Pour décrire ce qui se passe MAINTENANT, on utilise « am / is / are + verbe-ing » : I'm waiting, She's studying, They're talking.",
+          "title": "Present continuous Wh-questions (actions en cours)",
+          "explanation": "Pour demander ce que quelqu'un est en train de faire maintenant : Mot interrogatif + am / is / are + sujet + verbe-ing ? (« What are you doing? », « What's he doing? »).",
           "examples": [
-            { "en": "What are you doing? I'm practicing English.", "fr": "Que fais-tu ? Je pratique l'anglais." },
-            { "en": "Salif is waiting for the bus.", "fr": "Salif est en train d'attendre le bus." }
+            {
+              "en": "What are you doing? I'm waiting for the bus.",
+              "fr": "Que fais-tu ? J'attends le bus."
+            },
+            {
+              "en": "What's he doing? He's working right now.",
+              "fr": "Que fait-il ? Il travaille en ce moment."
+            }
           ]
         }
       ],
-      "tip": "N'oubliez pas le verbe « to be » devant le verbe en « -ing » : on dit « I am waiting » (et jamais « I waiting »).",
+      "tip": "Attention à la différence : 12:00 P.M. = noon (midi) et 12:00 A.M. = midnight (minuit) ! On dit « in the morning / afternoon / evening », mais « at night ».",
       "vocab": [
-        { "en": "What time is it?", "phonetic": "/wɒt taɪm ɪz ɪt/", "fr": "Quelle heure est-il ?" },
-        { "en": "It's eight o'clock.", "phonetic": "/ɪts eɪt əˈklɒk/", "fr": "Il est huit heures pile." },
-        { "en": "Eight thirty", "phonetic": "/eɪt ˈθɜːrti/", "fr": "Huit heures trente" },
-        { "en": "Waiting for the bus", "phonetic": "/ˈweɪtɪŋ fɔːr ðə bʌs/", "fr": "En train d'attendre le bus" },
-        { "en": "Right now", "phonetic": "/raɪt naʊ/", "fr": "En ce moment / Maintenant" },
-        { "en": "In the morning / at night", "phonetic": "/ɪn ðə ˈmɔːrnɪŋ / æt naɪt/", "fr": "Le matin / la nuit" }
+        {
+          "en": "o'clock",
+          "fr": "heure pile"
+        },
+        {
+          "en": "A.M.",
+          "fr": "du matin (minuit à midi)"
+        },
+        {
+          "en": "P.M.",
+          "fr": "de l'après-midi / du soir (midi à minuit)"
+        },
+        {
+          "en": "morning",
+          "fr": "matin (in the morning)"
+        },
+        {
+          "en": "afternoon",
+          "fr": "après-midi (in the afternoon)"
+        },
+        {
+          "en": "evening",
+          "fr": "soir / soirée (in the evening)"
+        },
+        {
+          "en": "night",
+          "fr": "nuit (at night)"
+        },
+        {
+          "en": "noon",
+          "fr": "midi (12:00 P.M.)"
+        },
+        {
+          "en": "midnight",
+          "fr": "minuit (12:00 A.M.)"
+        },
+        {
+          "en": "a quarter after",
+          "fr": "et quart (+15 minutes)"
+        },
+        {
+          "en": "a quarter to",
+          "fr": "moins le quart (-15 minutes)"
+        },
+        {
+          "en": "thirty",
+          "fr": "trente / et demie"
+        },
+        {
+          "en": "oh-three",
+          "fr": "zéro trois (minutes :03)"
+        }
       ],
       "quizzes": [
         {
-          "question": "Salif demande : « What are you doing right now? ». Quelle phrase est grammaticalement correcte ?",
+          "question": "Comment dire 2:45 P.M. en anglais ?",
           "options": [
-            { "text": "I'm studying English.", "correct": true },
-            { "text": "I studying English.", "correct": false },
-            { "text": "I am study English.", "correct": false }
+            {
+              "text": "It's a quarter after two in the morning.",
+              "correct": false
+            },
+            {
+              "text": "It's a quarter to two in the afternoon.",
+              "correct": false
+            },
+            {
+              "text": "It's three forty-five in the afternoon.",
+              "correct": false
+            },
+            {
+              "text": "It's a quarter to three in the afternoon.",
+              "correct": true
+            }
           ],
-          "explanation": "Le présent continu se forme toujours avec « am / is / are + verbe-ing »."
+          "explanation": "2:45 P.M. se dit « It's a quarter to three in the afternoon. » ou « It's two forty-five in the afternoon. »."
         },
         {
-          "question": "Il est 9h00 pile. Comment le dit-on en anglais ?",
+          "question": "Comment dire 6:15 P.M. en anglais ?",
           "options": [
-            { "text": "It's nine o'clock.", "correct": true },
-            { "text": "It's nine thirty.", "correct": false },
-            { "text": "It's a bus.", "correct": false }
+            {
+              "text": "It's a quarter after seven in the evening.",
+              "correct": false
+            },
+            {
+              "text": "It's a quarter after six in the evening.",
+              "correct": true
+            },
+            {
+              "text": "It's a quarter to six in the evening.",
+              "correct": false
+            },
+            {
+              "text": "It's six fifty in the morning.",
+              "correct": false
+            }
           ],
-          "explanation": "« o'clock » s'emploie uniquement pour les heures exactes (pile)."
+          "explanation": "6:15 P.M. se dit « It's a quarter after six in the evening. » ou « It's six-fifteen in the evening. »."
+        },
+        {
+          "question": "Que signifie 12:00 P.M. ?",
+          "options": [
+            {
+              "text": "It's midnight.",
+              "correct": false
+            },
+            {
+              "text": "It's twelve o'clock at night.",
+              "correct": false
+            },
+            {
+              "text": "It's twelve o'clock in the morning.",
+              "correct": false
+            },
+            {
+              "text": "It's noon. It's twelve o'clock in the afternoon.",
+              "correct": true
+            }
+          ],
+          "explanation": "12:00 P.M. correspond toujours à midi : « It's noon. » / « It's twelve o'clock in the afternoon. »."
+        },
+        {
+          "question": "Que signifie 12:00 A.M. ?",
+          "options": [
+            {
+              "text": "It's a quarter after twelve.",
+              "correct": false
+            },
+            {
+              "text": "It's midnight.",
+              "correct": true
+            },
+            {
+              "text": "It's noon.",
+              "correct": false
+            },
+            {
+              "text": "It's twelve o'clock in the afternoon.",
+              "correct": false
+            }
+          ],
+          "explanation": "12:00 A.M. correspond toujours à minuit : « It's midnight. »."
+        },
+        {
+          "question": "Comment lire correctement 9:03 et 8:10 en anglais ?",
+          "options": [
+            {
+              "text": "It's nine-three. — It's ten to eight.",
+              "correct": false
+            },
+            {
+              "text": "It's three after nine-oh. — It's eight after ten.",
+              "correct": false
+            },
+            {
+              "text": "It's nine-thirty. — It's a quarter after eight.",
+              "correct": false
+            },
+            {
+              "text": "It's nine-oh-three. — It's ten after eight.",
+              "correct": true
+            }
+          ],
+          "explanation": "Pour les minutes de 01 à 09 on lit « oh » (« nine-oh-three »), et pour +10 minutes on peut dire « ten after eight »."
         }
       ]
     },
     {
       "unit": 6,
       "title": "I ride my bike to school.",
-      "theme": "Transports, famille et routine quotidienne",
+      "theme": "Moyens de transport, membres de la famille, routines quotidiennes/hebdomadaires et jours de la semaine",
       "placeName": "Cour Familiale",
       "npcName": "Mariam",
       "dialogues": [
         {
           "speaker": "Mariam",
-          "en": "Good morning! I live here with my parents and my brother. Every day, I get up at six o'clock.",
-          "phonetic": "/ɡʊd ˈmɔːrnɪŋ! aɪ lɪv hɪər wɪð maɪ ˈpɛərənts ænd maɪ ˈbrʌðər/",
-          "fr": "Bonjour ! J'habite ici avec mes parents et mon frère. Tous les jours, je me lève à six heures."
+          "en": "My family and I live in the suburbs. My wife and I work near here, so we walk to work.",
+          "fr": "Ma famille et moi habitons en banlieue. Ma femme et moi travaillons près d'ici, donc nous allons au travail à pied."
         },
         {
           "speaker": "Mariam",
-          "en": "I ride my bike to school, and my brother takes the bus to work. How do you get to school?",
-          "phonetic": "/aɪ raɪd maɪ baɪk tuː skuːl, ænd maɪ ˈbrʌðər teɪks ðə bʌs tuː wɜːrk/",
-          "fr": "Je vais à l'école à vélo, et mon frère prend le bus pour aller au travail. Comment allez-vous à l'école ?"
+          "en": "Our daughter Megan works downtown, so she drives to work. Our son doesn't drive. He rides his bike to school.",
+          "fr": "Notre fille Megan travaille au centre-ville, donc elle va au travail en voiture. Notre fils ne conduit pas. Il va à l'école à vélo."
+        },
+        {
+          "speaker": "Mariam",
+          "en": "My mother uses public transportation. She takes the bus to her office downtown.",
+          "fr": "Ma mère utilise les transports en commun. Elle prend le bus pour aller à son bureau au centre-ville."
+        },
+        {
+          "speaker": "Mariam",
+          "en": "I don't work far from our apartment, so I don't need a car. I ride my bike to work!",
+          "fr": "Je ne travaille pas loin de notre appartement, donc je n'ai pas besoin de voiture. Je vais au travail à vélo !"
         }
       ],
       "grammar": [
         {
-          "title": "Présent simple (habitudes & routine) : le « -s » à la 3e personne",
-          "explanation": "Pour les habitudes : I/You/We/They + verbe normal (I ride, we walk). Avec He/She/It, on ajoute « -s » ou « -es » (He takes, She goes, He has).",
+          "title": "Simple present statements : verbes réguliers, irréguliers et négation",
+          "explanation": "Pour les habitudes et routines : avec I/you/we/they, le verbe reste à la base verbale (walk, ride, take). Avec he/she/it, on ajoute « -s » (works, drives, rides, uses, takes) et attention aux irréguliers : have -> has, do -> does, go -> goes. Négation : « don't » (I/you/we/they) ou « doesn't » (he/she/it) + base verbale sans -s.",
           "examples": [
-            { "en": "I ride my bike to school every day.", "fr": "Je vais à l'école à vélo tous les jours." },
-            { "en": "My brother takes the bus at seven.", "fr": "Mon frère prend le bus à sept heures." },
-            { "en": "I don't drive a car. She doesn't walk to work.", "fr": "Je ne conduis pas de voiture. Elle ne va pas au travail à pied." }
+            {
+              "en": "Our daughter Megan works downtown, so she drives to work.",
+              "fr": "Notre fille Megan travaille au centre-ville, donc elle va au travail en voiture."
+            },
+            {
+              "en": "Our son doesn't drive. He rides his bike to school.",
+              "fr": "Notre fils ne conduit pas. Il va à l'école à vélo."
+            },
+            {
+              "en": "She has a new job, but she doesn't like it very much.",
+              "fr": "Elle a un nouveau travail, mais elle ne l'aime pas beaucoup."
+            },
+            {
+              "en": "I don't work far from our apartment, so I don't need a car.",
+              "fr": "Je ne travaille pas loin de notre appartement, donc je n'ai pas besoin de voiture."
+            }
           ]
         },
         {
-          "title": "Expressions de temps : at, in, on, early, late",
-          "explanation": "On utilise « at » devant une heure (at 6:00), « on » devant un jour (on Mondays, on weekends) et « in » devant un moment de la journée (in the morning).",
+          "title": "Simple present questions (Yes/No et Wh-questions)",
+          "explanation": "On utilise l'auxiliaire « do » (I/you/we/they) ou « does » (he/she/it) devant le sujet, suivi de la base verbale : « What time do you...? », « When do they...? », « Does he...? », « What do you do on...? ».",
           "examples": [
-            { "en": "I get up early on weekdays.", "fr": "Je me lève tôt en semaine." },
-            { "en": "We have dinner at eight o'clock.", "fr": "Nous dînons à huit heures." }
+            {
+              "en": "What time do you get up on weekdays?",
+              "fr": "À quelle heure te lèves-tu en semaine ?"
+            },
+            {
+              "en": "When do they go to work?",
+              "fr": "Quand vont-ils au travail ?"
+            },
+            {
+              "en": "Does he drive to school? No, he doesn't.",
+              "fr": "Va-t-il à l'école en voiture ? Non."
+            },
+            {
+              "en": "What do you do on weekends?",
+              "fr": "Que fais-tu le week-end ?"
+            }
           ]
         }
       ],
-      "tip": "Retenez les verbes de transport : « ride a bike / a motorbike », « take the bus », « drive a car », « walk to school ».",
+      "tip": "Après « doesn't » ou « Does », le verbe revient TOUJOURS à sa base verbale sans « -s » : « He doesn't drive. » (jamais « He doesn't drives »).",
       "vocab": [
-        { "en": "Ride a bike", "phonetic": "/raɪd ə baɪk/", "fr": "Faire du vélo / Aller à vélo" },
-        { "en": "Take the bus", "phonetic": "/teɪk ðə bʌs/", "fr": "Prendre le bus" },
-        { "en": "Walk to school", "phonetic": "/wɔːk tuː skuːl/", "fr": "Aller à l'école à pied" },
-        { "en": "Parents, brother, sister", "phonetic": "/ˈpɛərənts, ˈbrʌðər, ˈsɪstər/", "fr": "Parents, frère, sœur" },
-        { "en": "Get up early", "phonetic": "/ɡɛt ʌp ˈɜːrli/", "fr": "Se lever tôt" },
-        { "en": "Have breakfast", "phonetic": "/hæv ˈbrɛkfəst/", "fr": "Prendre le petit-déjeuner" }
+        {
+          "en": "suburbs",
+          "fr": "banlieue (Transport / Lieu)"
+        },
+        {
+          "en": "downtown",
+          "fr": "centre-ville (Transport / Lieu)"
+        },
+        {
+          "en": "public transportation",
+          "fr": "transports en commun (Transport / Lieu)"
+        },
+        {
+          "en": "bus",
+          "fr": "bus (Transport / Lieu)"
+        },
+        {
+          "en": "train",
+          "fr": "train (Transport / Lieu)"
+        },
+        {
+          "en": "subway",
+          "fr": "métro (Transport / Lieu)"
+        },
+        {
+          "en": "taxi",
+          "fr": "taxi (Transport / Lieu)"
+        },
+        {
+          "en": "cab",
+          "fr": "taxi (américain) (Transport / Lieu)"
+        },
+        {
+          "en": "bike",
+          "fr": "vélo (Transport / Lieu)"
+        },
+        {
+          "en": "car",
+          "fr": "voiture (Transport / Lieu)"
+        },
+        {
+          "en": "apartment",
+          "fr": "appartement (Transport / Lieu)"
+        },
+        {
+          "en": "house",
+          "fr": "maison (Transport / Lieu)"
+        },
+        {
+          "en": "school",
+          "fr": "école (Transport / Lieu)"
+        },
+        {
+          "en": "park",
+          "fr": "parc (Transport / Lieu)"
+        },
+        {
+          "en": "hotel",
+          "fr": "hôtel (Transport / Lieu)"
+        },
+        {
+          "en": "restaurant",
+          "fr": "restaurant (Transport / Lieu)"
+        },
+        {
+          "en": "travel agency",
+          "fr": "agence de voyages (Transport / Lieu)"
+        },
+        {
+          "en": "wife",
+          "fr": "épouse / femme (Famille)"
+        },
+        {
+          "en": "son",
+          "fr": "fils (Famille)"
+        },
+        {
+          "en": "daughter",
+          "fr": "fille (Famille)"
+        },
+        {
+          "en": "parents",
+          "fr": "parents (Famille)"
+        },
+        {
+          "en": "sister",
+          "fr": "sœur (Famille)"
+        },
+        {
+          "en": "father",
+          "fr": "père (Famille)"
+        },
+        {
+          "en": "mother",
+          "fr": "mère (Famille)"
+        },
+        {
+          "en": "all day",
+          "fr": "toute la journée (Temps / Expression)"
+        },
+        {
+          "en": "at night",
+          "fr": "la nuit (Temps / Expression)"
+        },
+        {
+          "en": "early",
+          "fr": "tôt (Temps / Expression)"
+        },
+        {
+          "en": "late",
+          "fr": "tard (Temps / Expression)"
+        },
+        {
+          "en": "every day",
+          "fr": "tous les jours (Temps / Expression)"
+        },
+        {
+          "en": "weekly",
+          "fr": "hebdomadaire (Temps / Expression)"
+        },
+        {
+          "en": "routine",
+          "fr": "routine (Temps / Expression)"
+        },
+        {
+          "en": "schedule",
+          "fr": "emploi du temps / horaire (Temps / Expression)"
+        },
+        {
+          "en": "early bird",
+          "fr": "lève-tôt (Temps / Expression)"
+        },
+        {
+          "en": "night owl",
+          "fr": "couche-tard / oiseau de nuit (Temps / Expression)"
+        },
+        {
+          "en": "Sure",
+          "fr": "Bien sûr (Expression)"
+        },
+        {
+          "en": "Yeah",
+          "fr": "Ouais / Oui (Expression)"
+        }
       ],
       "quizzes": [
         {
-          "question": "Complétez la phrase au présent simple : « Mariam ___ her bike to school every morning. »",
+          "question": "\"Our daughter Megan ___ downtown, so she ___ to work.\"",
           "options": [
-            { "text": "ride", "correct": false },
-            { "text": "rides", "correct": true },
-            { "text": "riding", "correct": false }
+            {
+              "text": "works — drive",
+              "correct": false
+            },
+            {
+              "text": "working — driving",
+              "correct": false
+            },
+            {
+              "text": "works — drives",
+              "correct": true
+            },
+            {
+              "text": "work — drive",
+              "correct": false
+            }
           ],
-          "explanation": "Avec « Mariam » (she), on ajoute un « -s » au verbe au présent simple : « rides »."
+          "explanation": "Avec « Megan / she » (3e personne du singulier), on ajoute « -s » aux deux verbes : « works » et « drives »."
         },
         {
-          "question": "Comment dire « Je prends le bus à sept heures » ?",
+          "question": "\"Our son ___ drive. He ___ his bike to school.\"",
           "options": [
-            { "text": "I take the bus at seven o'clock.", "correct": true },
-            { "text": "I walk the bus on seven o'clock.", "correct": false },
-            { "text": "I drive a bike in seven.", "correct": false }
+            {
+              "text": "doesn't — rides",
+              "correct": true
+            },
+            {
+              "text": "don't — rides",
+              "correct": false
+            },
+            {
+              "text": "doesn't — ride",
+              "correct": false
+            },
+            {
+              "text": "isn't — rides",
+              "correct": false
+            }
           ],
-          "explanation": "On utilise « take the bus » et la préposition « at » devant l'heure."
+          "explanation": "Avec « Our son / He », la négation est « doesn't » (+ base verbale « drive ») et l'affirmative prend « -s » (« rides »)."
+        },
+        {
+          "question": "\"My mother ___ public transportation – she ___ the bus to her office downtown.\"",
+          "options": [
+            {
+              "text": "uses — take",
+              "correct": false
+            },
+            {
+              "text": "use — takes",
+              "correct": false
+            },
+            {
+              "text": "uses — takes",
+              "correct": true
+            },
+            {
+              "text": "use — take",
+              "correct": false
+            }
+          ],
+          "explanation": "« My mother / she » demande le « -s » de 3e personne : « uses » et « takes »."
+        },
+        {
+          "question": "\"She ___ a new job, but she ___ like it very much.\"",
+          "options": [
+            {
+              "text": "has — doesn't",
+              "correct": true
+            },
+            {
+              "text": "have — doesn't",
+              "correct": false
+            },
+            {
+              "text": "has — don't",
+              "correct": false
+            },
+            {
+              "text": "haves — doesn't",
+              "correct": false
+            }
+          ],
+          "explanation": "« have » est irrégulier à la 3e personne (« She has »), et la négation avec « she » utilise « doesn't »."
+        },
+        {
+          "question": "\"I ___ work far from our apartment, so I ___ need a car.\"",
+          "options": [
+            {
+              "text": "not — don't",
+              "correct": false
+            },
+            {
+              "text": "am not — don't",
+              "correct": false
+            },
+            {
+              "text": "don't — don't",
+              "correct": true
+            },
+            {
+              "text": "doesn't — doesn't",
+              "correct": false
+            }
+          ],
+          "explanation": "Avec « I », la négation au présent simple se forme toujours avec « don't »."
         }
       ]
     },
     {
       "unit": 7,
       "title": "Does it have a view?",
-      "theme": "Maison, pièces et meubles",
+      "theme": "Décrire une maison ou un appartement, les pièces et les meubles dans une pièce",
       "placeName": "Villa / Résidence",
       "npcName": "Wendpanga",
       "dialogues": [
         {
-          "speaker": "Wendpanga",
-          "en": "Welcome to my house! It has a bright living room, a kitchen, two bedrooms, and a nice terrace.",
-          "phonetic": "/ˈwɛlkəm tuː maɪ haʊs! ɪt hæz ə braɪt ˈlɪvɪŋ ruːm, ə ˈkɪtʃɪn, tuː ˈbɛdruːmz/",
-          "fr": "Bienvenue dans ma maison ! Elle a un salon lumineux, une cuisine, deux chambres et une belle terrasse."
+          "speaker": "A",
+          "en": "Does your family live in an apartment?",
+          "fr": "Est-ce que votre famille habite dans un appartement ?"
+        },
+        {
+          "speaker": "B",
+          "en": "No, we don't. We have a house.",
+          "fr": "Non. Nous avons une maison."
+        },
+        {
+          "speaker": "A",
+          "en": "That's nice. Does your house have two floors?",
+          "fr": "C'est chouette. Votre maison a-t-elle deux étages ?"
+        },
+        {
+          "speaker": "B",
+          "en": "Yes, it does. It has four rooms on the first floor, and three bedrooms and a bathroom on the second floor.",
+          "fr": "Oui. Elle a quatre pièces au rez-de-chaussée, et trois chambres et une salle de bain à l'étage."
         },
         {
           "speaker": "Wendpanga",
-          "en": "Does it have a view? Yes, it does! And in the living room, there is a big sofa and there are four chairs.",
-          "phonetic": "/dʌz ɪt hæv ə vjuː? jɛs, ɪt dʌz! ðɛər ɪz ə bɪɡ ˈsoʊfə ænd ðɛər ɑːr fɔːr tʃɛərz/",
-          "fr": "A-t-elle une vue ? Oui ! Et dans le salon, il y a un grand canapé et quatre chaises."
+          "en": "There are four chairs in Tony's kitchen, but there are three chairs in Nicole's kitchen.",
+          "fr": "Il y a quatre chaises dans la cuisine de Tony, mais il y a trois chaises dans la cuisine de Nicole."
+        },
+        {
+          "speaker": "Wendpanga",
+          "en": "There's a microwave in Tony's kitchen, but there's no microwave in Nicole's kitchen.",
+          "fr": "Il y a un micro-ondes dans la cuisine de Tony, mais il n'y a pas de micro-ondes dans la cuisine de Nicole."
         }
       ],
       "grammar": [
         {
-          "title": "Questions au présent simple : Do you...? / Does it...?",
-          "explanation": "Pour poser une question avec un verbe ordinaire (live, have), on utilise « Do » (I/you/we/they) ou « Does » (he/she/it). Après « Does », le verbe reste à l'infinitif (have, pas has !).",
+          "title": "Simple present short answers : do/don't et does/doesn't",
+          "explanation": "Aux questions au présent simple : avec I / You / We / They, on répond avec « do / don't » (« No, we don't. »). Avec He / She / It, on répond avec « does / doesn't » (« Yes, it does. »). Après « Does », le verbe reste toujours à la base verbale (« Does your house have...? »).",
           "examples": [
-            { "en": "Do you live in a house? Yes, I do.", "fr": "Habitez-vous dans une maison ? Oui." },
-            { "en": "Does your house have a yard? Yes, it does.", "fr": "Votre maison a-t-elle une cour ? Oui." }
+            {
+              "en": "Does your family live in an apartment? No, we don't.",
+              "fr": "Votre famille vit-elle en appartement ? Non."
+            },
+            {
+              "en": "Does your house have two floors? Yes, it does.",
+              "fr": "Votre maison a-t-elle deux étages ? Oui."
+            },
+            {
+              "en": "It has four rooms on the first floor.",
+              "fr": "Elle a quatre pièces au premier niveau."
+            }
           ]
         },
         {
-          "title": "« There is » (singulier) et « There are » (pluriel)",
-          "explanation": "Pour dire « il y a » : « There is (There's) a table » pour un seul élément, « There are some chairs » pour plusieurs, « There aren't any rugs » à la forme négative.",
+          "title": "« There is / There are » avec a/an, some, no, any",
+          "explanation": "Singulier : « There's a... » (affirmatif), « There's no... » ou « There isn't a... » (négatif). Pluriel : « There are some... » (affirmatif), « There are no... » ou « There aren't any... » (négatif).",
           "examples": [
-            { "en": "There is a bed in the bedroom.", "fr": "Il y a un lit dans la chambre." },
-            { "en": "There are two armchairs in the living room.", "fr": "Il y a deux fauteuils dans le salon." }
+            {
+              "en": "There's a microwave in Tony's kitchen, but there's no microwave in Nicole's kitchen.",
+              "fr": "Il y a un micro-ondes dans la cuisine de Tony, mais pas dans celle de Nicole."
+            },
+            {
+              "en": "There are some curtains in Nicole's kitchen, but there aren't any curtains in Tony's kitchen.",
+              "fr": "Il y a des rideaux dans la cuisine de Nicole, mais il n'y a aucun rideau dans celle de Tony."
+            },
+            {
+              "en": "There isn't a coffee maker. There are no chairs.",
+              "fr": "Il n'y a pas de cafetière. Il n'y a aucune chaise."
+            }
           ]
         }
       ],
-      "tip": "Attention : avec « Does it... », on dit toujours « Does it have...? » (jamais « Does it has ») !",
+      "tip": "Au pluriel, utilisez « some » dans les phrases affirmatives (« There are some curtains. ») et « any » avec « aren't » (« There aren't any curtains. »). Avec « no », le verbe reste affirmatif (« There's no microwave. »).",
       "vocab": [
-        { "en": "The living room", "phonetic": "/ðə ˈlɪvɪŋ ruːm/", "fr": "Le salon" },
-        { "en": "The kitchen", "phonetic": "/ðə ˈkɪtʃɪn/", "fr": "La cuisine" },
-        { "en": "The bedroom", "phonetic": "/ðə ˈbɛdruːm/", "fr": "La chambre" },
-        { "en": "A sofa and chairs", "phonetic": "/ə ˈsoʊfə ænd tʃɛərz/", "fr": "Un canapé et des chaises" },
-        { "en": "A table and a bed", "phonetic": "/ə ˈteɪbəl ænd ə bɛd/", "fr": "Une table et un lit" },
-        { "en": "A nice view", "phonetic": "/ə naɪs vjuː/", "fr": "Une belle vue" }
+        {
+          "en": "house",
+          "fr": "maison"
+        },
+        {
+          "en": "apartment",
+          "fr": "appartement"
+        },
+        {
+          "en": "floor",
+          "fr": "étage / niveau"
+        },
+        {
+          "en": "first floor",
+          "fr": "rez-de-chaussée (US) / premier niveau"
+        },
+        {
+          "en": "second floor",
+          "fr": "premier étage (US) / deuxième niveau"
+        },
+        {
+          "en": "living room",
+          "fr": "salon / séjour"
+        },
+        {
+          "en": "kitchen",
+          "fr": "cuisine"
+        },
+        {
+          "en": "bedroom",
+          "fr": "chambre"
+        },
+        {
+          "en": "bathroom",
+          "fr": "salle de bain"
+        },
+        {
+          "en": "yard",
+          "fr": "cour / jardin"
+        },
+        {
+          "en": "chairs",
+          "fr": "chaises"
+        },
+        {
+          "en": "curtains",
+          "fr": "rideaux"
+        },
+        {
+          "en": "microwave",
+          "fr": "micro-ondes"
+        },
+        {
+          "en": "clock",
+          "fr": "horloge"
+        },
+        {
+          "en": "coffee maker",
+          "fr": "cafetière"
+        },
+        {
+          "en": "furniture",
+          "fr": "meubles / mobilier"
+        }
       ],
       "quizzes": [
         {
-          "question": "Comment demander si la maison a une belle vue ?",
+          "question": "A: ___ your family ___ in an apartment? — B: No, we ___. We ___ a house.",
           "options": [
-            { "text": "Does it have a nice view?", "correct": true },
-            { "text": "Does it has a nice view?", "correct": false },
-            { "text": "Is it have a nice view?", "correct": false }
+            {
+              "text": "Is — live — aren't — have",
+              "correct": false
+            },
+            {
+              "text": "Does — live — don't — have",
+              "correct": true
+            },
+            {
+              "text": "Do — lives — doesn't — has",
+              "correct": false
+            },
+            {
+              "text": "Does — lives — don't — have",
+              "correct": false
+            }
           ],
-          "explanation": "Après l'auxiliaire « Does », le verbe revient à sa base verbale : « have »."
+          "explanation": "« your family » = singulier (« Does ... live »), puis avec « we » on utilise « don't » et « have »."
         },
         {
-          "question": "Il y a quatre chaises dans la cuisine. Quelle phrase est correcte ?",
+          "question": "A: ___ your house have two floors? — B: Yes, it ___. It ___ four rooms on the first floor.",
           "options": [
-            { "text": "There is four chairs in the kitchen.", "correct": false },
-            { "text": "There are four chairs in the kitchen.", "correct": true },
-            { "text": "They is four chairs in the kitchen.", "correct": false }
+            {
+              "text": "Do — do — have",
+              "correct": false
+            },
+            {
+              "text": "Does — is — has",
+              "correct": false
+            },
+            {
+              "text": "Does — does — have",
+              "correct": false
+            },
+            {
+              "text": "Does — does — has",
+              "correct": true
+            }
           ],
-          "explanation": "Pour plusieurs objets (four chairs), on utilise « There are »."
+          "explanation": "« your house » (it) prend « Does », la réponse courte est « Yes, it does. », et à l'affirmative « It has »."
+        },
+        {
+          "question": "\"There are ___ curtains in Nicole's kitchen, but there aren't ___ curtains in Tony's kitchen.\"",
+          "options": [
+            {
+              "text": "some — no",
+              "correct": false
+            },
+            {
+              "text": "some — any",
+              "correct": true
+            },
+            {
+              "text": "any — some",
+              "correct": false
+            },
+            {
+              "text": "a — no",
+              "correct": false
+            }
+          ],
+          "explanation": "On emploie « some » dans une phrase affirmative plurielle et « any » dans une phrase négative avec « aren't »."
+        },
+        {
+          "question": "\"There's a microwave in Tony's kitchen, but there's ___ microwave in Nicole's kitchen.\"",
+          "options": [
+            {
+              "text": "any",
+              "correct": false
+            },
+            {
+              "text": "not",
+              "correct": false
+            },
+            {
+              "text": "some",
+              "correct": false
+            },
+            {
+              "text": "no",
+              "correct": true
+            }
+          ],
+          "explanation": "Avec « There's » (verbe affirmatif), on utilise « no » devant le nom singulier : « there's no microwave »."
         }
       ]
     },
     {
       "unit": 8,
-      "title": "What do you do?",
-      "theme": "Métiers et lieux de travail",
+      "title": "Where do you work?",
+      "theme": "Parler des métiers, des lieux de travail et donner son opinion sur un travail",
       "placeName": "Atelier & Bureau Tech",
       "npcName": "Awa",
       "dialogues": [
         {
-          "speaker": "Awa",
-          "en": "Hello! What do you do? I'm a software developer, and I work in a tech office here in Ouagadougou.",
-          "phonetic": "/həˈloʊ! wɒt duː juː duː? aɪm ə ˈsɒftwɛər dɪˈvɛləpər, ænd aɪ wɜːrk ɪn ə tɛk ˈɒfɪs/",
-          "fr": "Bonjour ! Que faites-vous dans la vie ? Je suis développeuse logiciel et je travaille dans un bureau tech ici à Ouagadougou."
+          "speaker": "A",
+          "en": "Where do you work?",
+          "fr": "Où travaillez-vous ?"
         },
         {
-          "speaker": "Awa",
-          "en": "I really love my job because it's creative and exciting! Where do you work or study?",
-          "phonetic": "/aɪ ˈrɪəli lʌv maɪ dʒɒb bɪˈkɒz ɪts kriˈeɪtɪv ænd ɪkˈsaɪtɪŋ! wɛər duː juː wɜːrk?/",
-          "fr": "J'adore vraiment mon métier parce qu'il est créatif et passionnant ! Où travaillez-vous ou étudiez-vous ?"
+          "speaker": "B",
+          "en": "I work in a restaurant.",
+          "fr": "Je travaille dans un restaurant."
+        },
+        {
+          "speaker": "A",
+          "en": "Nice! What do you do?",
+          "fr": "Super ! Quel est votre métier ?"
+        },
+        {
+          "speaker": "B",
+          "en": "I'm a chef.",
+          "fr": "Je suis chef cuisinier."
+        },
+        {
+          "speaker": "A",
+          "en": "How do you like your job?",
+          "fr": "Comment trouvez-vous votre travail ?"
+        },
+        {
+          "speaker": "B",
+          "en": "My job? I don't really like it very much. I'm a cashier. I work at a clothing store.",
+          "fr": "Mon travail ? Je ne l'aime pas vraiment beaucoup. Je suis caissier / caissière. Je travaille dans un magasin de vêtements."
+        },
+        {
+          "speaker": "A",
+          "en": "What do your brother and sister do?",
+          "fr": "Que font ton frère et ta sœur dans la vie ?"
+        },
+        {
+          "speaker": "B",
+          "en": "My brother is a doctor, and my sister is a lawyer. They work very hard, but they love their jobs.",
+          "fr": "Mon frère est médecin, et ma sœur est avocate. Ils travaillent très dur, mais ils adorent leurs métiers."
         }
       ],
       "grammar": [
         {
-          "title": "Questions sur le métier : What do you do? / Where does she work?",
-          "explanation": "Pour demander le métier de quelqu'un, on dit « What do you do? » (ou « What does he/she do? »). Pour le lieu : « Where do you work? ».",
+          "title": "Simple present Wh-questions avec « do / does »",
+          "explanation": "Structure exacte : Question word + do / does + subject + verb? Utilisez « do » avec I/you/we/they et « does » avec he/she/it (le verbe reste toujours sans -s).",
           "examples": [
-            { "en": "What does Awa do? She's a software developer.", "fr": "Que fait Awa ? Elle est développeuse logiciel." },
-            { "en": "Where does a doctor work? In a hospital.", "fr": "Où travaille un médecin ? Dans un hôpital." }
+            {
+              "en": "Where does he work?",
+              "fr": "Où travaille-t-il ?"
+            },
+            {
+              "en": "What do you do? I'm a chef.",
+              "fr": "Que faites-vous dans la vie ? Je suis chef."
+            },
+            {
+              "en": "How do you like your job?",
+              "fr": "Comment trouvez-vous votre travail ?"
+            },
+            {
+              "en": "What do your brother and sister do?",
+              "fr": "Que font ton frère et ta sœur ?"
+            }
           ]
         },
         {
-          "title": "Article « a / an » devant les métiers et adjectifs",
-          "explanation": "En anglais, on met TOUJOURS « a » ou « an » devant un métier au singulier : « I'm a teacher », « She's an engineer ». L'adjectif se place avant le nom : « an exciting job ».",
+          "title": "Placement of adjectives : deux structures de même sens",
+          "explanation": "Pour donner son opinion sur un métier, deux formulations ont exactement le même sens : 1) « be + adjective » (« My job is great. ») ; 2) « adjective + noun » (« I have a great job. »).",
           "examples": [
-            { "en": "He is an engineer. It's an interesting job.", "fr": "Il est ingénieur. C'est un métier intéressant." },
-            { "en": "A firefighter has a dangerous job.", "fr": "Un pompier a un métier dangereux." }
+            {
+              "en": "My job is great. I have a great job.",
+              "fr": "Mon travail est génial. J'ai un travail génial."
+            },
+            {
+              "en": "A doctor's job is difficult. A doctor has a difficult job.",
+              "fr": "Le métier de médecin est difficile. Un médecin a un métier difficile."
+            },
+            {
+              "en": "A police officer has an exciting job.",
+              "fr": "Un policier a un métier passionnant."
+            }
           ]
         }
       ],
-      "tip": "N'oubliez jamais « a » ou « an » devant un métier : dites « I am a student » ou « I am an engineer » (jamais « I am student »).",
+      "tip": "Retenez la formule des Wh-questions : Mot interrogatif + do/does + sujet + verbe (« Where does he work? », « How do you like your job? ») et l'équivalence « My job is great. » = « I have a great job. ».",
       "vocab": [
-        { "en": "What do you do?", "phonetic": "/wɒt duː juː duː/", "fr": "Quel est votre métier ?" },
-        { "en": "A software developer", "phonetic": "/ə ˈsɒftwɛər dɪˈvɛləpər/", "fr": "Un(e) développeur(se) logiciel" },
-        { "en": "A teacher / a doctor", "phonetic": "/ə ˈtiːtʃər / ə ˈdɒktər/", "fr": "Un(e) enseignant(e) / un médecin" },
-        { "en": "An engineer", "phonetic": "/æn ˌɛndʒɪˈnɪər/", "fr": "Un(e) ingénieur(e)" },
-        { "en": "An office / a workshop", "phonetic": "/æn ˈɒfɪs / ə ˈwɜːrkʃɒp/", "fr": "Un bureau / un atelier" },
-        { "en": "An exciting job", "phonetic": "/æn ɪkˈsaɪtɪŋ dʒɒb/", "fr": "Un métier passionnant" }
+        {
+          "en": "police officer",
+          "fr": "policier / agente de police (Métier)"
+        },
+        {
+          "en": "taxi driver",
+          "fr": "chauffeur de taxi (Métier)"
+        },
+        {
+          "en": "vendor",
+          "fr": "vendeur / marchand (Métier)"
+        },
+        {
+          "en": "street vendor",
+          "fr": "vendeur de rue (Métier)"
+        },
+        {
+          "en": "ice cream vendor",
+          "fr": "vendeur de glaces (Métier)"
+        },
+        {
+          "en": "host",
+          "fr": "hôte / hôtesse d'accueil (Métier)"
+        },
+        {
+          "en": "server",
+          "fr": "serveur / serveuse (Métier)"
+        },
+        {
+          "en": "chef",
+          "fr": "chef cuisinier (Métier)"
+        },
+        {
+          "en": "receptionist",
+          "fr": "réceptionniste (Métier)"
+        },
+        {
+          "en": "accountant",
+          "fr": "comptable (Métier)"
+        },
+        {
+          "en": "office manager",
+          "fr": "responsable de bureau (Métier)"
+        },
+        {
+          "en": "front desk clerk",
+          "fr": "employé(e) de réception d'hôtel (Métier)"
+        },
+        {
+          "en": "bellhop",
+          "fr": "groom / bagagiste d'hôtel (Métier)"
+        },
+        {
+          "en": "nurse",
+          "fr": "infirmier / infirmière (Métier)"
+        },
+        {
+          "en": "doctor",
+          "fr": "médecin (Métier)"
+        },
+        {
+          "en": "salesperson",
+          "fr": "vendeur / vendeuse en magasin (Métier)"
+        },
+        {
+          "en": "cashier",
+          "fr": "caissier / caissière (Métier)"
+        },
+        {
+          "en": "security guard",
+          "fr": "agent de sécurité / vigile (Métier)"
+        },
+        {
+          "en": "lawyer",
+          "fr": "avocat / avocate (Métier)"
+        },
+        {
+          "en": "teacher",
+          "fr": "enseignant(e) / professeur(e) (Métier)"
+        },
+        {
+          "en": "a hospital",
+          "fr": "un hôpital (Lieu de travail)"
+        },
+        {
+          "en": "an office",
+          "fr": "un bureau (Lieu de travail)"
+        },
+        {
+          "en": "a store",
+          "fr": "un magasin (Lieu de travail)"
+        },
+        {
+          "en": "a hotel",
+          "fr": "un hôtel (Lieu de travail)"
+        },
+        {
+          "en": "a restaurant",
+          "fr": "un restaurant (Lieu de travail)"
+        },
+        {
+          "en": "a clothing store",
+          "fr": "un magasin de vêtements (Lieu de travail)"
+        },
+        {
+          "en": "exciting",
+          "fr": "passionnant / excitant (Opinion)"
+        },
+        {
+          "en": "difficult",
+          "fr": "difficile (Opinion)"
+        },
+        {
+          "en": "not easy",
+          "fr": "pas facile (Opinion)"
+        },
+        {
+          "en": "boring",
+          "fr": "ennuyeux (Opinion)"
+        },
+        {
+          "en": "interesting",
+          "fr": "intéressant (Opinion)"
+        },
+        {
+          "en": "great",
+          "fr": "génial / formidable (Opinion)"
+        }
       ],
       "quizzes": [
         {
-          "question": "Awa vous demande : « What do you do? ». Comment répondre correctement « Je suis ingénieur » ?",
+          "question": "A: Really? Where ___? (he / work)",
           "options": [
-            { "text": "I am engineer.", "correct": false },
-            { "text": "I am an engineer.", "correct": true },
-            { "text": "I work an engineer.", "correct": false }
+            {
+              "text": "does he works",
+              "correct": false
+            },
+            {
+              "text": "he does work",
+              "correct": false
+            },
+            {
+              "text": "does he work",
+              "correct": true
+            },
+            {
+              "text": "do he work",
+              "correct": false
+            }
           ],
-          "explanation": "On met toujours l'article « a / an » devant un métier, et « an » devant le son voyelle de « engineer »."
+          "explanation": "Formule : Question word + does + he + base verbale -> « Where does he work? »."
         },
         {
-          "question": "Comment demander où travaille le frère de Mariam ?",
+          "question": "A: Where ___? — B: I work in a restaurant. — A: What ___? — B: I'm a chef.",
           "options": [
-            { "text": "Where does he work?", "correct": true },
-            { "text": "Where do he works?", "correct": false },
-            { "text": "What is he work?", "correct": false }
+            {
+              "text": "do you work — do you do",
+              "correct": true
+            },
+            {
+              "text": "does you work — does you do",
+              "correct": false
+            },
+            {
+              "text": "are you work — are you do",
+              "correct": false
+            },
+            {
+              "text": "you work — you do",
+              "correct": false
+            }
           ],
-          "explanation": "Avec « he / she », on utilise « does » suivi de la base verbale « work »."
+          "explanation": "Avec « you », on emploie « do » : « Where do you work? » et « What do you do? »."
+        },
+        {
+          "question": "A: How ___ your job? — B: I don't really like it very much.",
+          "options": [
+            {
+              "text": "are you like",
+              "correct": false
+            },
+            {
+              "text": "you do like",
+              "correct": false
+            },
+            {
+              "text": "do you like",
+              "correct": true
+            },
+            {
+              "text": "does you like",
+              "correct": false
+            }
+          ],
+          "explanation": "Pour demander si quelqu'un aime son métier : « How do you like your job? »."
+        },
+        {
+          "question": "A: What ___ your brother and sister ___? — B: My brother is a doctor, and my sister is a lawyer.",
+          "options": [
+            {
+              "text": "do — do",
+              "correct": true
+            },
+            {
+              "text": "does — do",
+              "correct": false
+            },
+            {
+              "text": "do — does",
+              "correct": false
+            },
+            {
+              "text": "are — doing",
+              "correct": false
+            }
+          ],
+          "explanation": "« your brother and sister » = pluriel (they), donc auxiliaire « do » + base verbale « do »."
+        },
+        {
+          "question": "Quelle phrase a exactement le même sens que \"My job is great.\" ?",
+          "options": [
+            {
+              "text": "I am a great job.",
+              "correct": false
+            },
+            {
+              "text": "My job has great.",
+              "correct": false
+            },
+            {
+              "text": "I have a great job.",
+              "correct": true
+            },
+            {
+              "text": "I have a job great.",
+              "correct": false
+            }
+          ],
+          "explanation": "En anglais, « be + adjective » (« My job is great. ») équivaut à « adjective + noun » (« I have a great job. »)."
         }
       ]
     }
