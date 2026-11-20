@@ -1150,6 +1150,9 @@ async function loadLessonsFromJson() {
    7. SCÈNE 3D THREE.JS — QUARTIER DU BURKINA FASO & PERSONNAGES STYLE DUOLINGO
    =========================================================================== */
 let scene, camera, renderer, raycaster, mouse;
+let exteriorWorldGroup = null;
+let exteriorBackground = null;
+let exteriorFog = null;
 let playerGroup, playerParts, playerAnim;
 let burkinaFlagPivot = null;
 const npcEntities = [];
@@ -1159,6 +1162,62 @@ const backgroundCitizens = [];
 const trafficVehicles = [];
 let clock = null;
 let stepTimer = 0;
+
+// Unités disposant d'un diorama intérieur 3D dédié (scénarios Interchange Intro en intérieur)
+const INTERIOR_UNITS = new Set([1, 2, 4, 7, 8]);
+const INTERIOR_META = {
+  1: {
+    roomName: 'Salle de classe',
+    backdrop: 0xeaf4fc,
+    camDesktop: [6.4, 4.35, 6.5],
+    camMobile: [7.6, 5.0, 7.8],
+    lookAt: [-0.35, 1.45, -0.35]
+  },
+  2: {
+    roomName: "Chambre d'étudiant",
+    backdrop: 0xf4f0e8,
+    camDesktop: [6.2, 4.3, 6.2],
+    camMobile: [7.4, 4.9, 7.5],
+    lookAt: [-0.25, 1.35, -0.2]
+  },
+  4: {
+    roomName: 'Boutique Faso Dan Fani',
+    backdrop: 0xfbf1e4,
+    camDesktop: [6.4, 4.35, 6.4],
+    camMobile: [7.5, 4.95, 7.6],
+    lookAt: [-0.3, 1.45, -0.25]
+  },
+  7: {
+    roomName: 'Salon & Cuisine de la Villa',
+    backdrop: 0xf7f1e6,
+    camDesktop: [7.2, 4.85, 7.2],
+    camMobile: [8.4, 5.45, 8.5],
+    lookAt: [-0.25, 1.35, -0.35]
+  },
+  8: {
+    roomName: 'Atelier & Bureau Tech',
+    backdrop: 0xeef3f9,
+    camDesktop: [6.6, 4.45, 6.5],
+    camMobile: [7.7, 5.1, 7.8],
+    lookAt: [-0.3, 1.45, -0.25]
+  }
+};
+
+const interiorState = {
+  active: false,
+  unit: null,
+  loc: null,
+  root: null,
+  actors: {}, // { npc, player, extra }
+  props: {},  // { key: { group, ring, baseY } }
+  highlightedKeys: new Set(),
+  cameraPos: null,
+  cameraLook: null,
+  returnPos: null,
+  returnRotY: 0,
+  transitioning: false,
+  disposableTextures: []
+};
 
 let _camGoalVec = null;
 let _camLookVec = null;
@@ -1636,12 +1695,14 @@ function initThreeScene() {
   buildProceduralTextures();
 
   // Ambiance cinématographique fin d'après-midi : ciel doux + brume exponentielle dorée à l'horizon
-  scene.background = new THREE.Color(0x9bc4e2);
+  exteriorBackground = new THREE.Color(0x9bc4e2);
+  scene.background = exteriorBackground;
   if (typeof THREE.FogExp2 === 'function') {
-    scene.fog = new THREE.FogExp2(0xe6c39c, 0.0088);
+    exteriorFog = new THREE.FogExp2(0xe6c39c, 0.0088);
   } else {
-    scene.fog = new THREE.Fog(0xe6c39c, 46, 126);
+    exteriorFog = new THREE.Fog(0xe6c39c, 46, 126);
   }
+  scene.fog = exteriorFog;
 
   state.cameraDistance = getDefaultCameraDistance();
   const initialFov = (window.innerWidth < 640 && window.innerHeight > window.innerWidth) ? 56 : 50;
@@ -1698,6 +1759,17 @@ function initThreeScene() {
   buildBackgroundPopulation();
   buildRoadTraffic();
   buildPlayerAvatar();
+
+  // Regrouper tous les objets du quartier extérieur pour masquer/afficher proprement lors des scènes intérieures
+  exteriorWorldGroup = new THREE.Group();
+  const initialChildren = scene.children.slice();
+  initialChildren.forEach(obj => {
+    if (obj !== hemiLight && obj !== sunLight && obj !== fillLight) {
+      scene.remove(obj);
+      exteriorWorldGroup.add(obj);
+    }
+  });
+  scene.add(exteriorWorldGroup);
 
   setupCanvasEvents(renderer.domElement);
   window.addEventListener('resize', updateCameraForViewport);
@@ -3089,12 +3161,14 @@ function createAnimState(phase = 0) {
 function updateCharacterAnimation(parts, anim, opts, elapsed, dt) {
   if (!parts || !anim) return;
   const {
-    pose = 'default', // 'default' | 'sit-book' | 'sit-phone' | 'stand-phone' | 'cycle' | 'moto'
+    pose = 'default', // 'default' | 'sit-book' | 'sit-phone' | 'stand-phone' | 'sit-desk' | 'cycle' | 'moto'
     isMoving = false,
     moveSpeed = 1,
     isSpeaking = false,
     isListening = false,
     isGreeting = false,
+    isPointing = false,
+    pointSide = 'left',
     headLookYaw = 0,
     pedalPhase = 0
   } = opts;
@@ -3154,6 +3228,32 @@ function updateCharacterAnimation(parts, anim, opts, elapsed, dt) {
     targetRightElbowX = -0.92;
     targetHeadX = 0.34 + Math.sin(t * 1.1) * 0.04;
     targetHeadY = Math.sin(t * 0.85) * 0.16;
+  } else if (pose === 'sit-desk') {
+    // Assis à un bureau (salle de classe ou poste informatique)
+    targetLeftLegX = -1.45;
+    targetRightLegX = -1.45;
+    targetLeftKneeX = 1.46;
+    targetRightKneeX = 1.46;
+    targetBodyY = 0.56 + breath * 0.01;
+    targetBodyPitch = 0.08;
+    if (isSpeaking) {
+      targetLeftArmX = -0.58 + Math.sin(t * 4.5) * 0.14;
+      targetRightArmX = -0.62 + Math.cos(t * 4.1) * 0.16;
+      targetLeftArmZ = 0.18;
+      targetRightArmZ = -0.18;
+      targetLeftElbowX = -0.95 + Math.sin(t * 5.2) * 0.18;
+      targetRightElbowX = -0.95 + Math.cos(t * 4.8) * 0.18;
+      targetHeadX = Math.sin(t * 5.5) * 0.06;
+    } else {
+      targetLeftArmX = -0.52 + Math.sin(t * 6.5) * 0.04;
+      targetRightArmX = -0.52 + Math.cos(t * 7.2) * 0.04;
+      targetLeftArmZ = -0.06;
+      targetRightArmZ = 0.06;
+      targetLeftElbowX = -1.02 + Math.sin(t * 7.5) * 0.06;
+      targetRightElbowX = -1.02 + Math.cos(t * 6.8) * 0.06;
+      targetHeadX = 0.16 + Math.sin(t * 1.4) * 0.04;
+      targetHeadY = headLookYaw || Math.sin(t * 0.7) * 0.12;
+    }
   } else if (pose === 'sit-phone') {
     targetLeftLegX = -1.42;
     targetRightLegX = -1.35;
@@ -3231,6 +3331,26 @@ function updateCharacterAnimation(parts, anim, opts, elapsed, dt) {
     targetBodyPitch = 0.06;
     targetBodySwayZ = Math.sin(c) * 0.032;
     targetHeadZ = -Math.sin(c) * 0.025;
+  } else if (isSpeaking && isPointing) {
+    // Geste expressif du bras tendu pour désigner quelqu'un ("She's over there!")
+    if (pointSide === 'left') {
+      targetLeftArmZ = 1.48 + Math.sin(t * 3.8) * 0.07;
+      targetLeftArmX = -0.25;
+      targetLeftElbowX = -0.12;
+      targetRightArmX = -0.32 + Math.cos(t * 4.2) * 0.14;
+      targetRightArmZ = -0.16;
+      targetRightElbowX = -0.78;
+      targetHeadY = headLookYaw || -0.34;
+    } else {
+      targetRightArmZ = -1.48 - Math.sin(t * 3.8) * 0.07;
+      targetRightArmX = -0.25;
+      targetRightElbowX = -0.12;
+      targetLeftArmX = -0.32 + Math.sin(t * 4.2) * 0.14;
+      targetLeftArmZ = 0.16;
+      targetLeftElbowX = -0.78;
+      targetHeadY = headLookYaw || 0.34;
+    }
+    targetHeadX = Math.sin(t * 5.2) * 0.05;
   } else if (isSpeaking) {
     // Gestes naturels de conversation avec coudes pliés
     targetLeftArmX = -0.45 + Math.sin(t * 4.8) * 0.18;
@@ -3279,7 +3399,7 @@ function updateCharacterAnimation(parts, anim, opts, elapsed, dt) {
   parts.bodyPivot.rotation.z += (targetBodySwayZ - parts.bodyPivot.rotation.z) * lerpK;
 
   if (parts.skirtMesh) {
-    const skirtLift = (pose === 'sit-book' || pose === 'sit-phone' || pose === 'cycle' || pose === 'moto') ? -0.42 : 0;
+    const skirtLift = (pose === 'sit-book' || pose === 'sit-phone' || pose === 'sit-desk' || pose === 'cycle' || pose === 'moto') ? -0.42 : 0;
     parts.skirtMesh.rotation.x += (skirtLift - parts.skirtMesh.rotation.x) * lerpK;
   }
 
@@ -3330,8 +3450,8 @@ function updateCharacterAnimation(parts, anim, opts, elapsed, dt) {
       // Sourcils relevés chaleureusement lors du salut
       browLift = 0.022 + Math.sin(elapsed * 6.0) * 0.004;
       browTiltDelta = 0.09;
-    } else if (pose === 'sit-book' || pose === 'sit-phone' || pose === 'stand-phone' || pose === 'cycle' || pose === 'moto') {
-      // Regard concentré (lecture, smartphone, conduite)
+    } else if (pose === 'sit-book' || pose === 'sit-phone' || pose === 'stand-phone' || pose === 'sit-desk' || pose === 'cycle' || pose === 'moto') {
+      // Regard concentré (lecture, smartphone, bureau, conduite)
       browLift = -0.011;
       browTiltDelta = -0.11;
     } else if (isListening) {
@@ -3511,6 +3631,11 @@ function createBuildingMesh(loc) {
     const bench = new THREE.Mesh(new THREE.BoxGeometry(3.8, 0.35, 0.65), doorMat);
     bench.position.set(-0.3, 0.56, -0.5);
     b.add(bench);
+
+    // Horloge murale lisible sur l'abribus (Unité 5 : "It's seven o'clock in the morning")
+    const busClock = createWallClockMesh(7, 0, 0.42);
+    busClock.position.set(1.65, 2.02, -0.94);
+    b.add(busClock);
 
     const billPostL = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.08, 3.6, 6), darkMat);
     billPostL.position.set(3.4, 1.8, 0.4);
@@ -3723,12 +3848,31 @@ function createBuildingMesh(loc) {
       b.add(win);
     });
 
+    const chairMat = createToonMaterial(0x1e4d7b);
+    const cupMat = new THREE.MeshLambertMaterial({ color: 0xfef08a });
     [-1.4, 1.4].forEach(tx => {
+      const tz = d / 2 + 1.35;
       const tbl = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 0.08, 8), creamMat);
-      tbl.position.set(tx, 0.74, d / 2 + 1.35);
+      tbl.position.set(tx, 0.74, tz);
       const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 0.74, 6), darkMat);
-      leg.position.set(tx, 0.37, d / 2 + 1.35);
-      b.add(tbl, leg);
+      leg.position.set(tx, 0.37, tz);
+      // Verres / tasses sur la table de terrasse
+      const cup1 = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.04, 0.12, 6), cupMat);
+      cup1.position.set(tx - 0.16, 0.84, tz - 0.08);
+      const cup2 = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.04, 0.12, 6), bfRedMat);
+      cup2.position.set(tx + 0.18, 0.84, tz + 0.10);
+      b.add(tbl, leg, cup1, cup2);
+
+      // Chaises de terrasse de chaque côté
+      [-0.78, 0.78].forEach(cxOff => {
+        const seat = new THREE.Mesh(new THREE.BoxGeometry(0.40, 0.07, 0.38), chairMat);
+        seat.position.set(tx + cxOff, 0.44, tz);
+        const back = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.44, 0.38), chairMat);
+        back.position.set(tx + cxOff + (cxOff < 0 ? -0.17 : 0.17), 0.66, tz);
+        const cLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.42, 6), darkMat);
+        cLeg.position.set(tx + cxOff, 0.21, tz);
+        b.add(seat, back, cLeg);
+      });
     });
 
     const moto = createMotorbike(0x0f766e, -0.5);
@@ -3927,8 +4071,24 @@ function buildAllLocationsAndNPCs() {
     const building = createBuildingMesh(loc);
     building.position.set(loc.buildingPos.x, 0, loc.buildingPos.z);
     building.rotation.y = loc.buildingRotY || 0;
+    if (INTERIOR_UNITS.has(loc.unit)) {
+      building.traverse(obj => {
+        if (obj.isMesh) {
+          obj.userData = { ...(obj.userData || {}), npcId: loc.id };
+          clickableMeshes.push(obj);
+        }
+      });
+    }
     scene.add(building);
     registerBuildingCollider(loc);
+
+    // Position de la porte d'entrée en coordonnées monde (détection d'approche pour entrer)
+    const rotY = loc.buildingRotY || 0;
+    const localDoorZ = loc.buildingType === 'plaza' ? 1.8 : 2.55;
+    const doorPos = {
+      x: loc.buildingPos.x + Math.sin(rotY) * localDoorZ,
+      z: loc.buildingPos.z + Math.cos(rotY) * localDoorZ
+    };
 
     const ring = new THREE.Mesh(
       new THREE.RingGeometry(0.92, 1.28, 20),
@@ -3969,6 +4129,7 @@ function buildAllLocationsAndNPCs() {
       parts: npc.parts,
       anim: createAnimState(idx * 0.9),
       baseRotY,
+      doorPos,
       ring,
       labelEl,
       phase: idx * 0.9
@@ -4720,6 +4881,1360 @@ function resolveVehicleCollisions(pos, radius = PLAYER_RADIUS) {
 }
 
 /* ===========================================================================
+   7D. SCÈNES INTÉRIEURES 3D (DIORAMAS OUVERTS STYLE DUOLINGO — UNITÉS 1,2,4,7,8)
+   =========================================================================== */
+function createInteriorCanvasTexture(w, h, drawFn, repeatX = 1, repeatY = 1) {
+  const tex = makeProceduralCanvasTexture(w, h, drawFn, repeatX, repeatY);
+  if (tex) interiorState.disposableTextures.push(tex);
+  return tex;
+}
+
+function createWallClockMesh(hour = 7, minute = 0, radius = 0.34, trackDisposable = false) {
+  const clockGroup = new THREE.Group();
+  const rim = new THREE.Mesh(
+    new THREE.CylinderGeometry(radius, radius, 0.08, 18),
+    new THREE.MeshLambertMaterial({ color: 0x1e293b })
+  );
+  rim.rotation.x = Math.PI / 2;
+  clockGroup.add(rim);
+
+  const faceTex = makeProceduralCanvasTexture(128, 128, (ctx, w, h) => {
+    const cx = w / 2;
+    const cy = h / 2;
+    const r = w * 0.44;
+    ctx.fillStyle = '#fffdf7';
+    ctx.beginPath();
+    ctx.arc(cx, cy, r + 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Repères des heures
+    ctx.strokeStyle = '#334155';
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * Math.PI * 2 - Math.PI / 2;
+      const inner = i % 3 === 0 ? r * 0.72 : r * 0.82;
+      ctx.lineWidth = i % 3 === 0 ? 4 : 2;
+      ctx.beginPath();
+      ctx.moveTo(cx + Math.cos(a) * inner, cy + Math.sin(a) * inner);
+      ctx.lineTo(cx + Math.cos(a) * (r * 0.94), cy + Math.sin(a) * (r * 0.94));
+      ctx.stroke();
+    }
+
+    // Aiguille des heures
+    const hAngle = (((hour % 12) + minute / 60) / 12) * Math.PI * 2 - Math.PI / 2;
+    ctx.strokeStyle = '#1f2937';
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + Math.cos(hAngle) * (r * 0.52), cy + Math.sin(hAngle) * (r * 0.52));
+    ctx.stroke();
+
+    // Aiguille des minutes
+    const mAngle = (minute / 60) * Math.PI * 2 - Math.PI / 2;
+    ctx.strokeStyle = '#1cb0f6';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + Math.cos(mAngle) * (r * 0.76), cy + Math.sin(mAngle) * (r * 0.76));
+    ctx.stroke();
+
+    ctx.fillStyle = '#ff9600';
+    ctx.beginPath();
+    ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+    ctx.fill();
+  }, 1, 1);
+
+  if (faceTex && trackDisposable) {
+    interiorState.disposableTextures.push(faceTex);
+  }
+
+  const face = new THREE.Mesh(
+    new THREE.CircleGeometry(radius * 0.88, 18),
+    faceTex ? new THREE.MeshBasicMaterial({ map: faceTex }) : new THREE.MeshBasicMaterial({ color: 0xffffff })
+  );
+  face.position.z = 0.046;
+  clockGroup.add(face);
+  return clockGroup;
+}
+
+function getLaylaPortraitSVG() {
+  return `
+    <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="64" height="64" rx="32" fill="#FDE8F3" />
+      <circle cx="32" cy="56" r="19" fill="#EC4899" />
+      <circle cx="32" cy="28" r="14" fill="#8C583A" />
+      <path d="M18 26C18 16.5 24.5 11.5 32 11.5C39.5 11.5 46 16.5 46 26C43 22 39 20 32 20C25 20 21 22 18 26Z" fill="#1F1A17" />
+      <circle cx="43" cy="17" r="6" fill="#1F1A17" />
+      <circle cx="27" cy="28" r="2.1" fill="#1F1A17" />
+      <circle cx="37" cy="28" r="2.1" fill="#1F1A17" />
+      <path d="M27.5 34C29.5 36.2 34.5 36.2 36.5 34" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" />
+    </svg>
+  `;
+}
+
+function createInteriorHighlightRing(radius = 0.42) {
+  const ring = new THREE.Mesh(
+    new THREE.RingGeometry(radius * 0.72, radius, 20),
+    new THREE.MeshBasicMaterial({
+      color: 0xffc800,
+      transparent: true,
+      opacity: 0.88,
+      side: THREE.DoubleSide
+    })
+  );
+  ring.rotation.x = -Math.PI / 2;
+  ring.visible = false;
+  return ring;
+}
+
+function createInteriorWindow(width = 2.2, height = 1.65, showTreeOutside = false, withCurtains = false, curtainColor = 0xea580c) {
+  const win = new THREE.Group();
+  const frameMat = createToonMaterial(0xffffff);
+  const skyTex = createInteriorCanvasTexture(128, 128, (ctx, w, h) => {
+    const grad = ctx.createLinearGradient(0, 0, 0, h);
+    grad.addColorStop(0, '#60b6f2');
+    grad.addColorStop(0.65, '#bae6fd');
+    grad.addColorStop(1, '#fde6b8');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+
+    // Soleil doux
+    ctx.fillStyle = '#fff5b8';
+    ctx.beginPath();
+    ctx.arc(w * 0.78, h * 0.24, 15, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (showTreeOutside) {
+      // Silhouette d'arbres verts & toits de Ouagadougou à l'extérieur
+      ctx.fillStyle = '#d99862';
+      ctx.fillRect(0, h * 0.76, w, h * 0.24);
+      ctx.fillStyle = '#3b7d3c';
+      ctx.beginPath();
+      ctx.arc(w * 0.28, h * 0.68, 22, 0, Math.PI * 2);
+      ctx.arc(w * 0.56, h * 0.72, 18, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#6b4226';
+      ctx.fillRect(w * 0.26, h * 0.72, 6, 20);
+    } else {
+      // Nuage léger
+      ctx.fillStyle = 'rgba(255,255,255,0.82)';
+      ctx.beginPath();
+      ctx.arc(w * 0.30, h * 0.34, 12, 0, Math.PI * 2);
+      ctx.arc(w * 0.42, h * 0.32, 15, 0, Math.PI * 2);
+      ctx.arc(w * 0.54, h * 0.35, 11, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }, 1, 1);
+
+  const outerFrame = new THREE.Mesh(new THREE.BoxGeometry(width + 0.18, height + 0.18, 0.12), frameMat);
+  const pane = new THREE.Mesh(
+    new THREE.PlaneGeometry(width, height),
+    skyTex ? new THREE.MeshBasicMaterial({ map: skyTex }) : new THREE.MeshBasicMaterial({ color: 0xbae6fd })
+  );
+  pane.position.z = 0.068;
+
+  const mullionV = new THREE.Mesh(new THREE.BoxGeometry(0.06, height, 0.06), frameMat);
+  mullionV.position.z = 0.075;
+  const mullionH = new THREE.Mesh(new THREE.BoxGeometry(width, 0.06, 0.06), frameMat);
+  mullionH.position.z = 0.075;
+  const sill = new THREE.Mesh(new THREE.BoxGeometry(width + 0.32, 0.10, 0.24), frameMat);
+  sill.position.set(0, -height / 2 - 0.08, 0.06);
+
+  win.add(outerFrame, pane, mullionV, mullionH, sill);
+
+  if (withCurtains) {
+    const curtainMat = createToonMaterial(curtainColor);
+    const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, width + 0.72, 8), createToonMaterial(0x475569));
+    rod.rotation.z = Math.PI / 2;
+    rod.position.set(0, height / 2 + 0.22, 0.14);
+    win.add(rod);
+
+    [-width / 2 - 0.12, width / 2 + 0.12].forEach(cx => {
+      const drape = new THREE.Mesh(new THREE.BoxGeometry(0.36, height + 0.42, 0.12), curtainMat);
+      drape.position.set(cx, -0.02, 0.14);
+      win.add(drape);
+    });
+  }
+
+  return win;
+}
+
+function createSimpleChair(seatColor = 0xd99b52, frameColor = 0x475569) {
+  const chair = new THREE.Group();
+  const seatMat = createToonMaterial(seatColor);
+  const legMat = createToonMaterial(frameColor);
+
+  const seat = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.07, 0.54), seatMat);
+  seat.position.y = 0.48;
+  seat.castShadow = true;
+  chair.add(seat);
+
+  const back = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.54, 0.07), seatMat);
+  back.position.set(0, 0.78, -0.24);
+  back.castShadow = true;
+  chair.add(back);
+
+  [[-0.22, -0.22], [0.22, -0.22], [-0.22, 0.22], [0.22, 0.22]].forEach(([lx, lz]) => {
+    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.028, 0.48, 6), legMat);
+    leg.position.set(lx, 0.24, lz);
+    chair.add(leg);
+  });
+
+  return chair;
+}
+
+function createInteriorDioramaShell(opts = {}) {
+  const {
+    size = 8.4,
+    wallHeight = 4.35,
+    wallColor = 0xfff7e8,
+    accentWallColor = 0xf4ead8,
+    plinthColor = 0xd6c3a5,
+    floorDrawFn = null
+  } = opts;
+
+  const shell = new THREE.Group();
+  const half = size / 2;
+
+  // Socle épais style diorama Duolingo (donne l'effet maquette flottante chaleureuse)
+  const plinth = new THREE.Mesh(
+    new THREE.BoxGeometry(size + 0.36, 0.34, size + 0.36),
+    createToonMaterial(plinthColor)
+  );
+  plinth.position.y = -0.17;
+  shell.add(plinth);
+
+  const floorTex = floorDrawFn ? createInteriorCanvasTexture(256, 256, floorDrawFn, 4, 4) : null;
+  const floorMat = floorTex
+    ? new THREE.MeshLambertMaterial({ map: floorTex })
+    : new THREE.MeshLambertMaterial({ color: 0xf4e8d4 });
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(size, size), floorMat);
+  floor.rotation.x = -Math.PI / 2;
+  floor.position.y = 0.005;
+  floor.receiveShadow = true;
+  shell.add(floor);
+
+  const wallThick = 0.22;
+  const backWallMat = createToonMaterial(wallColor);
+  const leftWallMat = createToonMaterial(accentWallColor);
+  const trimMat = createToonMaterial(0xd9b88c);
+
+  // Mur du fond (z = -half)
+  const backWall = new THREE.Mesh(new THREE.BoxGeometry(size + wallThick, wallHeight, wallThick), backWallMat);
+  backWall.position.set(-wallThick / 2, wallHeight / 2, -half - wallThick / 2);
+  backWall.receiveShadow = true;
+  shell.add(backWall);
+
+  // Mur gauche (x = -half) — angle ouvert vers la caméra avant-droite
+  const leftWall = new THREE.Mesh(new THREE.BoxGeometry(wallThick, wallHeight, size + wallThick), leftWallMat);
+  leftWall.position.set(-half - wallThick / 2, wallHeight / 2, -wallThick / 2);
+  leftWall.receiveShadow = true;
+  shell.add(leftWall);
+
+  // Plinthes nettes en bas des deux murs
+  const baseBack = new THREE.Mesh(new THREE.BoxGeometry(size, 0.16, 0.06), trimMat);
+  baseBack.position.set(0, 0.08, -half + 0.03);
+  const baseLeft = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.16, size), trimMat);
+  baseLeft.position.set(-half + 0.03, 0.08, 0);
+  shell.add(baseBack, baseLeft);
+
+  return shell;
+}
+
+function registerInteriorProp(propsMap, key, group, ringRadius = 0.42, ringY = 0.02) {
+  const ring = createInteriorHighlightRing(ringRadius);
+  ring.position.set(group.position.x, ringY, group.position.z);
+  propsMap[key] = {
+    group,
+    ring,
+    baseY: group.position.y
+  };
+  return ring;
+}
+
+/**
+ * Génère le diorama intérieur 3D léger adapté à l'unité officielle (Unités 1, 2, 4, 7 ou 8).
+ * Retourne { root, actors: { npc, player, extra? }, props, meta }.
+ */
+function buildInteriorScene(unitNumber) {
+  const loc = NEIGHBORHOOD_DATA.find(n => n.unit === unitNumber) || NEIGHBORHOOD_DATA[0];
+  const meta = INTERIOR_META[unitNumber] || INTERIOR_META[1];
+  const root = new THREE.Group();
+  const actors = {};
+  const props = {};
+
+  const addActor = (roleKey, cfg, isPlayer, x, y, z, rotY, pose = 'default') => {
+    const built = createCharacterMesh(cfg || {}, isPlayer);
+    built.group.position.set(x, y, z);
+    built.group.rotation.y = rotY;
+    root.add(built.group);
+    actors[roleKey] = {
+      group: built.group,
+      parts: built.parts,
+      anim: createAnimState(roleKey === 'player' ? 0.5 : roleKey === 'extra' ? 1.4 : 0.1),
+      baseRotY: rotY,
+      defaultPose: pose
+    };
+    return actors[roleKey];
+  };
+
+  if (unitNumber === 1) {
+    // === UNITÉ 1 : SALLE DE CLASSE (Moussa + Joueur + 3e camarade Layla) ===
+    const shell = createInteriorDioramaShell({
+      size: 8.6,
+      wallHeight: 4.35,
+      wallColor: 0xfff8e7,
+      accentWallColor: 0xf4edd8,
+      plinthColor: 0xd4be9a,
+      floorDrawFn: (ctx, w, h) => {
+        ctx.fillStyle = '#f5ede0';
+        ctx.fillRect(0, 0, w, h);
+        ctx.strokeStyle = 'rgba(175, 152, 122, 0.35)';
+        ctx.lineWidth = 2;
+        for (let i = 0; i <= w; i += 64) {
+          ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, h); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(w, i); ctx.stroke();
+        }
+      }
+    });
+    root.add(shell);
+
+    // Tableau de classe au mur du fond ("Welcome to English Class")
+    const boardGroup = new THREE.Group();
+    const boardFrame = new THREE.Mesh(new THREE.BoxGeometry(4.4, 1.85, 0.10), createToonMaterial(0xa46633));
+    const boardTex = createInteriorCanvasTexture(512, 220, (ctx, w, h) => {
+      ctx.fillStyle = '#1f5a3d';
+      ctx.fillRect(0, 0, w, h);
+      ctx.strokeStyle = 'rgba(255,255,255,0.14)';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(10, 10, w - 20, h - 20);
+      ctx.fillStyle = '#fffdf7';
+      ctx.font = 'bold 34px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Welcome to English Class', w / 2, 74);
+      ctx.fillStyle = '#fde68a';
+      ctx.font = 'bold 22px sans-serif';
+      ctx.fillText("Unit 1 • What's your name?", w / 2, 122);
+      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      ctx.font = '18px sans-serif';
+      ctx.fillText("Hi! My name is...  •  Nice to meet you!", w / 2, 168);
+    }, 1, 1);
+    const boardFace = new THREE.Mesh(
+      new THREE.PlaneGeometry(4.15, 1.62),
+      boardTex ? new THREE.MeshBasicMaterial({ map: boardTex }) : createToonMaterial(0x1f5a3d)
+    );
+    boardFace.position.z = 0.056;
+    const chalkLedge = new THREE.Mesh(new THREE.BoxGeometry(4.35, 0.08, 0.20), createToonMaterial(0x8a5226));
+    chalkLedge.position.set(0, -0.94, 0.08);
+    const chalk = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.18, 6), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+    chalk.rotation.z = Math.PI / 2;
+    chalk.position.set(-0.6, -0.88, 0.12);
+    const duster = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.07, 0.10), createToonMaterial(0xf59e0b));
+    duster.position.set(0.9, -0.87, 0.12);
+    boardGroup.add(boardFrame, boardFace, chalkLedge, chalk, duster);
+    boardGroup.position.set(0.2, 2.35, -4.22);
+    root.add(boardGroup);
+
+    // Fenêtre lumineuse sur le mur gauche
+    const classWin = createInteriorWindow(2.4, 1.75, true, false);
+    classWin.rotation.y = Math.PI / 2;
+    classWin.position.set(-4.22, 2.35, -0.5);
+    root.add(classWin);
+
+    // 3 bureaux scolaires et 3 chaises (dont le bureau de Layla à l'arrière-gauche)
+    const buildDeskSet = (dx, dz, rotY = 0, bookColor = 0x1cb0f6) => {
+      const desk = new THREE.Group();
+      const top = new THREE.Mesh(new THREE.BoxGeometry(1.38, 0.09, 0.82), createToonMaterial(0xd99b52));
+      top.position.y = 0.82;
+      top.castShadow = true;
+      top.receiveShadow = true;
+      desk.add(top);
+
+      const frameMat = createToonMaterial(0x475569);
+      [[-0.58, -0.32], [0.58, -0.32], [-0.58, 0.32], [0.58, 0.32]].forEach(([lx, lz]) => {
+        const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.032, 0.82, 6), frameMat);
+        leg.position.set(lx, 0.41, lz);
+        desk.add(leg);
+      });
+
+      const notebook = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.03, 0.24), createToonMaterial(bookColor));
+      notebook.position.set(-0.22, 0.88, 0.04);
+      notebook.rotation.y = 0.12;
+      const pen = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.22, 6), createToonMaterial(0xef4444));
+      pen.rotation.z = Math.PI / 2;
+      pen.rotation.y = -0.3;
+      pen.position.set(0.18, 0.88, 0.08);
+      desk.add(notebook, pen);
+
+      const chair = createSimpleChair(0xc88a42, 0x475569);
+      chair.position.set(0, 0, 0.56);
+      chair.rotation.y = Math.PI;
+      desk.add(chair);
+
+      desk.position.set(dx, 0, dz);
+      desk.rotation.y = rotY;
+      root.add(desk);
+      return desk;
+    };
+
+    // Bureau 1 (Layla à l'arrière-gauche), Bureau 2 (arrière-droit), Bureau 3 (avant-gauche)
+    buildDeskSet(-2.1, -1.75, 0.22, 0xec4899);
+    buildDeskSet(2.15, -1.85, -0.18, 0x58cc02);
+    buildDeskSet(-2.55, 1.35, 0.35, 0x1cb0f6);
+
+    // Personnages : Moussa et Joueur au premier plan, Layla un peu plus loin au bureau 1
+    addActor('npc', loc, false, -0.65, 0, 0.95, 1.05, 'default');
+    addActor('player', {}, true, 1.25, 0, 1.45, -1.85, 'default');
+    const laylaActor = addActor('extra', {
+      gender: 'female',
+      skinColor: 0x8c583a,
+      shirtColor: 0xec4899,
+      skirtColor: 0x9d174d,
+      trimColor: 0xfcd116,
+      hairStyle: 'bun',
+      headwrapColor: 0xfcd116,
+      outfitStyle: 'dress'
+    }, false, -1.95, 0.06, -1.20, 0.65, 'sit-desk');
+
+    const laylaRing = registerInteriorProp(props, 'layla', laylaActor.group, 0.88, 0.04);
+    root.add(laylaRing);
+
+  } else if (unitNumber === 2) {
+    // === UNITÉ 2 : BUREAU / CHAMBRE D'ÉTUDIANT (Aminata + Joueur + vrais objets surlignés) ===
+    const shell = createInteriorDioramaShell({
+      size: 8.4,
+      wallHeight: 4.3,
+      wallColor: 0xfaf5eb,
+      accentWallColor: 0xeef5fb,
+      plinthColor: 0xc9b497,
+      floorDrawFn: (ctx, w, h) => {
+        ctx.fillStyle = '#cfa270';
+        ctx.fillRect(0, 0, w, h);
+        ctx.strokeStyle = 'rgba(130, 86, 48, 0.34)';
+        ctx.lineWidth = 2;
+        for (let y = 0; y < h; y += 32) {
+          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+        }
+      }
+    });
+    root.add(shell);
+
+    // Tapis coloré sous la table basse
+    const rug = new THREE.Mesh(new THREE.BoxGeometry(3.8, 0.03, 3.0), createToonMaterial(0x1cb0f6));
+    rug.position.set(0.3, 0.02, 0.7);
+    const rugInner = new THREE.Mesh(new THREE.BoxGeometry(3.3, 0.035, 2.5), createToonMaterial(0xfef3c7));
+    rugInner.position.set(0.3, 0.024, 0.7);
+    root.add(rug, rugInner);
+
+    // Fenêtre lumineuse mur gauche
+    const roomWin = createInteriorWindow(2.1, 1.65, true, true, 0x1cb0f6);
+    roomWin.rotation.y = Math.PI / 2;
+    roomWin.position.set(-4.12, 2.35, -0.6);
+    root.add(roomWin);
+
+    // Horloge murale mur du fond
+    const wallClock = createWallClockMesh(9, 15, 0.36, true);
+    wallClock.position.set(-1.9, 3.05, -4.10);
+    root.add(wallClock);
+
+    // Bureau d'étudiant au mur du fond + chaise
+    const desk = new THREE.Group();
+    const deskTop = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.10, 1.15), createToonMaterial(0xa4683b));
+    deskTop.position.y = 0.86;
+    deskTop.castShadow = true;
+    deskTop.receiveShadow = true;
+    desk.add(deskTop);
+    const deskLegMat = createToonMaterial(0x6b3e22);
+    [[-1.12, -0.46], [1.12, -0.46], [-1.12, 0.46], [1.12, 0.46]].forEach(([lx, lz]) => {
+      const l = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.86, 0.10), deskLegMat);
+      l.position.set(lx, 0.43, lz);
+      desk.add(l);
+    });
+    desk.position.set(-0.3, 0, -3.15);
+    root.add(desk);
+
+    const deskChair = createSimpleChair(0x1cb0f6, 0x334155);
+    deskChair.position.set(-0.45, 0, -2.25);
+    deskChair.rotation.y = Math.PI + 0.18;
+    root.add(deskChair);
+
+    // Étagère murale avec livres colorés à droite du mur du fond
+    const shelf = new THREE.Group();
+    const shelfFrame = new THREE.Mesh(new THREE.BoxGeometry(1.45, 2.35, 0.48), createToonMaterial(0x9a6238));
+    shelfFrame.position.y = 1.18;
+    shelf.add(shelfFrame);
+    const bookColors = [0xef4444, 0x58cc02, 0xff9600, 0x1cb0f6, 0xa855f7];
+    [0.55, 1.18, 1.82].forEach((sy, r) => {
+      const plank = new THREE.Mesh(new THREE.BoxGeometry(1.38, 0.06, 0.50), createToonMaterial(0x7c4a26));
+      plank.position.set(0, sy, 0.02);
+      shelf.add(plank);
+      for (let b = 0; b < 4; b++) {
+        const bk = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.34 + (b % 2) * 0.06, 0.30), createToonMaterial(bookColors[(b + r) % bookColors.length]));
+        bk.position.set(-0.42 + b * 0.26, sy + 0.20, 0.05);
+        shelf.add(bk);
+      }
+    });
+    shelf.position.set(2.85, 0, -3.65);
+    root.add(shelf);
+
+    // Petite TV sur meuble bas côté mur gauche
+    const tvStand = new THREE.Group();
+    const tvCab = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.56, 1.35), createToonMaterial(0x785032));
+    tvCab.position.y = 0.28;
+    const tvBody = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.72, 1.12), createToonMaterial(0x1f2937));
+    tvBody.position.set(0.05, 0.98, 0);
+    const tvScreen = new THREE.Mesh(new THREE.PlaneGeometry(0.98, 0.58), new THREE.MeshBasicMaterial({ color: 0x38bdf8 }));
+    tvScreen.rotation.y = Math.PI / 2;
+    tvScreen.position.set(0.13, 0.98, 0);
+    tvStand.add(tvCab, tvBody, tvScreen);
+    tvStand.position.set(-3.55, 0, 1.35);
+    root.add(tvStand);
+
+    // Table basse au centre entre Aminata et le joueur
+    const coffeeTable = new THREE.Group();
+    const ctTop = new THREE.Mesh(new THREE.BoxGeometry(1.75, 0.09, 1.12), createToonMaterial(0xb77944));
+    ctTop.position.y = 0.56;
+    ctTop.castShadow = true;
+    ctTop.receiveShadow = true;
+    coffeeTable.add(ctTop);
+    [[-0.76, -0.44], [0.76, -0.44], [-0.76, 0.44], [0.76, 0.44]].forEach(([lx, lz]) => {
+      const l = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.032, 0.56, 6), deskLegMat);
+      l.position.set(lx, 0.28, lz);
+      coffeeTable.add(l);
+    });
+    coffeeTable.position.set(0.35, 0, 0.75);
+    root.add(coffeeTable);
+
+    // === OBJETS CONCRETS DU COURS UNIT 2 (avec surbrillance dynamique) ===
+    // 1. Portefeuille (wallet) sur la table basse
+    const wallet = new THREE.Group();
+    const wBody = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.06, 0.18), createToonMaterial(0x7c3f1c));
+    const wClasp = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.07, 0.06), createToonMaterial(0xfcd116));
+    wClasp.position.set(0, 0.005, 0.08);
+    wallet.add(wBody, wClasp);
+    wallet.position.set(-0.18, 0.64, 0.65);
+    wallet.rotation.y = 0.35;
+    root.add(wallet, registerInteriorProp(props, 'wallet', wallet, 0.30, 0.615));
+
+    // 2. Lunettes de soleil (sunglasses) sur la table basse
+    const sunglasses = new THREE.Group();
+    const lensMat = createToonMaterial(0x111827);
+    const frameS = createToonMaterial(0xf59e0b);
+    const lLens = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.06, 0.03), lensMat);
+    lLens.position.set(-0.08, 0.03, 0);
+    const rLens = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.06, 0.03), lensMat);
+    rLens.position.set(0.08, 0.03, 0);
+    const sBridge = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.02, 0.03), frameS);
+    sBridge.position.set(0, 0.04, 0);
+    const armL = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.02, 0.18), frameS);
+    armL.position.set(-0.13, 0.03, -0.09);
+    const armR = armL.clone();
+    armR.position.x = 0.13;
+    sunglasses.add(lLens, rLens, sBridge, armL, armR);
+    sunglasses.position.set(0.45, 0.62, 0.92);
+    sunglasses.rotation.y = -0.45;
+    root.add(sunglasses, registerInteriorProp(props, 'sunglasses', sunglasses, 0.30, 0.615));
+
+    // 3. Clés USB (flashdrives) sur la table basse
+    const flashdrives = new THREE.Group();
+    [[-0.08, 0x1cb0f6, 0.2], [0.09, 0xef4444, -0.35]].forEach(([fx, fcol, fy]) => {
+      const usb = new THREE.Group();
+      const cap = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.036, 0.065), createToonMaterial(fcol));
+      const tip = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.026, 0.048), createToonMaterial(0xd1d5db));
+      tip.position.x = 0.095;
+      usb.add(cap, tip);
+      usb.position.x = fx;
+      usb.rotation.y = fy;
+      flashdrives.add(usb);
+    });
+    flashdrives.position.set(0.86, 0.63, 0.56);
+    root.add(flashdrives, registerInteriorProp(props, 'flashdrives', flashdrives, 0.30, 0.615));
+
+    // 4. Sac à dos (bag) SOUS la table basse !
+    const bag = new THREE.Group();
+    const bagBody = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.42, 0.28), createToonMaterial(0xef4444));
+    bagBody.position.y = 0.21;
+    const bagPocket = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.20, 0.08), createToonMaterial(0xff9600));
+    bagPocket.position.set(0, 0.14, 0.16);
+    const bagHandle = new THREE.Mesh(new THREE.TorusGeometry(0.08, 0.02, 6, 10, Math.PI), createToonMaterial(0x1f2937));
+    bagHandle.position.set(0, 0.42, 0);
+    bag.add(bagBody, bagPocket, bagHandle);
+    bag.position.set(0.28, 0.04, 0.72);
+    bag.rotation.y = 0.28;
+    root.add(bag, registerInteriorProp(props, 'bag', bag, 0.45, 0.05));
+
+    // 5. Ordinateur portable ouvert (laptop) sur le bureau
+    const laptop = new THREE.Group();
+    const lapBase = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.035, 0.40), createToonMaterial(0x334155));
+    const lapScreen = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.38, 0.03), createToonMaterial(0x1e293b));
+    lapScreen.position.set(0, 0.19, -0.19);
+    lapScreen.rotation.x = -0.18;
+    const lapGlow = new THREE.Mesh(new THREE.PlaneGeometry(0.49, 0.31), new THREE.MeshBasicMaterial({ color: 0x93c5fd }));
+    lapGlow.position.set(0, 0.19, -0.17);
+    lapGlow.rotation.x = -0.18;
+    laptop.add(lapBase, lapScreen, lapGlow);
+    laptop.position.set(-0.55, 0.93, -3.12);
+    laptop.rotation.y = 0.18;
+    root.add(laptop, registerInteriorProp(props, 'laptop', laptop, 0.44, 0.92));
+
+    // 6. Cahier (notebook) sur le bureau
+    const notebook = new THREE.Group();
+    const nbCover = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.04, 0.28), createToonMaterial(0x58cc02));
+    const nbPages = new THREE.Mesh(new THREE.BoxGeometry(0.33, 0.046, 0.25), createToonMaterial(0xffffff));
+    notebook.add(nbCover, nbPages);
+    notebook.position.set(0.22, 0.93, -2.98);
+    notebook.rotation.y = -0.22;
+    root.add(notebook, registerInteriorProp(props, 'notebook', notebook, 0.32, 0.92));
+
+    // 7. Trousseau de clés (keys) sur le bureau
+    const keys = new THREE.Group();
+    const kRing = new THREE.Mesh(new THREE.TorusGeometry(0.055, 0.012, 6, 12), createToonMaterial(0xfcd116));
+    kRing.rotation.x = Math.PI / 2;
+    const key1 = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.018, 0.032), createToonMaterial(0xfcd116));
+    key1.position.set(0.09, 0, 0.02);
+    const key2 = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.018, 0.032), createToonMaterial(0xd1d5db));
+    key2.position.set(0.07, 0, -0.05);
+    key2.rotation.y = 0.45;
+    keys.add(kRing, key1, key2);
+    keys.position.set(0.68, 0.93, -2.88);
+    root.add(keys, registerInteriorProp(props, 'keys', keys, 0.26, 0.92));
+
+    // Personnages : Aminata et Joueur de part et d'autre de la table basse
+    addActor('npc', loc, false, -0.95, 0, -0.15, 0.85, 'default');
+    addActor('player', {}, true, 1.55, 0, 1.55, -2.15, 'default');
+
+  } else if (unitNumber === 4) {
+    // === UNITÉ 4 : BOUTIQUE FASO DAN FANI (Fatimata + Joueur) ===
+    const shell = createInteriorDioramaShell({
+      size: 8.6,
+      wallHeight: 4.35,
+      wallColor: 0xfff5e4,
+      accentWallColor: 0xfae7cf,
+      plinthColor: 0xc88d5d,
+      floorDrawFn: (ctx, w, h) => {
+        ctx.fillStyle = '#e7c9a7';
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = 'rgba(186, 108, 62, 0.22)';
+        for (let y = 0; y < h; y += 64) {
+          for (let x = 0; x < w; x += 64) {
+            if (((x + y) / 64) % 2 === 0) ctx.fillRect(x, y, 64, 64);
+          }
+        }
+      }
+    });
+    root.add(shell);
+
+    // Grande fenêtre vitrine lumineuse montrant l'extérieur (mur gauche)
+    const shopWin = createInteriorWindow(3.2, 2.25, true, false);
+    shopWin.rotation.y = Math.PI / 2;
+    shopWin.position.set(-4.22, 2.15, 0.15);
+    root.add(shopWin);
+
+    // Comptoir de boutique avec tissus Faso Dan Fani pliés
+    const counter = new THREE.Group();
+    const cBody = new THREE.Mesh(new THREE.BoxGeometry(2.6, 1.02, 0.86), createToonMaterial(0xa45e36));
+    cBody.position.y = 0.51;
+    cBody.castShadow = true;
+    const cTop = new THREE.Mesh(new THREE.BoxGeometry(2.74, 0.10, 0.96), createToonMaterial(0xfef3c7));
+    cTop.position.y = 1.05;
+    // Piles de pagnes Faso Dan Fani sur le comptoir
+    [0xd62828, 0xfcd116, 0x146334].forEach((fc, idx) => {
+      const stack = new THREE.Mesh(
+        new THREE.BoxGeometry(0.46, 0.12, 0.34),
+        new THREE.MeshLambertMaterial({ color: fc, map: SCENE_TEX.fasoFabric || null })
+      );
+      stack.position.set(-0.65, 1.15 + idx * 0.12, 0);
+      counter.add(stack);
+    });
+    // Caisse stylisée
+    const register = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.26, 0.34), createToonMaterial(0x1e293b));
+    register.position.set(0.65, 1.23, -0.05);
+    counter.add(cBody, cTop, register);
+    counter.position.set(-1.35, 0, -2.55);
+    root.add(counter);
+
+    // Portant de vêtements (manteaux, imperméable raincoat, vestes, pagnes colorés)
+    const rack = new THREE.Group();
+    const metalMat = createToonMaterial(0x475569);
+    const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.032, 2.45, 8), metalMat);
+    bar.rotation.z = Math.PI / 2;
+    bar.position.y = 1.88;
+    [-1.18, 1.18].forEach(rx => {
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.04, 1.90, 8), metalMat);
+      post.position.set(rx, 0.95, 0);
+      const foot = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.06, 0.72), metalMat);
+      foot.position.set(rx, 0.03, 0);
+      rack.add(post, foot);
+    });
+    rack.add(bar);
+    rack.position.set(1.85, 0, -3.15);
+    root.add(rack);
+
+    // Imperméable jaune vif (raincoat) suspendu sur le portant
+    const raincoat = new THREE.Group();
+    const rcBody = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.28, 0.96, 8), createToonMaterial(0xfacc15));
+    const rcCollar = new THREE.Mesh(new THREE.TorusGeometry(0.14, 0.03, 6, 10), createToonMaterial(0x1e4d7b));
+    rcCollar.rotation.x = Math.PI / 2;
+    rcCollar.position.y = 0.48;
+    raincoat.add(rcBody, rcCollar);
+    raincoat.position.set(1.05, 1.32, -3.15);
+    root.add(raincoat, registerInteriorProp(props, 'raincoat', raincoat, 0.55, 0.04));
+
+    // Veste bleue/rouge (jacket) suspendue sur le portant
+    const jacket = new THREE.Group();
+    const jkBody = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.76, 0.18), createToonMaterial(0x1cb0f6));
+    const jkStripe = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.14, 0.19), createToonMaterial(0xef4444));
+    jkStripe.position.y = -0.18;
+    jacket.add(jkBody, jkStripe);
+    jacket.position.set(1.82, 1.40, -3.15);
+    root.add(jacket, registerInteriorProp(props, 'jacket', jacket, 0.55, 0.04));
+
+    // Pagnes Faso Dan Fani suspendus à côté
+    [0xd62828, 0x146334].forEach((pc, i) => {
+      const cloth = new THREE.Mesh(
+        new THREE.BoxGeometry(0.32, 0.98, 0.08),
+        new THREE.MeshLambertMaterial({ color: pc, map: SCENE_TEX.fasoFabric || null })
+      );
+      cloth.position.set(2.42 + i * 0.38, 1.32, -3.15);
+      root.add(cloth);
+    });
+
+    // Étagère de baskets (sneakers) mur du fond à gauche
+    const sneakersGroup = new THREE.Group();
+    const sShelf = new THREE.Mesh(new THREE.BoxGeometry(1.55, 0.08, 0.45), createToonMaterial(0x8c5228));
+    sneakersGroup.add(sShelf);
+    [[ -0.45, 0xef4444 ], [ 0.0, 0x58cc02 ], [ 0.45, 0x1cb0f6 ]].forEach(([sx, scol]) => {
+      [-0.08, 0.08].forEach(pairOff => {
+        const shoe = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.11, 0.26), createToonMaterial(scol));
+        shoe.position.set(sx + pairOff, 0.11, 0.02);
+        const sole = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.04, 0.28), createToonMaterial(0xffffff));
+        sole.position.set(sx + pairOff, 0.05, 0.02);
+        sneakersGroup.add(shoe, sole);
+      });
+    });
+    sneakersGroup.position.set(-2.65, 1.48, -3.96);
+    root.add(sneakersGroup, registerInteriorProp(props, 'sneakers', sneakersGroup, 0.72, 0.04));
+
+    // Parapluie (umbrella) près de l'entrée avant-gauche
+    const umbrella = new THREE.Group();
+    const stand = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.18, 0.52, 10), createToonMaterial(0xb05936));
+    stand.position.y = 0.26;
+    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 1.02, 6), createToonMaterial(0x1f2937));
+    shaft.position.y = 0.62;
+    const canopy = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.56, 8), createToonMaterial(0xef4444));
+    canopy.rotation.x = Math.PI;
+    canopy.position.y = 0.58;
+    const hook = new THREE.Mesh(new THREE.TorusGeometry(0.07, 0.02, 6, 10, Math.PI), createToonMaterial(0xd99b52));
+    hook.position.set(0.06, 1.12, 0);
+    umbrella.add(stand, shaft, canopy, hook);
+    umbrella.position.set(-3.25, 0, 2.45);
+    root.add(umbrella, registerInteriorProp(props, 'umbrella', umbrella, 0.45, 0.04));
+
+    // Personnages : Fatimata + Joueur
+    addActor('npc', loc, false, -0.75, 0, -0.75, 0.75, 'default');
+    addActor('player', {}, true, 1.15, 0, 1.25, -2.25, 'default');
+
+  } else if (unitNumber === 7) {
+    // === UNITÉ 7 : SALON & CUISINE DE LA VILLA (Wendpanga + Joueur) ===
+    const shell = createInteriorDioramaShell({
+      size: 9.2,
+      wallHeight: 4.4,
+      wallColor: 0xfffaf0,
+      accentWallColor: 0xf7efe0,
+      plinthColor: 0xc9b08e,
+      floorDrawFn: (ctx, w, h) => {
+        // Moitié gauche : parquet chaud (salon), moitié droite : carrelage crème (cuisine)
+        ctx.fillStyle = '#d3a574';
+        ctx.fillRect(0, 0, w * 0.5, h);
+        ctx.fillStyle = '#f2ebe0';
+        ctx.fillRect(w * 0.5, 0, w * 0.5, h);
+        ctx.strokeStyle = 'rgba(140, 110, 82, 0.28)';
+        ctx.lineWidth = 2;
+        for (let y = 0; y < h; y += 32) {
+          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+        }
+        for (let x = w * 0.5; x < w; x += 32) {
+          ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+        }
+      }
+    });
+    root.add(shell);
+
+    // --- COIN SALON (gauche / avant-gauche) ---
+    // Grande fenêtre avec rideaux sur le mur gauche
+    const livingWin = createInteriorWindow(2.6, 1.85, true, true, 0xea580c);
+    livingWin.rotation.y = Math.PI / 2;
+    livingWin.position.set(-4.52, 2.35, 0.25);
+    root.add(livingWin);
+
+    // Canapé confortable avec coussins colorés (sofa)
+    const sofa = new THREE.Group();
+    const sofaMat = createToonMaterial(0x1e6091);
+    const sBase = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.44, 2.25), sofaMat);
+    sBase.position.y = 0.26;
+    sBase.castShadow = true;
+    const sBack = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.72, 2.25), sofaMat);
+    sBack.position.set(-0.36, 0.68, 0);
+    const arm1 = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.56, 0.24), sofaMat);
+    arm1.position.set(0, 0.42, -1.04);
+    const arm2 = arm1.clone();
+    arm2.position.z = 1.04;
+    const cushion1 = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.32, 0.34), createToonMaterial(0xff9600));
+    cushion1.position.set(-0.14, 0.62, -0.62);
+    cushion1.rotation.z = -0.25;
+    const cushion2 = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.32, 0.34), createToonMaterial(0xfcd116));
+    cushion2.position.set(-0.14, 0.62, 0.62);
+    cushion2.rotation.z = -0.25;
+    sofa.add(sBase, sBack, arm1, arm2, cushion1, cushion2);
+    sofa.position.set(-3.45, 0, 0.35);
+    root.add(sofa, registerInteriorProp(props, 'sofa', sofa, 1.35, 0.04));
+
+    // Fauteuil assorti
+    const armchair = new THREE.Group();
+    const acBase = new THREE.Mesh(new THREE.BoxGeometry(0.86, 0.42, 0.86), createToonMaterial(0xd97706));
+    acBase.position.y = 0.25;
+    const acBack = new THREE.Mesh(new THREE.BoxGeometry(0.86, 0.64, 0.24), createToonMaterial(0xd97706));
+    acBack.position.set(0, 0.62, -0.34);
+    armchair.add(acBase, acBack);
+    armchair.position.set(-2.35, 0, -2.55);
+    armchair.rotation.y = 0.35;
+    root.add(armchair);
+
+    // Table basse du salon
+    const lTable = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.08, 1.35), createToonMaterial(0x9a6238));
+    lTable.position.set(-2.05, 0.48, 0.45);
+    const lLeg = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.44, 0.95), createToonMaterial(0x7c4a26));
+    lLeg.position.set(-2.05, 0.22, 0.45);
+    root.add(lTable, lLeg);
+
+    // Lampadaire sur pied avec halo lumineux chaud
+    const floorLamp = new THREE.Group();
+    const lampPole = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.045, 1.85, 8), createToonMaterial(0x475569));
+    lampPole.position.y = 0.92;
+    const lampBase = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.26, 0.06, 12), createToonMaterial(0x334155));
+    lampBase.position.y = 0.03;
+    const lampShade = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.30, 0.38, 12), createToonMaterial(0xfef3c7));
+    lampShade.position.y = 1.92;
+    const lampGlow = createGlowSprite(1.5, 0.58);
+    lampGlow.position.y = 1.88;
+    floorLamp.add(lampBase, lampPole, lampShade, lampGlow);
+    floorLamp.position.set(-3.75, 0, -2.95);
+    root.add(floorLamp);
+
+    // --- COIN CUISINE VISIBLE (fond-droit) ---
+    // Plan de travail + meubles de cuisine au mur du fond
+    const kCounter = new THREE.Group();
+    const kCab = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.96, 0.86), createToonMaterial(0xeae0cc));
+    kCab.position.y = 0.48;
+    const kTop = new THREE.Mesh(new THREE.BoxGeometry(3.48, 0.08, 0.92), createToonMaterial(0x64748b));
+    kTop.position.y = 0.99;
+    kCounter.add(kCab, kTop);
+    kCounter.position.set(1.95, 0, -3.85);
+    root.add(kCounter);
+
+    // Micro-ondes (microwave) posé sur le plan de travail
+    const microwave = new THREE.Group();
+    const mwBody = new THREE.Mesh(new THREE.BoxGeometry(0.76, 0.44, 0.48), createToonMaterial(0xf8fafc));
+    const mwGlass = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.30, 0.04), createToonMaterial(0x1e293b));
+    mwGlass.position.set(-0.08, 0, 0.23);
+    const mwPad = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.28, 0.04), createToonMaterial(0x38bdf8));
+    mwPad.position.set(0.24, 0, 0.23);
+    microwave.add(mwBody, mwGlass, mwPad);
+    microwave.position.set(1.25, 1.25, -3.82);
+    root.add(microwave, registerInteriorProp(props, 'microwave', microwave, 0.56, 1.05));
+
+    // Cafetière (coffeemaker) sur le plan de travail
+    const coffeemaker = new THREE.Group();
+    const cmBody = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.42, 0.28), createToonMaterial(0xd62828));
+    cmBody.position.y = 0.21;
+    const cmPot = new THREE.Mesh(new THREE.CylinderGeometry(0.10, 0.12, 0.20, 8), createToonMaterial(0x3b2314));
+    cmPot.position.set(0, 0.12, 0.09);
+    coffeemaker.add(cmBody, cmPot);
+    coffeemaker.position.set(2.55, 1.03, -3.80);
+    root.add(coffeemaker, registerInteriorProp(props, 'coffeemaker', coffeemaker, 0.38, 1.05));
+
+    // Horloge murale de la cuisine
+    const kClock = createWallClockMesh(10, 30, 0.34, true);
+    kClock.position.set(1.95, 2.88, -4.45);
+    root.add(kClock);
+
+    // Table de cuisine avec EXACTEMENT 4 CHAISES (Unité 7 : "There are four chairs in Tony's kitchen")
+    const kitchenTableGroup = new THREE.Group();
+    const ktTop = new THREE.Mesh(new THREE.BoxGeometry(1.75, 0.09, 1.25), createToonMaterial(0xc88a42));
+    ktTop.position.y = 0.80;
+    ktTop.castShadow = true;
+    kitchenTableGroup.add(ktTop);
+    const ktLegMat = createToonMaterial(0x7c4a26);
+    [[-0.75, -0.50], [0.75, -0.50], [-0.75, 0.50], [0.75, 0.50]].forEach(([lx, lz]) => {
+      const l = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.80, 6), ktLegMat);
+      l.position.set(lx, 0.40, lz);
+      kitchenTableGroup.add(l);
+    });
+    // 4 chaises autour de la table
+    [
+      [-0.48, -0.82, 0],
+      [0.48, -0.82, 0],
+      [-0.48, 0.82, Math.PI],
+      [0.48, 0.82, Math.PI]
+    ].forEach(([cx, cz, ry]) => {
+      const ch = createSimpleChair(0x58cc02, 0x475569);
+      ch.position.set(cx, 0, cz);
+      ch.rotation.y = ry;
+      kitchenTableGroup.add(ch);
+    });
+    kitchenTableGroup.position.set(2.05, 0, -1.25);
+    root.add(kitchenTableGroup, registerInteriorProp(props, 'chairs', kitchenTableGroup, 1.48, 0.04));
+
+    // Personnages : Wendpanga + Joueur au centre entre salon et cuisine
+    addActor('npc', loc, false, -0.55, 0, 1.35, 1.10, 'default');
+    addActor('player', {}, true, 1.45, 0, 1.85, -1.85, 'default');
+
+  } else {
+    // === UNITÉ 8 : ATELIER & BUREAU TECH (Awa + Joueur + Collègue au poste voisin) ===
+    const shell = createInteriorDioramaShell({
+      size: 8.6,
+      wallHeight: 4.35,
+      wallColor: 0xf4f7fb,
+      accentWallColor: 0xe6f0fa,
+      plinthColor: 0x94a3b8,
+      floorDrawFn: (ctx, w, h) => {
+        ctx.fillStyle = '#d7c3a8';
+        ctx.fillRect(0, 0, w, h);
+        ctx.strokeStyle = 'rgba(110, 96, 82, 0.25)';
+        ctx.lineWidth = 2;
+        for (let y = 0; y < h; y += 32) {
+          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+        }
+      }
+    });
+    root.add(shell);
+
+    // Grande fenêtre lumineuse mur gauche
+    const officeWin = createInteriorWindow(2.5, 1.85, true, false);
+    officeWin.rotation.y = Math.PI / 2;
+    officeWin.position.set(-4.22, 2.35, 0.2);
+    root.add(officeWin);
+
+    // Tableau de planning mural (mur du fond)
+    const schedGroup = new THREE.Group();
+    const schedFrame = new THREE.Mesh(new THREE.BoxGeometry(3.4, 1.55, 0.08), createToonMaterial(0x0e7490));
+    const schedTex = createInteriorCanvasTexture(420, 190, (ctx, w, h) => {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = '#0e7490';
+      ctx.fillRect(0, 0, w, 36);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 20px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('TEAM SCHEDULE • UNIT 8 JOBS', w / 2, 24);
+
+      const cols = ['#58cc02', '#1cb0f6', '#ff9600', '#a855f7'];
+      const labels = ['Chef', 'Cashier', 'Doctor', 'Lawyer'];
+      for (let i = 0; i < 4; i++) {
+        ctx.fillStyle = cols[i];
+        ctx.fillRect(18 + i * 98, 52, 86, 42);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 14px sans-serif';
+        ctx.fillText(labels[i], 61 + i * 98, 78);
+        ctx.fillStyle = '#e2e8f0';
+        ctx.fillRect(18 + i * 98, 106, 86, 62);
+      }
+    }, 1, 1);
+    const schedFace = new THREE.Mesh(
+      new THREE.PlaneGeometry(3.22, 1.38),
+      schedTex ? new THREE.MeshBasicMaterial({ map: schedTex }) : createToonMaterial(0xffffff)
+    );
+    schedFace.position.z = 0.048;
+    schedGroup.add(schedFrame, schedFace);
+    schedGroup.position.set(-0.35, 2.52, -4.22);
+    root.add(schedGroup);
+
+    // Étagères techniques (mur du fond à droite)
+    const techShelf = new THREE.Group();
+    const tsFrame = new THREE.Mesh(new THREE.BoxGeometry(1.5, 2.5, 0.52), createToonMaterial(0x334155));
+    tsFrame.position.y = 1.25;
+    techShelf.add(tsFrame);
+    [0.65, 1.35, 2.02].forEach((sy, idx) => {
+      const box1 = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.34, 0.34), createToonMaterial(idx === 0 ? 0x1cb0f6 : 0xff9600));
+      box1.position.set(-0.34, sy + 0.18, 0.08);
+      const box2 = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.24, 0.32), createToonMaterial(0x58cc02));
+      box2.position.set(0.32, sy + 0.14, 0.08);
+      techShelf.add(box1, box2);
+    });
+    techShelf.position.set(2.95, 0, -3.72);
+    root.add(techShelf);
+
+    // Helper poste de travail (bureau + écran PC + chaise ergonomique)
+    const buildTechDesk = (dx, dz, rotY = 0, dualScreen = true) => {
+      const dGroup = new THREE.Group();
+      const top = new THREE.Mesh(new THREE.BoxGeometry(2.15, 0.09, 1.05), createToonMaterial(0xf8fafc));
+      top.position.y = 0.84;
+      top.castShadow = true;
+      dGroup.add(top);
+      const legMat = createToonMaterial(0x334155);
+      [-0.95, 0.95].forEach(lx => {
+        const panel = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.84, 0.92), legMat);
+        panel.position.set(lx, 0.42, 0);
+        dGroup.add(panel);
+      });
+
+      const monitorOffsets = dualScreen ? [-0.36, 0.36] : [0];
+      monitorOffsets.forEach(mx => {
+        const mon = new THREE.Mesh(new THREE.BoxGeometry(0.64, 0.42, 0.05), createToonMaterial(0x1e293b));
+        mon.position.set(mx, 1.18, -0.24);
+        const scr = new THREE.Mesh(new THREE.PlaneGeometry(0.56, 0.34), new THREE.MeshBasicMaterial({ color: 0x38bdf8 }));
+        scr.position.set(mx, 1.18, -0.21);
+        const stand = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.08, 0.20, 6), legMat);
+        stand.position.set(mx, 0.94, -0.24);
+        dGroup.add(mon, scr, stand);
+      });
+
+      const kb = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.03, 0.20), createToonMaterial(0x1e293b));
+      kb.position.set(0, 0.90, 0.14);
+      dGroup.add(kb);
+
+      // Chaise ergonomique
+      const ergo = new THREE.Group();
+      const seat = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.09, 0.54), createToonMaterial(0x0e7490));
+      seat.position.y = 0.50;
+      const back = new THREE.Mesh(new THREE.BoxGeometry(0.54, 0.66, 0.09), createToonMaterial(0x0e7490));
+      back.position.set(0, 0.86, 0.24);
+      const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.46, 6), legMat);
+      stem.position.y = 0.25;
+      const wheels = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.06, 5), legMat);
+      wheels.position.y = 0.05;
+      ergo.add(seat, back, stem, wheels);
+      ergo.position.set(0, 0, 0.66);
+      dGroup.add(ergo);
+
+      dGroup.position.set(dx, 0, dz);
+      dGroup.rotation.y = rotY;
+      root.add(dGroup);
+      return dGroup;
+    };
+
+    // Grand bureau principal d'Awa (avant-gauche) + Poste voisin du Collègue (fond-gauche)
+    const mainDesk = buildTechDesk(-2.05, -2.55, 0.05, true);
+    const colleagueDesk = buildTechDesk(1.55, -1.75, -0.22, false);
+    root.add(registerInteriorProp(props, 'desk', mainDesk, 1.35, 0.04));
+
+    // Personnages : Awa + Joueur au premier plan, Collègue assis au poste voisin
+    addActor('npc', loc, false, -0.75, 0, 0.95, 1.05, 'default');
+    addActor('player', {}, true, 1.25, 0, 1.45, -1.95, 'default');
+    addActor('extra', {
+      gender: 'male',
+      skinColor: 0x6b3e22,
+      shirtColor: 0x1cb0f6,
+      trimColor: 0x0e7490,
+      pantsColor: 0x1e293b,
+      hairStyle: 'short',
+      accessory: 'glasses'
+    }, false, colleagueDesk.position.x + 0.14, 0.08, colleagueDesk.position.z + 0.60, Math.PI - 0.22, 'sit-desk');
+  }
+
+  return { root, actors, props, meta, loc };
+}
+
+function disposeInteriorScene() {
+  if (interiorState.root && scene) {
+    scene.remove(interiorState.root);
+
+    // Collecter les matériaux et textures partagés pour ne JAMAIS les libérer
+    const sharedMats = new Set(_toonMatCache.values());
+    if (_toonOutlineMat) sharedMats.add(_toonOutlineMat);
+    const sharedTex = new Set(Object.values(SCENE_TEX).filter(Boolean));
+
+    interiorState.root.traverse(obj => {
+      if (obj.geometry && typeof obj.geometry.dispose === 'function') {
+        obj.geometry.dispose();
+      }
+      if (obj.material) {
+        const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+        mats.forEach(mat => {
+          if (!mat || sharedMats.has(mat)) return;
+          if (mat.map && !sharedTex.has(mat.map) && typeof mat.map.dispose === 'function') {
+            mat.map.dispose();
+          }
+          if (typeof mat.dispose === 'function') mat.dispose();
+        });
+      }
+    });
+  }
+
+  interiorState.disposableTextures.forEach(tex => {
+    if (tex && typeof tex.dispose === 'function') tex.dispose();
+  });
+  interiorState.disposableTextures = [];
+
+  interiorState.active = false;
+  interiorState.unit = null;
+  interiorState.loc = null;
+  interiorState.root = null;
+  interiorState.actors = {};
+  interiorState.props = {};
+  interiorState.highlightedKeys.clear();
+  interiorState.cameraPos = null;
+  interiorState.cameraLook = null;
+
+  if (exteriorWorldGroup) exteriorWorldGroup.visible = true;
+  if (scene) {
+    if (exteriorBackground) scene.background = exteriorBackground;
+    scene.fog = exteriorFog || null;
+  }
+}
+
+function triggerSceneTransition(onMidpoint, instant = false) {
+  const veil = document.getElementById('scene-transition-veil');
+  if (instant || !veil) {
+    if (onMidpoint) onMidpoint();
+    return;
+  }
+  interiorState.transitioning = true;
+  veil.classList.add('is-active');
+  setTimeout(() => {
+    if (onMidpoint) onMidpoint();
+    setTimeout(() => {
+      veil.classList.remove('is-active');
+      interiorState.transitioning = false;
+    }, 55);
+  }, 210);
+}
+
+function enterInteriorScene(loc, onEntered) {
+  if (!scene || !INTERIOR_UNITS.has(loc.unit)) {
+    if (onEntered) onEntered();
+    return;
+  }
+
+  // Enregistrer le point de retour exact devant le bâtiment dans le quartier extérieur
+  if (!interiorState.active && playerGroup) {
+    const clearSpot = findClearStandPosition(loc, playerGroup.position);
+    interiorState.returnPos = { x: clearSpot.x, z: clearSpot.z };
+    interiorState.returnRotY = Math.atan2(0 - clearSpot.x, 2 - clearSpot.z);
+  } else if (interiorState.active) {
+    const clearSpot = findClearStandPosition(loc, { x: 0, z: 2 });
+    interiorState.returnPos = { x: clearSpot.x, z: clearSpot.z };
+    interiorState.returnRotY = Math.atan2(0 - clearSpot.x, 2 - clearSpot.z);
+  }
+
+  const mountDiorama = () => {
+    disposeInteriorScene();
+
+    if (exteriorWorldGroup) exteriorWorldGroup.visible = false;
+    const built = buildInteriorScene(loc.unit);
+
+    interiorState.active = true;
+    interiorState.unit = loc.unit;
+    interiorState.loc = loc;
+    interiorState.root = built.root;
+    interiorState.actors = built.actors;
+    interiorState.props = built.props;
+    interiorState.highlightedKeys.clear();
+
+    scene.background = new THREE.Color(built.meta.backdrop);
+    scene.fog = null;
+    scene.add(built.root);
+
+    const isMobilePortrait = window.innerWidth < 640 && window.innerHeight > window.innerWidth;
+    const camArr = isMobilePortrait ? built.meta.camMobile : built.meta.camDesktop;
+    const lookArr = built.meta.lookAt;
+    interiorState.cameraPos = new THREE.Vector3(camArr[0], camArr[1], camArr[2]);
+    interiorState.cameraLook = new THREE.Vector3(lookArr[0], lookArr[1], lookArr[2]);
+
+    if (camera) {
+      camera.position.copy(interiorState.cameraPos);
+      if (_camLookVec) _camLookVec.copy(interiorState.cameraLook);
+      camera.lookAt(lookArr[0], lookArr[1], lookArr[2]);
+    }
+
+    if (onEntered) onEntered();
+  };
+
+  triggerSceneTransition(mountDiorama, false);
+}
+
+function leaveInteriorScene(instant = false, onLeft = null) {
+  if (!interiorState.active) {
+    if (onLeft) onLeft();
+    return;
+  }
+
+  const returnPos = interiorState.returnPos ? { ...interiorState.returnPos } : null;
+  const returnRotY = interiorState.returnRotY || 0;
+
+  const unmountDiorama = () => {
+    disposeInteriorScene();
+    if (playerGroup && returnPos) {
+      playerGroup.position.set(returnPos.x, 0, returnPos.z);
+      playerGroup.rotation.y = returnRotY;
+      resolveCollisions(playerGroup.position, PLAYER_RADIUS, null);
+    }
+    if (onLeft) onLeft();
+  };
+
+  triggerSceneTransition(unmountDiorama, instant);
+}
+
+function updateInteriorHighlights(lineEn) {
+  if (!interiorState.active) return;
+  interiorState.highlightedKeys.clear();
+  const txt = String(lineEn || '').toLowerCase();
+
+  const rules = [
+    ['layla', /\b(layla|over there)\b/],
+    ['wallet', /\bwallet\b/],
+    ['sunglasses', /\bsunglasses\b/],
+    ['keys', /\bkeys?\b/],
+    ['flashdrives', /\bflash\s*drives?\b/],
+    ['laptop', /\b(laptop|computer)\b/],
+    ['notebook', /\bnotebook\b/],
+    ['bag', /\b(bag|backpack)\b/],
+    ['raincoat', /\b(raincoat|coat)\b/],
+    ['sneakers', /\bsneakers?\b/],
+    ['jacket', /\bjacket\b/],
+    ['umbrella', /\bumbrella\b/],
+    ['chairs', /\b(chairs?|kitchen)\b/],
+    ['microwave', /\bmicrowave\b/],
+    ['coffeemaker', /\bcoffee\b/],
+    ['sofa', /\b(living room|sofa|house|rooms?)\b/],
+    ['desk', /\b(work|office|job)\b/]
+  ];
+
+  rules.forEach(([key, regex]) => {
+    if (interiorState.props[key] && regex.test(txt)) {
+      interiorState.highlightedKeys.add(key);
+    }
+  });
+
+  Object.entries(interiorState.props).forEach(([key, item]) => {
+    const isLit = interiorState.highlightedKeys.has(key);
+    if (item.ring) item.ring.visible = isLit;
+    if (!isLit && item.group) {
+      item.group.position.y = item.baseY;
+    }
+  });
+}
+
+function updateInteriorSceneAnimation(elapsed, dt) {
+  if (!interiorState.active) return;
+  const { actors, props, unit } = interiorState;
+  const loc = interiorState.loc;
+
+  const npcSpeaking = Boolean(loc && state.speakingTarget === loc.id);
+  const playerSpeaking = state.speakingTarget === 'player';
+  const extraSpeaking = state.speakingTarget === 'extra';
+  const isPointing = Boolean(unit === 1 && npcSpeaking && state.cinema.isPointingTurn);
+
+  if (actors.npc) {
+    const npcListening = state.cinema.active && (playerSpeaking || extraSpeaking);
+    updateCharacterAnimation(
+      actors.npc.parts,
+      actors.npc.anim,
+      {
+        pose: actors.npc.defaultPose,
+        isMoving: false,
+        isSpeaking: npcSpeaking,
+        isListening: npcListening,
+        isGreeting: false,
+        isPointing,
+        pointSide: 'left',
+        headLookYaw: isPointing ? -0.45 : (extraSpeaking ? -0.35 : 0)
+      },
+      elapsed,
+      dt
+    );
+  }
+
+  if (actors.player) {
+    const playerListening = state.cinema.active && (npcSpeaking || extraSpeaking);
+    updateCharacterAnimation(
+      actors.player.parts,
+      actors.player.anim,
+      {
+        pose: actors.player.defaultPose,
+        isMoving: false,
+        isSpeaking: playerSpeaking,
+        isListening: playerListening,
+        isGreeting: false,
+        headLookYaw: extraSpeaking ? 0.35 : 0
+      },
+      elapsed,
+      dt
+    );
+  }
+
+  if (actors.extra) {
+    const extraListening = state.cinema.active && (npcSpeaking || playerSpeaking);
+    updateCharacterAnimation(
+      actors.extra.parts,
+      actors.extra.anim,
+      {
+        pose: actors.extra.defaultPose,
+        isMoving: false,
+        isSpeaking: extraSpeaking,
+        isListening: extraListening,
+        isGreeting: Boolean(unit === 1 && isPointing),
+        headLookYaw: extraSpeaking ? 0.15 : 0
+      },
+      elapsed,
+      dt
+    );
+  }
+
+  // Animation douce des objets en surbrillance (anneau doré pulsant + léger rebond)
+  Object.entries(props).forEach(([key, item]) => {
+    const isLit = interiorState.highlightedKeys.has(key);
+    if (item.ring) {
+      item.ring.visible = isLit;
+      if (isLit) {
+        const pulse = 1 + Math.sin(elapsed * 5.2) * 0.14;
+        item.ring.scale.setScalar(pulse);
+      }
+    }
+    if (isLit && item.group && key !== 'layla' && key !== 'sofa' && key !== 'chairs' && key !== 'desk') {
+      item.group.position.y = item.baseY + Math.abs(Math.sin(elapsed * 4.0)) * 0.07;
+    }
+  });
+
+  // Cadrage cinématographique chaleureux façon Duolingo (léger mouvement respiratoire)
+  const meta = INTERIOR_META[unit] || INTERIOR_META[1];
+  const isMobilePortrait = window.innerWidth < 640 && window.innerHeight > window.innerWidth;
+  const camArr = isMobilePortrait ? meta.camMobile : meta.camDesktop;
+  const lookArr = meta.lookAt;
+
+  const driftX = Math.sin(elapsed * 0.45) * 0.18;
+  const driftY = Math.cos(elapsed * 0.38) * 0.06;
+  _camGoalVec.set(camArr[0] + driftX, camArr[1] + driftY, camArr[2]);
+  _camTargetLookVec.set(lookArr[0], lookArr[1], lookArr[2]);
+
+  camera.position.lerp(_camGoalVec, 1 - Math.exp(-5.0 * dt));
+  _camLookVec.lerp(_camTargetLookVec, 1 - Math.exp(-6.5 * dt));
+  camera.lookAt(_camLookVec.x, _camLookVec.y, _camLookVec.z);
+
+  // Projection des bulles flottantes au-dessus du bon interlocuteur (Moussa / Layla / Joueur)
+  if (state.cinema.active) {
+    const npcBubbleTarget = state.cinema.activeRole === 'extra' && actors.extra
+      ? actors.extra.group.position
+      : (actors.npc ? actors.npc.group.position : null);
+    if (npcBubbleTarget) {
+      projectSpeechBubble(
+        document.getElementById('npc-speech-bubble'),
+        npcBubbleTarget.x,
+        2.58,
+        npcBubbleTarget.z
+      );
+    }
+    if (actors.player) {
+      projectSpeechBubble(
+        document.getElementById('player-speech-bubble'),
+        actors.player.group.position.x,
+        2.58,
+        actors.player.group.position.z
+      );
+    }
+  }
+}
+
+/* ===========================================================================
    8. CONTRÔLES CAMÉRA (SOURIS + TACTILE + PINCH-TO-ZOOM) & BOUCLE 3D
    =========================================================================== */
 function setupCanvasEvents(dom) {
@@ -4751,7 +6266,7 @@ function setupCanvasEvents(dom) {
     if (!state.isDragging) return;
     state.isDragging = false;
     const tapThreshold = activeTouchTap ? 14 : 8;
-    if (dragDistance < tapThreshold) {
+    if (dragDistance < tapThreshold && !interiorState.active) {
       const rect = dom.getBoundingClientRect();
       mouse.x = ((clientX - rect.left) / rect.width) * 2 - 1;
       mouse.y = -((clientY - rect.top) / rect.height) * 2 + 1;
@@ -4820,8 +6335,12 @@ function setupCanvasEvents(dom) {
 
 function getCinemaTurnRole(loc, line, idx) {
   const sp = (line && line.speaker) ? String(line.speaker).trim() : '';
+  const lowSp = sp.toLowerCase();
+  if (loc && loc.unit === 1 && lowSp.includes('layla')) return 'extra';
   if (sp === 'A') return 'npc';
   if (sp === 'B') return 'player';
+  if (lowSp === 'camarade') return 'npc';
+  if (lowSp === 'étudiant' || lowSp === 'etudiant') return 'player';
   return idx % 2 === 0 ? 'npc' : 'player';
 }
 
@@ -4861,7 +6380,7 @@ function projectSpeechBubble(el, worldX, worldY, worldZ) {
   const halfW = Math.min(165, (vw - 24) / 2);
   const clampedX = Math.max(halfW + 12, Math.min(vw - halfW - 12, rawX));
   const minTop = vw < 640 ? 275 : 245;
-  const maxBottom = vh - (vw < 640 ? 132 : 108);
+  const maxBottom = vh - (vw < 640 ? 156 : 114);
   const clampedY = Math.max(minTop, Math.min(maxBottom, rawY));
 
   el.style.left = `${clampedX}px`;
@@ -4869,21 +6388,30 @@ function projectSpeechBubble(el, worldX, worldY, worldZ) {
 }
 
 function updateCinemaControlsUI() {
-  const loc = state.cinema.loc;
+  const loc = state.cinema.loc || interiorState.loc;
   if (!loc) return;
   const lines = loc.dialogues || [];
   const total = Math.max(1, lines.length);
   const idx = Math.min(state.cinema.turnIndex, total - 1);
   const isFinished = state.cinema.finished;
   const isLast = idx >= total - 1;
+  const isIndoor = interiorState.active;
+  const roomMeta = isIndoor ? INTERIOR_META[loc.unit] : null;
 
-  document.getElementById('cinema-unit-pill').textContent = `Unité ${loc.unit} • ${idx + 1}/${total}`;
+  document.getElementById('cinema-unit-pill').textContent = roomMeta
+    ? `U${loc.unit} • ${roomMeta.roomName} • ${idx + 1}/${total}`
+    : `Unité ${loc.unit} • ${idx + 1}/${total}`;
 
   const statusEl = document.getElementById('cinema-status-text');
   const nextBtn = document.getElementById('btn-cinema-next');
   const nextLabel = document.getElementById('cinema-next-label');
   const courseLabel = document.getElementById('cinema-course-label');
   const grammarBtn = document.getElementById('btn-cinema-grammar');
+  const exitInteriorBtn = document.getElementById('btn-exit-interior');
+  const exitCinemaBtn = document.getElementById('btn-cinema-exit');
+
+  if (exitInteriorBtn) exitInteriorBtn.classList.toggle('hidden', !isIndoor);
+  if (exitCinemaBtn) exitCinemaBtn.classList.toggle('hidden', isIndoor);
 
   if (isFinished) {
     statusEl.textContent = `Dialogue terminé avec ${loc.npcName} !`;
@@ -4894,7 +6422,7 @@ function updateCinemaControlsUI() {
   } else {
     const speakerName = state.cinema.activeRole === 'player'
       ? (state.profile ? state.profile.name : 'Vous')
-      : loc.npcName;
+      : (state.cinema.activeRole === 'extra' ? 'Layla Moore' : loc.npcName);
     statusEl.textContent = `${speakerName} parle...`;
     const nextRole = !isLast ? getCinemaTurnRole(loc, lines[idx + 1], idx + 1) : null;
     nextLabel.textContent = isLast ? 'Terminer' : (nextRole === 'player' ? 'Répondre' : 'Suivant');
@@ -4925,7 +6453,7 @@ function startCinematicDialogue(loc) {
   const npcEntity = npcEntities.find(e => e.data.id === loc.id) || null;
   const playerSpot = playerGroup ? findClearStandPosition(loc, playerGroup.position) : null;
 
-  // Choisir le côté caméra le plus dégagé pour cadrer les deux personnages face à face
+  // Choisir le côté caméra le plus dégagé pour cadrer les deux personnages + décor concret extérieur
   let camSide = 1;
   if (playerSpot) {
     const dx = playerSpot.x - loc.pos.x;
@@ -4942,28 +6470,41 @@ function startCinematicDialogue(loc) {
     camSide = distA <= distB ? 1 : -1;
   }
 
-  state.cinema.active = true;
-  state.cinema.loc = loc;
-  state.cinema.npcEntity = npcEntity;
-  state.cinema.turnIndex = 0;
-  state.cinema.finished = false;
-  state.cinema.activeRole = 'npc';
-  state.cinema.playerSpot = playerSpot;
-  state.cinema.camSide = camSide;
+  const beginDialoguePlayback = () => {
+    state.cinema.active = true;
+    state.cinema.loc = loc;
+    state.cinema.npcEntity = npcEntity;
+    state.cinema.turnIndex = 0;
+    state.cinema.finished = false;
+    state.cinema.activeRole = 'npc';
+    state.cinema.isPointingTurn = false;
+    state.cinema.playerSpot = playerSpot;
+    state.cinema.camSide = camSide;
 
-  // Masquer les contrôles d'exploration et les étiquettes pour libérer la scène 3D
-  document.getElementById('dpad-controls').classList.add('hidden');
-  document.getElementById('proximity-prompt').classList.add('hidden');
-  document.getElementById('labels-layer').classList.add('hidden');
-  document.getElementById('cinema-controls').classList.remove('hidden');
+    // Masquer les contrôles d'exploration et les étiquettes pour libérer la scène 3D
+    document.getElementById('dpad-controls').classList.add('hidden');
+    document.getElementById('proximity-prompt').classList.add('hidden');
+    document.getElementById('labels-layer').classList.add('hidden');
+    document.getElementById('cinema-controls').classList.remove('hidden');
 
-  if (!loc.dialogues || loc.dialogues.length === 0) {
-    state.cinema.finished = true;
-    updateCinemaControlsUI();
-    return;
+    if (!loc.dialogues || loc.dialogues.length === 0) {
+      state.cinema.finished = true;
+      updateCinemaControlsUI();
+      return;
+    }
+
+    playCinemaTurn(0);
+  };
+
+  if (INTERIOR_UNITS.has(loc.unit) && scene) {
+    enterInteriorScene(loc, beginDialoguePlayback);
+  } else {
+    if (interiorState.active) {
+      leaveInteriorScene(true, beginDialoguePlayback);
+    } else {
+      beginDialoguePlayback();
+    }
   }
-
-  playCinemaTurn(0);
 }
 
 async function playCinemaTurn(idx) {
@@ -4984,6 +6525,14 @@ async function playCinemaTurn(idx) {
   const line = lines[idx];
   const role = getCinemaTurnRole(loc, line, idx);
   state.cinema.activeRole = role;
+  state.cinema.isPointingTurn = Boolean(
+    loc.unit === 1 && role === 'npc' && /over there/i.test(String(line.en || ''))
+  );
+
+  // Mettre en surbrillance les objets concrets mentionnés dans la pièce intérieure
+  if (interiorState.active) {
+    updateInteriorHighlights(line.en);
+  }
 
   const npcBubble = document.getElementById('npc-speech-bubble');
   const playerBubble = document.getElementById('player-speech-bubble');
@@ -5001,22 +6550,24 @@ async function playCinemaTurn(idx) {
     frEl.textContent = line.fr || '';
     frEl.classList.toggle('hidden', !line.fr);
     playerBubble.classList.remove('hidden');
-    // Position initiale centrée avant le prochain rafraîchissement 3D
-    if (!playerGroup) {
+    if (!playerGroup && !interiorState.active) {
       playerBubble.style.left = '50%';
       playerBubble.style.top = '52%';
     }
   } else {
     playerBubble.classList.add('hidden');
-    document.getElementById('npc-bubble-avatar').innerHTML = getNpcPortraitSVG(loc.id);
-    document.getElementById('npc-bubble-speaker').textContent = loc.npcName;
+    const isExtra = role === 'extra';
+    document.getElementById('npc-bubble-avatar').innerHTML = isExtra
+      ? getLaylaPortraitSVG()
+      : getNpcPortraitSVG(loc.id);
+    document.getElementById('npc-bubble-speaker').textContent = isExtra ? 'Layla Moore' : loc.npcName;
     document.getElementById('npc-bubble-turn').textContent = `${idx + 1}/${total}`;
     document.getElementById('npc-bubble-en').textContent = line.en;
     const frEl = document.getElementById('npc-bubble-fr');
     frEl.textContent = line.fr || '';
     frEl.classList.toggle('hidden', !line.fr);
     npcBubble.classList.remove('hidden');
-    if (!state.cinema.npcEntity) {
+    if (!state.cinema.npcEntity && !interiorState.active) {
       npcBubble.style.left = '50%';
       npcBubble.style.top = '48%';
     }
@@ -5024,8 +6575,10 @@ async function playCinemaTurn(idx) {
 
   updateCinemaControlsUI();
 
-  const speakerTarget = role === 'player' ? 'player' : loc.id;
-  const chosenVoice = role === 'player' ? getPlayerVoiceForNpc(loc.voice) : loc.voice;
+  const speakerTarget = role === 'player' ? 'player' : (role === 'extra' ? 'extra' : loc.id);
+  const chosenVoice = role === 'player'
+    ? getPlayerVoiceForNpc(loc.voice)
+    : (role === 'extra' ? 'en-US-JennyNeural' : loc.voice);
 
   await playSingleUtterance(line.en, false, chosenVoice, myReqId, speakerTarget);
 
@@ -5063,8 +6616,11 @@ function advanceCinemaTurn() {
   }
 }
 
-function exitCinematicDialogue(restoreHud = true) {
-  if (!state.cinema.active) return;
+function exitCinematicDialogue(restoreHud = true, keepInterior = false) {
+  const wasActive = state.cinema.active;
+  const wasIndoor = interiorState.active;
+  if (!wasActive && !wasIndoor) return;
+
   stopCurrentSpeech();
   state.cinema.active = false;
   state.cinema.loc = null;
@@ -5072,26 +6628,53 @@ function exitCinematicDialogue(restoreHud = true) {
   state.cinema.playerSpot = null;
   state.cinema.finished = false;
   state.cinema.activeRole = null;
+  state.cinema.isPointingTurn = false;
 
   hideFloatingSpeechBubbles();
   document.getElementById('cinema-controls').classList.add('hidden');
-  document.getElementById('labels-layer').classList.remove('hidden');
-  if (restoreHud) {
-    document.getElementById('dpad-controls').classList.remove('hidden');
+
+  if (!keepInterior && wasIndoor) {
+    leaveInteriorScene(false, () => {
+      document.getElementById('labels-layer').classList.remove('hidden');
+      if (restoreHud) {
+        document.getElementById('dpad-controls').classList.remove('hidden');
+      }
+    });
+  } else if (!keepInterior) {
+    document.getElementById('labels-layer').classList.remove('hidden');
+    if (restoreHud) {
+      document.getElementById('dpad-controls').classList.remove('hidden');
+    }
   }
 }
 
 function openCourseFromCinema(initialTab = 'dialogue') {
-  const loc = state.cinema.loc;
+  const loc = state.cinema.loc || interiorState.loc;
   if (!loc) return;
-  exitCinematicDialogue(false);
+  const stayInInterior = interiorState.active;
+  exitCinematicDialogue(false, stayInInterior);
   openDialogue(loc, initialTab, false);
 }
 
 function walkToAndTalk(loc) {
   playFX('click');
-  if (state.cinema.active) exitCinematicDialogue(true);
   closeDialogue(true);
+
+  if (interiorState.active) {
+    if (interiorState.loc && interiorState.loc.id === loc.id && state.cinema.active) {
+      playCinemaTurn(0);
+      return;
+    }
+    if (INTERIOR_UNITS.has(loc.unit)) {
+      exitCinematicDialogue(false, true);
+      startCinematicDialogue(loc);
+      return;
+    }
+    exitCinematicDialogue(true, false);
+    if (interiorState.active) disposeInteriorScene();
+  } else if (state.cinema.active) {
+    exitCinematicDialogue(true, false);
+  }
 
   if (!playerGroup) {
     startCinematicDialogue(loc);
@@ -5121,6 +6704,13 @@ function animate() {
   requestAnimationFrame(animate);
   const dt = Math.min(clock.getDelta(), 0.05);
   const elapsed = clock.getElapsedTime();
+
+  // Mode scène intérieure 3D : met en pause le calcul du quartier extérieur masqué (60 FPS garantis)
+  if (interiorState.active) {
+    updateInteriorSceneAnimation(elapsed, dt);
+    renderer.render(scene, camera);
+    return;
+  }
 
   if (burkinaFlagPivot) {
     burkinaFlagPivot.rotation.y = 0.25 + Math.sin(elapsed * 2.3) * 0.16;
@@ -5267,7 +6857,7 @@ function animate() {
     dt
   );
 
-  // Animer les 8 habitants du quartier
+  // Animer les 8 habitants du quartier + détection de proximité habitant / porte d'entrée
   let closestNpc = null;
   let closestDist = 4.3;
 
@@ -5275,6 +6865,10 @@ function animate() {
     const dx = playerGroup.position.x - npc.group.position.x;
     const dz = playerGroup.position.z - npc.group.position.z;
     const dist = Math.hypot(dx, dz);
+    const doorDist = npc.doorPos
+      ? Math.hypot(playerGroup.position.x - npc.doorPos.x, playerGroup.position.z - npc.doorPos.z)
+      : dist;
+    const effectiveDist = INTERIOR_UNITS.has(npc.data.unit) ? Math.min(dist, doorDist) : dist;
 
     npc.ring.scale.setScalar(1 + Math.sin(elapsed * 3 + npc.phase) * 0.07);
 
@@ -5311,8 +6905,8 @@ function animate() {
       dt
     );
 
-    if (dist < closestDist) {
-      closestDist = dist;
+    if (effectiveDist < closestDist) {
+      closestDist = effectiveDist;
       closestNpc = npc.data;
     }
 
@@ -5340,36 +6934,58 @@ function animate() {
       document.getElementById('proximity-avatar').innerHTML = getNpcPortraitSVG(closestNpc.id);
     }
     const isSmallScreen = window.innerWidth < 640;
-    document.getElementById('proximity-text').textContent = isSmallScreen
-      ? `Parler à ${closestNpc.npcName}`
-      : `Parler à ${closestNpc.npcName} — Unité ${closestNpc.unit}`;
+    const indoorMeta = INTERIOR_UNITS.has(closestNpc.unit) ? INTERIOR_META[closestNpc.unit] : null;
+    if (indoorMeta) {
+      document.getElementById('proximity-text').textContent = isSmallScreen
+        ? `Entrer (${closestNpc.npcName})`
+        : `Entrer : ${indoorMeta.roomName} — Unité ${closestNpc.unit}`;
+    } else {
+      document.getElementById('proximity-text').textContent = isSmallScreen
+        ? `Parler à ${closestNpc.npcName}`
+        : `Parler à ${closestNpc.npcName} — Unité ${closestNpc.unit}`;
+    }
     promptEl.classList.remove('hidden');
   } else {
     promptEl.classList.add('hidden');
   }
 
-  // Caméra : cadrage film 2-plans pendant le dialogue 3D, sinon suivi tiers-personne amorti (damping fluide)
+  // Caméra : cadrage film 2-plans pendant le dialogue extérieur (Unités 3, 5, 6), sinon suivi tiers-personne amorti
   const camDampPos = 1 - Math.exp(-7.5 * dt);
   const camDampLook = 1 - Math.exp(-10.5 * dt);
 
   if (state.cinema.active && state.cinema.npcEntity) {
     const npcPos = state.cinema.npcEntity.group.position;
     const pPos = playerGroup.position;
+    const loc = state.cinema.loc;
     const midX = (npcPos.x + pPos.x) * 0.5;
     const midZ = (npcPos.z + pPos.z) * 0.5;
 
     const dx = pPos.x - npcPos.x;
     const dz = pPos.z - npcPos.z;
     const len = Math.hypot(dx, dz) || 1;
-    const perpX = (-dz / len) * state.cinema.camSide;
-    const perpZ = (dx / len) * state.cinema.camSide;
+    let perpX = (-dz / len) * state.cinema.camSide;
+    let perpZ = (dx / len) * state.cinema.camSide;
+
+    // Pour les scènes extérieures (Maquis, Gare Routière, Cour), orienter la caméra face au décor concret
+    if (loc && loc.buildingPos) {
+      const awayX = midX - loc.buildingPos.x;
+      const awayZ = midZ - loc.buildingPos.z;
+      const awayLen = Math.hypot(awayX, awayZ) || 1;
+      perpX = perpX * 0.45 + (awayX / awayLen) * 0.55;
+      perpZ = perpZ * 0.45 + (awayZ / awayLen) * 0.55;
+      const pNorm = Math.hypot(perpX, perpZ) || 1;
+      perpX /= pNorm;
+      perpZ /= pNorm;
+    }
 
     const isMobilePortrait = window.innerWidth < 640 && window.innerHeight > window.innerWidth;
-    const camDist = isMobilePortrait ? 7.4 : 6.0;
-    const camHeight = isMobilePortrait ? 2.65 : 2.35;
+    const camDist = isMobilePortrait ? 7.6 : 6.2;
+    const camHeight = isMobilePortrait ? 2.75 : 2.45;
 
     _camGoalVec.set(midX + perpX * camDist, camHeight, midZ + perpZ * camDist);
-    _camTargetLookVec.set(midX, 1.55, midZ);
+    const lookX = loc && loc.buildingPos ? midX * 0.84 + loc.buildingPos.x * 0.16 : midX;
+    const lookZ = loc && loc.buildingPos ? midZ * 0.84 + loc.buildingPos.z * 0.16 : midZ;
+    _camTargetLookVec.set(lookX, 1.58, lookZ);
     camera.position.lerp(_camGoalVec, 1 - Math.exp(-5.8 * dt));
     _camLookVec.lerp(_camTargetLookVec, 1 - Math.exp(-7.2 * dt));
     camera.lookAt(_camLookVec.x, _camLookVec.y, _camLookVec.z);
@@ -5860,7 +7476,7 @@ function renderQuiz(loc) {
 }
 
 function openDialogue(loc, initialTab = 'dialogue', autoSpeak = false) {
-  if (state.cinema.active) exitCinematicDialogue(false);
+  if (state.cinema.active) exitCinematicDialogue(false, interiorState.active);
   state.activeNpc = loc;
   state.quizIndex = 0;
   state.quizAnswered = false;
@@ -5918,7 +7534,15 @@ function closeDialogue(silent = false) {
   document.getElementById('dialogue-modal').classList.add('hidden');
   const sheet = document.getElementById('dialogue-sheet');
   if (sheet) sheet.style.transform = '';
-  if (!state.cinema.active) {
+
+  if (!silent && interiorState.active && !state.cinema.active && interiorState.loc) {
+    // Restaurer la barre de scène intérieure (Revoir / Quiz / Sortir dans le quartier)
+    state.cinema.active = true;
+    state.cinema.loc = interiorState.loc;
+    state.cinema.finished = true;
+    document.getElementById('cinema-controls').classList.remove('hidden');
+    updateCinemaControlsUI();
+  } else if (!state.cinema.active && !interiorState.active) {
     document.getElementById('dpad-controls').classList.remove('hidden');
   }
   if (!silent) stopCurrentSpeech();
@@ -6136,8 +7760,8 @@ function bindUIEvents() {
       if (!resetModal.classList.contains('hidden')) closeResetModal();
       else if (!profileModal.classList.contains('hidden')) closeProfileModal();
       else if (!helpModal.classList.contains('hidden')) helpModal.classList.add('hidden');
-      else if (state.cinema.active) exitCinematicDialogue(true);
       else if (state.activeNpc) closeDialogue();
+      else if (state.cinema.active || interiorState.active) exitCinematicDialogue(true, false);
       return;
     }
 
@@ -6149,13 +7773,13 @@ function bindUIEvents() {
         advanceCinemaTurn();
         return;
       }
-      if (state.nearbyNpc && !state.activeNpc) {
+      if (state.nearbyNpc && !state.activeNpc && !interiorState.active) {
         e.preventDefault();
         startCinematicDialogue(state.nearbyNpc);
         return;
       }
     }
-    if (!state.cinema.active) {
+    if (!state.cinema.active && !interiorState.active) {
       mapKey(e.key, true);
     }
   });
@@ -6355,9 +7979,16 @@ function bindUIEvents() {
     initAudioFX();
     openCourseFromCinema('grammar');
   });
+  const exitInteriorBtn = document.getElementById('btn-exit-interior');
+  if (exitInteriorBtn) {
+    exitInteriorBtn.addEventListener('click', () => {
+      playFX('click');
+      exitCinematicDialogue(true, false);
+    });
+  }
   document.getElementById('btn-cinema-exit').addEventListener('click', () => {
     playFX('click');
-    exitCinematicDialogue(true);
+    exitCinematicDialogue(true, false);
   });
 
   document.getElementById('btn-close-dialogue').addEventListener('click', () => closeDialogue(false));
