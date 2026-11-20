@@ -2,7 +2,10 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="description" content="Explorez English City 3D, un quartier interactif 3D pour pratiquer l'anglais niveau zéro avec voix humaines naturelles, vocabulaire et quiz." />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
   <title>English City 3D — Simulateur d'Anglais Niveau Zéro</title>
   <!-- Tailwind CSS pour l'interface moderne -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -15,6 +18,7 @@
     * {
       box-sizing: border-box;
       user-select: none;
+      -webkit-user-select: none;
       -webkit-tap-highlight-color: transparent;
     }
     html, body {
@@ -22,7 +26,9 @@
       padding: 0;
       width: 100%;
       height: 100%;
+      height: 100dvh;
       overflow: hidden;
+      overscroll-behavior: none;
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
       background-color: #87ceeb;
     }
@@ -32,21 +38,34 @@
       width: 100%;
       height: 100%;
       z-index: 1;
+      touch-action: none;
     }
     canvas {
       display: block;
       width: 100%;
       height: 100%;
       cursor: grab;
+      touch-action: none;
     }
     canvas:active {
       cursor: grabbing;
     }
     .glass {
-      background: rgba(15, 23, 42, 0.82);
+      background: rgba(15, 23, 42, 0.84);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 255, 255, 0.14);
+    }
+    .safe-top {
+      padding-top: max(0.5rem, env(safe-area-inset-top));
+      padding-left: max(0.5rem, env(safe-area-inset-left));
+      padding-right: max(0.5rem, env(safe-area-inset-right));
+    }
+    .safe-bottom {
+      padding-bottom: max(0.875rem, env(safe-area-inset-bottom));
+    }
+    .safe-bottom-ctrl {
+      bottom: max(0.875rem, env(safe-area-inset-bottom));
     }
     .npc-label {
       position: absolute;
@@ -59,11 +78,32 @@
     .npc-label:hover {
       transform: translate(-50%, -112%) scale(1.06);
     }
+    @media (max-width: 639px) {
+      .npc-label {
+        padding: 0.25rem 0.5rem !important;
+      }
+    }
     .btn-pop {
-      transition: transform 0.12s ease, box-shadow 0.12s ease;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.15s ease;
     }
     .btn-pop:active {
       transform: scale(0.95);
+    }
+    #dpad-controls, .dpad-btn {
+      touch-action: none;
+      -webkit-touch-callout: none;
+    }
+    .dpad-btn.is-pressed {
+      background: rgba(56, 189, 248, 0.38);
+      border-color: rgba(125, 211, 252, 0.7);
+      transform: scale(0.92);
+    }
+    #quick-nav {
+      scroll-snap-type: x proximity;
+      -webkit-overflow-scrolling: touch;
+    }
+    #quick-nav > button {
+      scroll-snap-align: start;
     }
     .no-scrollbar::-webkit-scrollbar {
       display: none;
@@ -71,6 +111,13 @@
     .no-scrollbar {
       -ms-overflow-style: none;
       scrollbar-width: none;
+    }
+    @keyframes sheetSlideUp {
+      from { transform: translateY(18px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .sheet-animate {
+      animation: sheetSlideUp 0.2s ease-out;
     }
   </style>
 </head>
@@ -82,174 +129,250 @@
   <!-- Calque des étiquettes flottantes au-dessus des personnages 3D -->
   <div id="labels-layer" class="fixed inset-0 pointer-events-none z-10 overflow-hidden"></div>
 
-  <!-- Barre supérieure HUD -->
-  <header class="fixed top-0 left-0 right-0 z-20 p-2 sm:p-3 pointer-events-none flex flex-col gap-2">
-    <div class="flex items-center justify-between gap-2 max-w-6xl mx-auto w-full pointer-events-auto">
-      <div class="glass rounded-2xl px-3 py-2 flex items-center gap-2.5 shadow-lg">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-sky-500 flex items-center justify-center text-lg shadow-inner">
+  <!-- Barre supérieure HUD (adaptée mobile & desktop) -->
+  <header class="fixed top-0 left-0 right-0 z-20 safe-top sm:p-3 pointer-events-none flex flex-col gap-1.5 sm:gap-2">
+    <div class="flex flex-wrap items-center justify-between gap-1.5 sm:gap-2 max-w-6xl mx-auto w-full pointer-events-auto">
+      <!-- Marque -->
+      <div class="order-1 glass rounded-2xl px-2.5 sm:px-3 py-1.5 sm:py-2 flex items-center gap-2 sm:gap-2.5 shadow-lg min-h-[42px]">
+        <div class="w-8 h-8 sm:w-9 sm:h-9 shrink-0 rounded-xl bg-gradient-to-br from-emerald-400 to-sky-500 flex items-center justify-center text-base sm:text-lg shadow-inner">
           🏙️
         </div>
         <div class="leading-tight">
           <h1 class="font-extrabold text-sm sm:text-base tracking-tight text-white">English City 3D</h1>
-          <p class="text-[11px] text-sky-300 font-medium">Quartier Interactif • Niveau Zéro</p>
+          <p class="hidden sm:block text-[11px] text-sky-300 font-medium">Quartier Interactif • Niveau Zéro</p>
         </div>
       </div>
 
-      <div class="flex items-center gap-2">
-        <div class="glass rounded-2xl px-3 py-2 flex items-center gap-3 shadow-lg">
-          <div class="flex items-center gap-1.5">
-            <span class="text-amber-400 text-base">⭐</span>
-            <span id="xp-display" class="font-bold text-sm text-white">0 XP</span>
-          </div>
-          <div class="h-4 w-px bg-slate-600"></div>
-          <div class="text-xs text-slate-300 font-medium">
-            <span id="visited-count" class="text-emerald-400 font-bold">0</span>/7 lieux
-          </div>
-        </div>
-
-        <button id="btn-sound-toggle" title="Activer/Couper les effets sonores"
-          class="glass btn-pop rounded-2xl p-2.5 text-white hover:bg-slate-800/90 shadow-lg text-sm">
+      <!-- Boutons d'actions rapides -->
+      <div class="order-2 md:order-3 flex items-center gap-1.5">
+        <button id="btn-sound-toggle" title="Activer/Couper les effets sonores" aria-label="Activer ou couper les effets sonores"
+          class="glass btn-pop rounded-2xl min-w-[42px] min-h-[42px] px-2.5 flex items-center justify-center text-white hover:bg-slate-800/90 shadow-lg text-sm">
           🔊
         </button>
 
-        <button id="btn-help" title="Aide & Commandes"
-          class="glass btn-pop rounded-2xl px-3 py-2.5 text-xs font-semibold text-sky-300 hover:bg-slate-800/90 shadow-lg">
-          ❓ Aide
+        <button id="btn-reset-progress" title="Réinitialiser la progression" aria-label="Réinitialiser la progression"
+          class="glass btn-pop rounded-2xl min-w-[42px] min-h-[42px] px-2.5 sm:px-3 flex items-center justify-center gap-1.5 text-xs font-semibold text-rose-300 hover:bg-rose-500/20 hover:text-rose-200 shadow-lg">
+          <span>🔄</span>
+          <span class="hidden sm:inline">Réinitialiser</span>
         </button>
+
+        <button id="btn-help" title="Aide & Commandes" aria-label="Aide et commandes"
+          class="glass btn-pop rounded-2xl min-w-[42px] min-h-[42px] px-2.5 sm:px-3 flex items-center justify-center gap-1.5 text-xs font-semibold text-sky-300 hover:bg-slate-800/90 shadow-lg">
+          <span>❓</span>
+          <span class="hidden sm:inline">Aide</span>
+        </button>
+      </div>
+
+      <!-- Barre de progression sauvegardée (XP, lieux visités, quiz réussis) -->
+      <div id="stats-pill" class="order-3 w-full md:w-auto md:order-2 md:ml-auto glass rounded-xl sm:rounded-2xl px-3 py-1.5 sm:py-2 shadow-lg">
+        <div class="flex items-center justify-between md:justify-start gap-2 sm:gap-3 text-xs">
+          <div class="flex items-center gap-1">
+            <span class="text-amber-400 text-sm">⭐</span>
+            <span id="xp-display" class="font-bold text-white whitespace-nowrap">0 XP</span>
+          </div>
+          <div class="h-3.5 w-px bg-slate-600/80"></div>
+          <div class="flex items-center gap-1 text-slate-200 font-medium whitespace-nowrap">
+            <span>📍</span>
+            <span><strong id="visited-count" class="text-emerald-400">0</strong>/7 lieux</span>
+          </div>
+          <div class="h-3.5 w-px bg-slate-600/80"></div>
+          <div class="flex items-center gap-1 text-slate-200 font-medium whitespace-nowrap">
+            <span>🏆</span>
+            <span><strong id="quiz-count" class="text-sky-300">0</strong>/7 quiz</span>
+          </div>
+        </div>
+        <div class="mt-1.5 h-1 w-full bg-slate-800/90 rounded-full overflow-hidden">
+          <div id="progress-bar-fill" class="h-full bg-gradient-to-r from-emerald-400 to-sky-400 rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
       </div>
     </div>
 
-    <div id="quick-nav" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar max-w-6xl mx-auto w-full px-1 pointer-events-auto"></div>
+    <nav id="quick-nav" aria-label="Navigation rapide des lieux" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar max-w-6xl mx-auto w-full pb-0.5 pointer-events-auto"></nav>
   </header>
 
   <!-- Invite contextuelle quand on s'approche d'un personnage -->
-  <div id="proximity-prompt" class="hidden fixed bottom-28 sm:bottom-10 left-1/2 -translate-x-1/2 z-20 pointer-events-auto">
+  <div id="proximity-prompt" class="hidden fixed safe-bottom-ctrl right-3 sm:right-auto sm:left-1/2 sm:-translate-x-1/2 sm:bottom-8 z-20 pointer-events-auto max-w-[calc(100vw-11rem)] sm:max-w-none">
     <button id="btn-talk-nearby"
-      class="btn-pop bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-extrabold px-5 py-3 rounded-full shadow-2xl flex items-center gap-2 border-2 border-white/60 animate-bounce">
-      <span>💬</span>
-      <span id="proximity-text">Parler à Emma</span>
-      <span class="hidden sm:inline text-xs bg-slate-950/20 px-2 py-0.5 rounded-full">Espace</span>
+      class="btn-pop w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-extrabold px-4 sm:px-5 min-h-[48px] py-2.5 sm:py-3 rounded-full shadow-2xl flex items-center justify-center gap-2 border-2 border-white/60 animate-bounce text-xs sm:text-sm">
+      <span class="shrink-0">💬</span>
+      <span id="proximity-text" class="truncate">Parler à Emma</span>
+      <span class="hidden sm:inline shrink-0 text-xs bg-slate-950/20 px-2 py-0.5 rounded-full">Espace</span>
     </button>
   </div>
 
-  <!-- Pad directionnel tactile / souris -->
-  <div id="dpad-controls" class="fixed bottom-4 left-4 z-20 grid grid-cols-3 gap-1.5 w-32 h-32 pointer-events-auto opacity-85 hover:opacity-100 transition-opacity">
+  <!-- Pad directionnel tactile / souris (4 directions complètes + centrage caméra) -->
+  <div id="dpad-controls" aria-label="Contrôles directionnels" class="fixed safe-bottom-ctrl left-3 sm:left-4 z-20 grid grid-cols-3 grid-rows-3 gap-1.5 w-36 h-36 sm:w-32 sm:h-32 pointer-events-auto opacity-90 hover:opacity-100 transition-opacity">
     <div></div>
-    <button data-dir="up" class="dpad-btn glass btn-pop rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md">▲</button>
+    <button type="button" data-dir="up" aria-label="Avancer" class="dpad-btn glass btn-pop rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md">▲</button>
     <div></div>
-    <button data-dir="left" class="dpad-btn glass btn-pop rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md">◀</button>
-    <button data-dir="center" id="btn-reset-cam" title="Recentrer la caméra" class="glass btn-pop rounded-xl flex items-center justify-center text-sky-300 text-sm shadow-md">🎯</button>
-    <button data-dir="right" class="dpad-btn glass btn-pop rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md">▶</button>
-  <!-- Boîte de Dialogue RPG Interactive (compacte sur le côté) -->
-  <section id="dialogue-modal" class="hidden fixed bottom-3 right-3 left-3 sm:left-auto sm:w-[350px] z-30 pointer-events-none transition-all duration-200">
-    <div class="glass pointer-events-auto w-full rounded-2xl p-3.5 shadow-2xl border border-white/20 max-h-[72vh] overflow-y-auto">
-      <div class="flex items-start justify-between gap-2 mb-2.5">
-        <div class="flex items-center gap-2.5 min-w-0">
-          <div id="dlg-avatar" class="w-9 h-9 shrink-0 rounded-xl flex items-center justify-center text-lg shadow-lg bg-sky-500/30 border border-white/20">
-            👋
-          </div>
-          <div class="min-w-0">
-            <div class="flex items-center gap-1.5 flex-wrap">
-              <h2 id="dlg-npc-name" class="font-extrabold text-sm text-white">Emma</h2>
-              <span id="dlg-place-badge" class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-400/30 truncate">
-                Place Centrale
-              </span>
+    <button type="button" data-dir="left" aria-label="Aller à gauche" class="dpad-btn glass btn-pop rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md">◀</button>
+    <button type="button" data-dir="center" id="btn-reset-cam" title="Recentrer la caméra" aria-label="Recentrer la caméra" class="glass btn-pop rounded-xl flex items-center justify-center text-sky-300 text-base sm:text-sm shadow-md">🎯</button>
+    <button type="button" data-dir="right" aria-label="Aller à droite" class="dpad-btn glass btn-pop rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md">▶</button>
+    <div></div>
+    <button type="button" data-dir="down" aria-label="Reculer" class="dpad-btn glass btn-pop rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md">▼</button>
+    <div></div>
+  </div>
+
+  <!-- Boîte de Dialogue RPG Interactive (Bottom Sheet sur mobile, panneau latéral sur desktop) -->
+  <section id="dialogue-modal" aria-label="Dialogue interactif" class="hidden fixed bottom-0 left-0 right-0 sm:bottom-3 sm:right-3 sm:left-auto sm:w-[375px] z-30 pointer-events-none transition-all duration-200">
+    <div id="dialogue-sheet" class="glass sheet-animate pointer-events-auto w-full rounded-t-3xl sm:rounded-2xl shadow-2xl border-t sm:border border-white/20 flex flex-col max-h-[68dvh] sm:max-h-[78vh] safe-bottom">
+      <!-- Poignée tactile mobile (glisser vers le bas pour fermer) -->
+      <div id="dialogue-drag-zone" class="shrink-0 px-3.5 pt-2 sm:pt-3.5 pb-2">
+        <div class="sm:hidden flex justify-center pb-2 cursor-grab">
+          <div class="w-11 h-1.5 rounded-full bg-slate-400/50"></div>
+        </div>
+
+        <div class="flex items-start justify-between gap-2 mb-2.5">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div id="dlg-avatar" class="w-10 h-10 shrink-0 rounded-xl flex items-center justify-center text-xl shadow-lg bg-sky-500/30 border border-white/20">
+              👋
             </div>
-            <p id="dlg-theme" class="text-[11px] text-slate-300 font-medium truncate">Introductions & Greetings</p>
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <h2 id="dlg-npc-name" class="font-extrabold text-sm sm:text-base text-white">Emma</h2>
+                <span id="dlg-place-badge" class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-400/30 truncate">
+                  Place Centrale
+                </span>
+                <span id="dlg-quiz-badge" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                  🏆 Réussi
+                </span>
+              </div>
+              <p id="dlg-theme" class="text-[11px] text-slate-300 font-medium truncate">Introductions & Greetings</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-1 shrink-0">
+            <button id="btn-dock-side" title="Déplacer à gauche / droite" aria-label="Déplacer à gauche ou à droite" class="hidden sm:inline-flex items-center justify-center btn-pop rounded-lg bg-slate-800/80 hover:bg-slate-700 text-sky-300 min-w-[34px] min-h-[34px] text-xs font-bold">
+              ⇄
+            </button>
+            <button id="btn-close-dialogue" title="Fermer" aria-label="Fermer le dialogue" class="inline-flex items-center justify-center btn-pop rounded-xl bg-slate-800/85 hover:bg-slate-700 text-slate-200 hover:text-white min-w-[38px] min-h-[38px] text-sm font-bold">
+              ✕
+            </button>
           </div>
         </div>
-        <div class="flex items-center gap-1 shrink-0">
-          <button id="btn-dock-side" title="Déplacer à gauche / droite" class="btn-pop rounded-lg bg-slate-800/80 hover:bg-slate-700 text-sky-300 px-2 py-1 text-xs font-bold">
-            ⇄
+
+        <div class="flex gap-1 bg-slate-900/75 p-1 rounded-xl">
+          <button id="tab-dialogue" class="tab-btn flex-1 min-h-[38px] py-1.5 px-2 rounded-lg text-xs font-bold bg-sky-500 text-slate-950 transition">
+            💬 Dialogue
           </button>
-          <button id="btn-close-dialogue" title="Fermer" class="btn-pop rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white px-2.5 py-1 text-xs font-bold">
-            ✕
+          <button id="tab-vocab" class="tab-btn flex-1 min-h-[38px] py-1.5 px-2 rounded-lg text-xs font-bold text-slate-300 hover:text-white transition">
+            📖 Mots
+          </button>
+          <button id="tab-quiz" class="tab-btn flex-1 min-h-[38px] py-1.5 px-2 rounded-lg text-xs font-bold text-slate-300 hover:text-white transition">
+            🎯 Défi
           </button>
         </div>
       </div>
 
-      <div class="flex gap-1 bg-slate-900/70 p-1 rounded-xl mb-2.5">
-        <button id="tab-dialogue" class="tab-btn flex-1 py-1.5 px-2 rounded-lg text-[11px] font-bold bg-sky-500 text-slate-950 transition">
-          💬 Dialogue
-        </button>
-        <button id="tab-vocab" class="tab-btn flex-1 py-1.5 px-2 rounded-lg text-[11px] font-bold text-slate-300 hover:text-white transition">
-          📖 Mots
-        </button>
-        <button id="tab-quiz" class="tab-btn flex-1 py-1.5 px-2 rounded-lg text-[11px] font-bold text-slate-300 hover:text-white transition">
-          🎯 Défi
-        </button>
-      </div>
-
-      <!-- PANNEAU 1 : Dialogue -->
-      <div id="panel-dialogue" class="space-y-2.5">
-        <div class="bg-slate-900/75 rounded-xl p-3 border border-white/10">
-          <div class="flex items-center justify-between gap-2 mb-1">
-            <p class="text-[10px] uppercase tracking-wider text-emerald-400 font-bold">Le personnage vous dit :</p>
-            <span id="voice-status" class="text-[10px] text-sky-300 font-medium hidden">🎙️ Lecture...</span>
+      <!-- Zone de contenu scrollable -->
+      <div class="flex-1 overflow-y-auto overscroll-contain px-3.5 pb-1">
+        <!-- PANNEAU 1 : Dialogue -->
+        <div id="panel-dialogue" class="space-y-2.5">
+          <div class="bg-slate-900/75 rounded-xl p-3 border border-white/10">
+            <div class="flex items-center justify-between gap-2 mb-1">
+              <p class="text-[10px] uppercase tracking-wider text-emerald-400 font-bold">Le personnage vous dit :</p>
+              <span id="voice-status" class="text-[10px] text-sky-300 font-medium hidden">🎙️ Lecture...</span>
+            </div>
+            <p id="dlg-en" class="text-sm sm:text-base font-extrabold text-white leading-snug"></p>
+            <p id="dlg-phonetic" class="text-[11px] text-amber-300 font-mono mt-1 break-words"></p>
+            <p id="dlg-fr" class="text-xs sm:text-sm text-slate-300 mt-1.5 pt-1.5 border-t border-slate-700/70"></p>
           </div>
-          <p id="dlg-en" class="text-sm sm:text-base font-extrabold text-white leading-snug"></p>
-          <p id="dlg-phonetic" class="text-[11px] text-amber-300 font-mono mt-1 break-words"></p>
-          <p id="dlg-fr" class="text-xs text-slate-300 mt-1.5 pt-1.5 border-t border-slate-700/70"></p>
+
+          <div class="flex items-center gap-2">
+            <button id="btn-speak-normal" class="btn-pop flex-1 min-h-[44px] bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold py-2.5 px-3 rounded-xl shadow flex items-center justify-center gap-1.5 text-xs sm:text-sm">
+              🔊 Normal
+            </button>
+            <button id="btn-speak-slow" class="btn-pop flex-1 min-h-[44px] bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-400/30 font-bold py-2.5 px-3 rounded-xl shadow flex items-center justify-center gap-1.5 text-xs sm:text-sm">
+              🐢 Lent
+            </button>
+          </div>
+
+          <div class="bg-emerald-500/10 border border-emerald-400/25 rounded-xl p-2.5 text-xs text-emerald-200 flex items-start gap-2">
+            <span class="text-sm shrink-0">💡</span>
+            <p id="dlg-tip" class="leading-relaxed"></p>
+          </div>
         </div>
 
-        <div class="flex items-center gap-1.5">
-          <button id="btn-speak-normal" class="btn-pop flex-1 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold py-2 px-2.5 rounded-xl shadow flex items-center justify-center gap-1.5 text-xs">
-            🔊 Normal
-          </button>
-          <button id="btn-speak-slow" class="btn-pop flex-1 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-400/30 font-bold py-2 px-2.5 rounded-xl shadow flex items-center justify-center gap-1.5 text-xs">
-            🐢 Lent
-          </button>
+        <!-- PANNEAU 2 : Vocabulaire -->
+        <div id="panel-vocab" class="hidden space-y-2">
+          <p class="text-xs text-slate-300">Touchez un mot pour l'écouter :</p>
+          <div id="vocab-list" class="grid grid-cols-1 gap-2"></div>
         </div>
 
-        <div class="bg-emerald-500/10 border border-emerald-400/25 rounded-xl p-2.5 text-[11px] text-emerald-200 flex items-start gap-2">
-          <span class="text-sm">💡</span>
-          <p id="dlg-tip" class="leading-relaxed"></p>
+        <!-- PANNEAU 3 : Mini-Quiz -->
+        <div id="panel-quiz" class="hidden space-y-2.5">
+          <div id="quiz-completed-banner" class="hidden rounded-xl px-3 py-2 text-xs font-semibold bg-emerald-500/15 text-emerald-200 border border-emerald-400/30 flex items-center gap-2">
+            <span>🏆</span>
+            <span>Défi déjà réussi ! Vous pouvez rejouer pour réviser.</span>
+          </div>
+          <div class="bg-slate-900/75 rounded-xl p-3 border border-white/10">
+            <p class="text-[10px] uppercase tracking-wider text-sky-300 font-bold mb-1">Mise en situation :</p>
+            <p id="quiz-question" class="text-xs sm:text-sm font-bold text-white leading-snug"></p>
+          </div>
+          <div id="quiz-options" class="space-y-2"></div>
+          <div id="quiz-feedback" class="hidden rounded-xl p-3 text-xs sm:text-sm font-semibold"></div>
         </div>
-      </div>
-
-      <!-- PANNEAU 2 : Vocabulaire -->
-      <div id="panel-vocab" class="hidden space-y-1.5">
-        <p class="text-[11px] text-slate-300 mb-1">Cliquez sur un mot pour l'écouter :</p>
-        <div id="vocab-list" class="grid grid-cols-1 gap-1.5"></div>
-      </div>
-
-      <!-- PANNEAU 3 : Mini-Quiz -->
-      <div id="panel-quiz" class="hidden space-y-2.5">
-        <div class="bg-slate-900/75 rounded-xl p-3 border border-white/10">
-          <p class="text-[10px] uppercase tracking-wider text-purple-300 font-bold mb-1">Mise en situation :</p>
-          <p id="quiz-question" class="text-xs sm:text-sm font-bold text-white"></p>
-        </div>
-        <div id="quiz-options" class="space-y-1.5"></div>
-        <div id="quiz-feedback" class="hidden rounded-xl p-2.5 text-xs font-semibold"></div>
       </div>
     </div>
   </section>
 
   <!-- Modale d'aide / Bienvenue -->
-  <div id="help-modal" class="fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="glass rounded-3xl max-w-md w-full p-6 shadow-2xl border border-white/20 text-center space-y-4">
-      <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-emerald-400 to-sky-500 flex items-center justify-center text-3xl shadow-lg">
+  <div id="help-modal" role="dialog" aria-modal="true" aria-labelledby="help-modal-title" class="fixed inset-0 z-40 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+    <div class="glass rounded-3xl max-w-md w-full max-h-[90dvh] overflow-y-auto overscroll-contain p-5 sm:p-6 shadow-2xl border border-white/20 text-center space-y-3.5 sm:space-y-4">
+      <div class="w-14 h-14 sm:w-16 sm:h-16 mx-auto rounded-2xl bg-gradient-to-br from-emerald-400 to-sky-500 flex items-center justify-center text-3xl shadow-lg">
         🏙️
       </div>
       <div>
-        <h2 class="text-xl font-extrabold text-white">Bienvenue dans English City 3D !</h2>
+        <h2 id="help-modal-title" class="text-lg sm:text-xl font-extrabold text-white">Bienvenue dans English City 3D !</h2>
         <p class="text-xs sm:text-sm text-slate-300 mt-1">
           Explorez un vrai quartier 3D et discutez avec <strong>7 habitants</strong> dotés de <strong>voix humaines naturelles</strong> pour pratiquer votre cours <em>Niveau Zéro</em>.
         </p>
       </div>
+
+      <div id="help-progress-summary" class="hidden bg-emerald-500/15 border border-emerald-400/30 rounded-2xl px-3.5 py-2.5 text-xs text-emerald-200 font-semibold"></div>
+
       <div class="bg-slate-900/70 rounded-2xl p-3.5 text-left text-xs text-slate-200 space-y-2 border border-white/10">
-        <p>🚶 <strong>Se déplacer :</strong> Touches <strong>Flèches / ZQSD / WASD</strong>, le pad en bas à gauche, ou <strong>cliquez sur un lieu</strong> en haut.</p>
-        <p>🎥 <strong>Tourner la caméra :</strong> Maintenez le clic gauche et faites glisser la souris.</p>
-        <p>💬 <strong>Parler :</strong> Cliquez sur un personnage (ou appuyez sur <strong>Espace</strong> près de lui) pour écouter sa voix naturelle et relever son défi.</p>
+        <p>🚶 <strong>Se déplacer :</strong> Pad directionnel en bas à gauche, touches <strong>Flèches / ZQSD / WASD</strong>, ou <strong>touchez un lieu</strong> en haut.</p>
+        <p>🎥 <strong>Caméra :</strong> Glissez à <strong>1 doigt</strong> (ou clic gauche) pour tourner, <strong>pincez à 2 doigts</strong> (ou molette) pour zoomer.</p>
+        <p>💬 <strong>Parler :</strong> Touchez un personnage (ou appuyez sur <strong>Espace</strong> près de lui) pour écouter sa voix et relever son défi.</p>
+        <p>💾 <strong>Sauvegarde auto :</strong> Vos XP, lieux visités et quiz réussis sont sauvegardés automatiquement sur cet appareil.</p>
       </div>
-      <button id="btn-start-sim" class="btn-pop w-full bg-gradient-to-r from-emerald-500 to-sky-500 hover:from-emerald-400 hover:to-sky-400 text-slate-950 font-extrabold py-3.5 rounded-2xl shadow-xl text-base">
-        🚀 Entrer dans le quartier
-      </button>
+
+      <div class="space-y-2 pt-1">
+        <button id="btn-start-sim" class="btn-pop w-full min-h-[48px] bg-gradient-to-r from-emerald-500 to-sky-500 hover:from-emerald-400 hover:to-sky-400 text-slate-950 font-extrabold py-3 rounded-2xl shadow-xl text-sm sm:text-base">
+          🚀 Entrer dans le quartier
+        </button>
+        <button id="btn-help-reset" class="btn-pop w-full min-h-[42px] bg-slate-800/80 hover:bg-rose-500/20 text-rose-300 border border-rose-400/25 font-semibold py-2 rounded-2xl text-xs sm:text-sm">
+          🔄 Réinitialiser la progression
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modale de confirmation de réinitialisation -->
+  <div id="reset-modal" role="dialog" aria-modal="true" aria-labelledby="reset-modal-title" class="hidden fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="glass rounded-3xl max-w-sm w-full p-5 shadow-2xl border border-white/20 text-center space-y-4">
+      <div class="w-12 h-12 mx-auto rounded-2xl bg-rose-500/20 border border-rose-400/30 flex items-center justify-center text-2xl">
+        🔄
+      </div>
+      <div>
+        <h3 id="reset-modal-title" class="text-base sm:text-lg font-extrabold text-white">Réinitialiser la progression ?</h3>
+        <p id="reset-summary-text" class="text-xs sm:text-sm text-slate-300 mt-1.5 leading-relaxed">
+          Vos XP, lieux visités et quiz réussis seront remis à zéro.
+        </p>
+      </div>
+      <div class="flex items-center gap-2.5">
+        <button id="btn-cancel-reset" class="btn-pop flex-1 min-h-[44px] bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-xs sm:text-sm">
+          Annuler
+        </button>
+        <button id="btn-confirm-reset" class="btn-pop flex-1 min-h-[44px] bg-rose-500 hover:bg-rose-400 text-white font-bold rounded-xl text-xs sm:text-sm shadow-lg">
+          Réinitialiser
+        </button>
+      </div>
     </div>
   </div>
 
   <!-- Toast de notification -->
-  <div id="toast" class="hidden fixed top-28 right-4 z-40 glass rounded-2xl px-4 py-2.5 text-xs sm:text-sm font-bold text-emerald-300 shadow-xl border border-emerald-400/30"></div>
+  <div id="toast" role="status" aria-live="polite" class="hidden fixed top-36 md:top-28 left-3 right-3 sm:left-auto sm:right-4 z-40 pointer-events-none glass rounded-2xl px-4 py-2.5 text-xs sm:text-sm font-bold text-emerald-300 shadow-xl border border-emerald-400/30 text-center sm:text-left"></div>
 
   <script>
     /*************************************************************************
@@ -469,8 +592,11 @@
     ];
 
     /*************************************************************************
-     * 2. ÉTAT GLOBAL & AUDIO (VOIX HUMAINES EDGE-TTS + TONE.JS)
+     * 2. ÉTAT GLOBAL, SAUVEGARDE LOCALSTORAGE & AUDIO (EDGE-TTS + TONE.JS)
      *************************************************************************/
+    const STORAGE_KEY = 'english_city_3d_progress_v1';
+    const VALID_LOCATION_IDS = new Set(NEIGHBORHOOD_DATA.map(loc => loc.id));
+
     const state = {
       xp: 0,
       visitedIds: new Set(),
@@ -484,9 +610,88 @@
       cameraYaw: 0,
       cameraPitch: 0.42,
       cameraDistance: 14,
+      lookAtY: 1.4,
       isDragging: false,
       lastPointer: { x: 0, y: 0 }
     };
+
+    function hasSavedProgress() {
+      return state.xp > 0 || state.visitedIds.size > 0 || state.completedQuizIds.size > 0;
+    }
+
+    function saveProgress() {
+      try {
+        const payload = {
+          version: 1,
+          xp: state.xp,
+          visitedIds: Array.from(state.visitedIds),
+          completedQuizIds: Array.from(state.completedQuizIds),
+          soundEnabled: state.soundEnabled,
+          updatedAt: Date.now()
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      } catch (e) {
+        // Ignorer si le stockage local est indisponible (navigation privée / quota)
+      }
+    }
+
+    function loadProgress() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return false;
+        const data = JSON.parse(raw);
+        if (!data || typeof data !== 'object') return false;
+
+        state.xp = Number.isFinite(data.xp) && data.xp >= 0 ? Math.floor(data.xp) : 0;
+        state.visitedIds = new Set(
+          Array.isArray(data.visitedIds)
+            ? data.visitedIds.filter(id => VALID_LOCATION_IDS.has(id))
+            : []
+        );
+        state.completedQuizIds = new Set(
+          Array.isArray(data.completedQuizIds)
+            ? data.completedQuizIds.filter(id => VALID_LOCATION_IDS.has(id))
+            : []
+        );
+        if (typeof data.soundEnabled === 'boolean') {
+          state.soundEnabled = data.soundEnabled;
+        }
+        return hasSavedProgress();
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function openResetModal() {
+      playFX('click');
+      const summary = document.getElementById('reset-summary-text');
+      const total = NEIGHBORHOOD_DATA.length;
+      if (hasSavedProgress()) {
+        summary.textContent = `Cela effacera vos ${state.xp} XP, ${state.visitedIds.size}/${total} lieux visités et ${state.completedQuizIds.size}/${total} quiz réussis sauvegardés sur cet appareil.`;
+      } else {
+        summary.textContent = 'Votre progression est déjà à zéro. Voulez-vous tout de même réinitialiser les données enregistrées ?';
+      }
+      document.getElementById('reset-modal').classList.remove('hidden');
+    }
+
+    function closeResetModal() {
+      document.getElementById('reset-modal').classList.add('hidden');
+    }
+
+    function resetProgress() {
+      state.xp = 0;
+      state.visitedIds.clear();
+      state.completedQuizIds.clear();
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch (e) {}
+
+      closeResetModal();
+      closeDialogue();
+      syncProgressUI();
+      playFX('click');
+      showToast('🔄 Progression réinitialisée !');
+    }
 
     let synthFX = null;
     let chimeFX = null;
@@ -625,16 +830,39 @@
     let playerGroup, playerParts;
     const npcEntities = [];
     const clickableMeshes = [];
-    const clock = new THREE.Clock();
+    let clock = null;
     let stepTimer = 0;
 
+    function getDefaultCameraDistance() {
+      if (window.innerWidth < 640 && window.innerHeight > window.innerWidth) return 16.5;
+      if (window.innerHeight < 500) return 13.5;
+      return 14;
+    }
+
+    function updateCameraForViewport() {
+      if (!camera || !renderer) return;
+      const container = document.getElementById('canvas-container');
+      const w = container.clientWidth || window.innerWidth;
+      const h = container.clientHeight || window.innerHeight;
+      const isMobilePortrait = w < 640 && h > w;
+      camera.fov = isMobilePortrait ? 56 : 50;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+      renderer.setSize(w, h);
+    }
+
     function initThreeScene() {
+      if (typeof THREE === 'undefined') return false;
+      clock = new THREE.Clock();
       const container = document.getElementById('canvas-container');
       scene = new THREE.Scene();
       scene.background = new THREE.Color(0x8fd3f4);
       scene.fog = new THREE.Fog(0x8fd3f4, 38, 95);
 
-      camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 150);
+      state.cameraDistance = getDefaultCameraDistance();
+      const initialFov = (window.innerWidth < 640 && window.innerHeight > window.innerWidth) ? 56 : 50;
+      camera = new THREE.PerspectiveCamera(initialFov, container.clientWidth / container.clientHeight, 0.1, 150);
 
       renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'default' });
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
@@ -659,6 +887,8 @@
 
       setupCanvasEvents(renderer.domElement);
       window.addEventListener('resize', onWindowResize);
+      window.addEventListener('orientationchange', () => setTimeout(onWindowResize, 120));
+      return true;
     }
 
     function buildNeighborhoodGround() {
@@ -907,10 +1137,6 @@
 
         const labelEl = document.createElement('div');
         labelEl.className = 'npc-label glass rounded-2xl px-2.5 py-1 shadow-lg border border-white/25 text-center';
-        labelEl.innerHTML = `
-          <div class="text-xs font-extrabold text-white whitespace-nowrap">${loc.icon} ${loc.npcName}</div>
-          <div class="text-[10px] text-sky-300 font-medium whitespace-nowrap">${loc.placeName}</div>
-        `;
         labelEl.addEventListener('click', (e) => {
           e.stopPropagation();
           initAudioFX();
@@ -918,8 +1144,29 @@
         });
         labelsLayer.appendChild(labelEl);
 
-        npcEntities.push({ data: loc, group: npc.group, parts: npc.parts, ring, labelEl, phase: idx * 1.1 });
+        const entity = { data: loc, group: npc.group, parts: npc.parts, ring, labelEl, phase: idx * 1.1 };
+        renderNpcLabel(entity);
+        npcEntities.push(entity);
       });
+    }
+
+    function renderNpcLabel(entity) {
+      const loc = entity.data;
+      const quizDone = state.completedQuizIds.has(loc.id);
+      const visited = state.visitedIds.has(loc.id);
+      const badge = quizDone
+        ? ' <span class="text-emerald-400" title="Défi réussi">🏆</span>'
+        : visited
+          ? ' <span class="text-sky-300" title="Lieu visité">✓</span>'
+          : '';
+
+      entity.labelEl.className = `npc-label glass rounded-2xl px-2.5 py-1 shadow-lg text-center border ${
+        quizDone ? 'border-emerald-400/50' : visited ? 'border-sky-400/40' : 'border-white/25'
+      }`;
+      entity.labelEl.innerHTML = `
+        <div class="text-[11px] sm:text-xs font-extrabold text-white whitespace-nowrap">${loc.icon} ${loc.npcName}${badge}</div>
+        <div class="text-[9px] sm:text-[10px] text-sky-300 font-medium whitespace-nowrap">${loc.placeName}</div>
+      `;
     }
 
     function buildPlayerAvatar() {
@@ -931,14 +1178,18 @@
     }
 
     /*************************************************************************
-     * 5. CONTRÔLES & ORBITE CAMÉRA
+     * 5. CONTRÔLES & ORBITE CAMÉRA (SOURIS + TACTILE + PINCH-TO-ZOOM)
      *************************************************************************/
     function setupCanvasEvents(dom) {
       let dragDistance = 0;
+      let isPinching = false;
+      let lastPinchDist = 0;
+      let activeTouchTap = false;
 
-      const onDown = (clientX, clientY) => {
+      const onDown = (clientX, clientY, isTouch = false) => {
         initAudioFX();
         state.isDragging = true;
+        activeTouchTap = isTouch;
         dragDistance = 0;
         state.lastPointer = { x: clientX, y: clientY };
       };
@@ -948,15 +1199,17 @@
         const dx = clientX - state.lastPointer.x;
         const dy = clientY - state.lastPointer.y;
         dragDistance += Math.abs(dx) + Math.abs(dy);
-        state.cameraYaw -= dx * 0.0065;
-        state.cameraPitch = Math.max(0.22, Math.min(1.05, state.cameraPitch + dy * 0.0045));
+        const sensitivity = activeTouchTap ? 0.008 : 0.0065;
+        state.cameraYaw -= dx * sensitivity;
+        state.cameraPitch = Math.max(0.22, Math.min(1.08, state.cameraPitch + dy * 0.0048));
         state.lastPointer = { x: clientX, y: clientY };
       };
 
       const onUp = (clientX, clientY) => {
         if (!state.isDragging) return;
         state.isDragging = false;
-        if (dragDistance < 8) {
+        const tapThreshold = activeTouchTap ? 14 : 8;
+        if (dragDistance < tapThreshold) {
           const rect = dom.getBoundingClientRect();
           mouse.x = ((clientX - rect.left) / rect.width) * 2 - 1;
           mouse.y = -((clientY - rect.top) / rect.height) * 2 + 1;
@@ -969,24 +1222,68 @@
         }
       };
 
-      dom.addEventListener('mousedown', e => onDown(e.clientX, e.clientY));
+      const getPinchDistance = (touches) => {
+        const dx = touches[0].clientX - touches[1].clientX;
+        const dy = touches[0].clientY - touches[1].clientY;
+        return Math.hypot(dx, dy);
+      };
+
+      dom.addEventListener('mousedown', e => {
+        if (e.button === 0) onDown(e.clientX, e.clientY, false);
+      });
       window.addEventListener('mousemove', e => onMove(e.clientX, e.clientY));
       window.addEventListener('mouseup', e => onUp(e.clientX, e.clientY));
 
+      dom.addEventListener('wheel', e => {
+        e.preventDefault();
+        state.cameraDistance = Math.max(8, Math.min(24, state.cameraDistance + e.deltaY * 0.01));
+      }, { passive: false });
+
       dom.addEventListener('touchstart', e => {
-        if (e.touches.length === 1) onDown(e.touches[0].clientX, e.touches[0].clientY);
+        if (e.touches.length === 1) {
+          isPinching = false;
+          onDown(e.touches[0].clientX, e.touches[0].clientY, true);
+        } else if (e.touches.length === 2) {
+          state.isDragging = false;
+          isPinching = true;
+          lastPinchDist = getPinchDistance(e.touches);
+        }
       }, { passive: true });
-      window.addEventListener('touchmove', e => {
-        if (e.touches.length === 1) onMove(e.touches[0].clientX, e.touches[0].clientY);
-      }, { passive: true });
-      window.addEventListener('touchend', e => {
-        if (e.changedTouches.length === 1) onUp(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+
+      dom.addEventListener('touchmove', e => {
+        if (isPinching && e.touches.length === 2) {
+          e.preventDefault();
+          const dist = getPinchDistance(e.touches);
+          const delta = lastPinchDist - dist;
+          state.cameraDistance = Math.max(8, Math.min(24, state.cameraDistance + delta * 0.04));
+          lastPinchDist = dist;
+        } else if (state.isDragging && e.touches.length === 1) {
+          e.preventDefault();
+          onMove(e.touches[0].clientX, e.touches[0].clientY);
+        }
+      }, { passive: false });
+
+      dom.addEventListener('touchend', e => {
+        if (isPinching && e.touches.length < 2) {
+          isPinching = false;
+        } else if (state.isDragging && e.changedTouches.length === 1) {
+          onUp(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+        }
+      });
+
+      dom.addEventListener('touchcancel', () => {
+        state.isDragging = false;
+        isPinching = false;
       });
     }
 
     function walkToAndTalk(loc) {
       playFX('click');
       closeDialogue();
+      if (!playerGroup) {
+        openDialogue(loc);
+        return;
+      }
       const angle = Math.atan2(playerGroup.position.x - loc.pos.x, playerGroup.position.z - loc.pos.z);
       state.autoWalkTarget = {
         x: loc.pos.x + Math.sin(angle) * 2.2,
@@ -997,10 +1294,7 @@
     }
 
     function onWindowResize() {
-      const container = document.getElementById('canvas-container');
-      camera.aspect = container.clientWidth / container.clientHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(container.clientWidth, container.clientHeight);
+      updateCameraForViewport();
     }
 
     /*************************************************************************
@@ -1111,38 +1405,107 @@
       state.nearbyNpc = closestNpc;
       const promptEl = document.getElementById('proximity-prompt');
       if (closestNpc && !state.activeNpc) {
-        document.getElementById('proximity-text').textContent = `Parler à ${closestNpc.npcName} (${closestNpc.placeName})`;
+        const isSmallScreen = window.innerWidth < 640;
+        document.getElementById('proximity-text').textContent = isSmallScreen
+          ? `Parler à ${closestNpc.npcName}`
+          : `Parler à ${closestNpc.npcName} (${closestNpc.placeName})`;
         promptEl.classList.remove('hidden');
       } else {
         promptEl.classList.add('hidden');
       }
+
+      // Sur mobile, décaler légèrement le point visé vers le bas lorsque la feuille de dialogue est ouverte
+      // afin que les personnages restent visibles dans la moitié supérieure de l'écran.
+      const targetLookY = (state.activeNpc && window.innerWidth < 640) ? -0.3 : 1.4;
+      state.lookAtY += (targetLookY - state.lookAtY) * 0.1;
 
       const camX = playerGroup.position.x + Math.sin(state.cameraYaw) * Math.cos(state.cameraPitch) * state.cameraDistance;
       const camY = playerGroup.position.y + 1.8 + Math.sin(state.cameraPitch) * state.cameraDistance;
       const camZ = playerGroup.position.z + Math.cos(state.cameraYaw) * Math.cos(state.cameraPitch) * state.cameraDistance;
 
       camera.position.lerp(new THREE.Vector3(camX, camY, camZ), 0.12);
-      camera.lookAt(playerGroup.position.x, playerGroup.position.y + 1.4, playerGroup.position.z);
+      camera.lookAt(playerGroup.position.x, playerGroup.position.y + state.lookAtY, playerGroup.position.z);
 
       renderer.render(scene, camera);
     }
 
     /*************************************************************************
-     * 7. INTERFACE : DIALOGUES, VOCABULAIRE & MINI-QUIZ
+     * 7. INTERFACE : PROGRESSION, DIALOGUES, VOCABULAIRE & MINI-QUIZ
      *************************************************************************/
     function buildQuickNav() {
       const nav = document.getElementById('quick-nav');
       nav.innerHTML = '';
       NEIGHBORHOOD_DATA.forEach(loc => {
+        const visited = state.visitedIds.has(loc.id);
+        const quizDone = state.completedQuizIds.has(loc.id);
+
         const btn = document.createElement('button');
-        btn.className = 'glass btn-pop shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold text-slate-100 hover:bg-sky-500/30 flex items-center gap-1.5 shadow';
-        btn.innerHTML = `<span>${loc.icon}</span><span>${loc.placeName}</span>`;
+        btn.type = 'button';
+        btn.dataset.locId = loc.id;
+        btn.className = `glass btn-pop shrink-0 rounded-full px-3 min-h-[36px] py-1.5 text-xs font-semibold flex items-center gap-1.5 shadow ${
+          quizDone
+            ? 'text-emerald-200 border-emerald-400/50 bg-emerald-500/15 hover:bg-emerald-500/25'
+            : visited
+              ? 'text-sky-200 border-sky-400/40 hover:bg-sky-500/30'
+              : 'text-slate-100 hover:bg-sky-500/30'
+        }`;
+        const statusMark = quizDone
+          ? '<span class="text-[11px]" title="Quiz réussi">🏆</span>'
+          : visited
+            ? '<span class="text-[11px] text-emerald-400" title="Visité">✓</span>'
+            : '';
+        btn.innerHTML = `<span>${loc.icon}</span><span>${loc.placeName}</span>${statusMark}`;
         btn.addEventListener('click', () => {
           initAudioFX();
           walkToAndTalk(loc);
         });
         nav.appendChild(btn);
       });
+    }
+
+    function updateDialogueStatusBadges(loc) {
+      if (!loc) return;
+      const quizDone = state.completedQuizIds.has(loc.id);
+      const badgeEl = document.getElementById('dlg-quiz-badge');
+      const bannerEl = document.getElementById('quiz-completed-banner');
+      const quizTab = document.getElementById('tab-quiz');
+
+      if (badgeEl) badgeEl.classList.toggle('hidden', !quizDone);
+      if (bannerEl) bannerEl.classList.toggle('hidden', !quizDone);
+      if (quizTab) quizTab.textContent = quizDone ? '🎯 Défi ✓' : '🎯 Défi';
+    }
+
+    function syncProgressUI() {
+      const total = NEIGHBORHOOD_DATA.length;
+      const visitedCount = state.visitedIds.size;
+      const quizCount = state.completedQuizIds.size;
+      const pct = Math.round(((visitedCount + quizCount) / (total * 2)) * 100);
+
+      document.getElementById('xp-display').textContent = `${state.xp} XP`;
+      document.getElementById('visited-count').textContent = visitedCount;
+      document.getElementById('quiz-count').textContent = quizCount;
+      document.getElementById('progress-bar-fill').style.width = `${pct}%`;
+      document.getElementById('btn-sound-toggle').textContent = state.soundEnabled ? '🔊' : '🔇';
+
+      // Mise à jour de la navigation rapide et des étiquettes 3D
+      buildQuickNav();
+      npcEntities.forEach(renderNpcLabel);
+
+      // Résumé dans la modale d'accueil / aide
+      const helpSummary = document.getElementById('help-progress-summary');
+      const startBtn = document.getElementById('btn-start-sim');
+      if (hasSavedProgress()) {
+        helpSummary.textContent = `💾 Progression sauvegardée : ${state.xp} XP • ${visitedCount}/${total} lieux • ${quizCount}/${total} quiz réussis`;
+        helpSummary.classList.remove('hidden');
+        startBtn.textContent = '🚀 Continuer l\'exploration';
+      } else {
+        helpSummary.classList.add('hidden');
+        startBtn.textContent = '🚀 Entrer dans le quartier';
+      }
+
+      if (state.activeNpc) {
+        updateDialogueStatusBadges(state.activeNpc);
+      }
     }
 
     function openDialogue(loc) {
@@ -1152,7 +1515,8 @@
       if (!state.visitedIds.has(loc.id)) {
         state.visitedIds.add(loc.id);
         addXP(10);
-        document.getElementById('visited-count').textContent = state.visitedIds.size;
+      } else {
+        syncProgressUI();
       }
 
       document.getElementById('dlg-avatar').textContent = loc.icon;
@@ -1168,9 +1532,10 @@
       vList.innerHTML = '';
       loc.vocab.forEach(item => {
         const card = document.createElement('button');
-        card.className = 'btn-pop text-left bg-slate-900/80 hover:bg-slate-800 border border-white/10 rounded-2xl p-3 flex items-center justify-between gap-2';
+        card.type = 'button';
+        card.className = 'btn-pop text-left bg-slate-900/80 hover:bg-slate-800 border border-white/10 rounded-2xl p-3 min-h-[56px] flex items-center justify-between gap-2';
         card.innerHTML = `
-          <div>
+          <div class="min-w-0">
             <div class="font-bold text-sm text-white">${item.en}</div>
             <div class="text-[11px] font-mono text-amber-300">${item.phonetic || ''}</div>
             <div class="text-xs text-slate-300 mt-0.5">${item.fr}</div>
@@ -1182,8 +1547,17 @@
       });
 
       renderQuiz(loc);
+      updateDialogueStatusBadges(loc);
       switchTab('dialogue');
+
+      const sheet = document.getElementById('dialogue-sheet');
+      sheet.style.transform = '';
       document.getElementById('dialogue-modal').classList.remove('hidden');
+
+      // Masquer le pad directionnel sur mobile pendant le dialogue pour libérer tout l'écran
+      const dpad = document.getElementById('dpad-controls');
+      dpad.classList.add('hidden', 'sm:grid');
+      dpad.classList.remove('grid');
 
       speakEnglish(loc.dialogueEn, false, loc.voice);
     }
@@ -1197,15 +1571,16 @@
 
       loc.quiz.options.forEach(opt => {
         const btn = document.createElement('button');
-        btn.className = 'btn-pop w-full text-left bg-slate-900/80 hover:bg-slate-800 border border-white/15 rounded-2xl px-4 py-3 text-sm font-semibold text-white flex items-center justify-between';
-        btn.innerHTML = `<span>${opt.text}</span><span class="text-xs text-slate-400">Choisir</span>`;
+        btn.type = 'button';
+        btn.className = 'btn-pop w-full text-left bg-slate-900/80 hover:bg-slate-800 border border-white/15 rounded-2xl px-4 py-3 min-h-[48px] text-xs sm:text-sm font-semibold text-white flex items-center justify-between gap-2';
+        btn.innerHTML = `<span class="leading-snug">${opt.text}</span><span class="text-[11px] text-slate-400 shrink-0">Choisir</span>`;
         btn.addEventListener('click', () => {
           speakEnglish(opt.text, false, loc.voice);
           feedback.classList.remove('hidden');
           if (opt.correct) {
             playFX('success');
             btn.classList.add('border-emerald-400', 'bg-emerald-500/20');
-            feedback.className = 'rounded-2xl p-3 text-sm font-semibold bg-emerald-500/20 text-emerald-200 border border-emerald-400/40';
+            feedback.className = 'rounded-2xl p-3 text-xs sm:text-sm font-semibold bg-emerald-500/20 text-emerald-200 border border-emerald-400/40';
             if (!state.completedQuizIds.has(loc.id)) {
               state.completedQuizIds.add(loc.id);
               addXP(20);
@@ -1216,7 +1591,7 @@
           } else {
             playFX('error');
             btn.classList.add('border-rose-400', 'bg-rose-500/20');
-            feedback.className = 'rounded-2xl p-3 text-sm font-semibold bg-rose-500/20 text-rose-200 border border-rose-400/40';
+            feedback.className = 'rounded-2xl p-3 text-xs sm:text-sm font-semibold bg-rose-500/20 text-rose-200 border border-rose-400/40';
             feedback.textContent = `❌ Pas tout à fait ! Réécoutez le dialogue de ${loc.npcName} et réessayez.`;
           }
         });
@@ -1227,6 +1602,13 @@
     function closeDialogue() {
       state.activeNpc = null;
       document.getElementById('dialogue-modal').classList.add('hidden');
+      const sheet = document.getElementById('dialogue-sheet');
+      if (sheet) sheet.style.transform = '';
+
+      const dpad = document.getElementById('dpad-controls');
+      dpad.classList.remove('hidden', 'sm:grid');
+      dpad.classList.add('grid');
+
       stopCurrentSpeech();
     }
 
@@ -1236,17 +1618,26 @@
         const btn = document.getElementById(`tab-${name}`);
         if (name === tabName) {
           panel.classList.remove('hidden');
-          btn.className = 'tab-btn flex-1 py-1.5 px-2 rounded-lg text-[11px] font-bold bg-sky-500 text-slate-950 transition';
+          btn.className = 'tab-btn flex-1 min-h-[38px] py-1.5 px-2 rounded-lg text-xs font-bold bg-sky-500 text-slate-950 transition';
         } else {
           panel.classList.add('hidden');
-          btn.className = 'tab-btn flex-1 py-1.5 px-2 rounded-lg text-[11px] font-bold text-slate-300 hover:text-white transition';
+          btn.className = 'tab-btn flex-1 min-h-[38px] py-1.5 px-2 rounded-lg text-xs font-bold text-slate-300 hover:text-white transition';
         }
       });
     }
 
     function addXP(amount) {
       state.xp += amount;
-      document.getElementById('xp-display').textContent = `${state.xp} XP`;
+      saveProgress();
+      syncProgressUI();
+    }
+
+    function clearMovementKeys() {
+      state.keys.up = false;
+      state.keys.down = false;
+      state.keys.left = false;
+      state.keys.right = false;
+      document.querySelectorAll('.dpad-btn').forEach(b => b.classList.remove('is-pressed'));
     }
 
     /*************************************************************************
@@ -1261,7 +1652,14 @@
         if (k === 'arrowright' || k === 'd') state.keys.right = pressed;
       };
       window.addEventListener('keydown', e => {
-        if (e.key === 'Escape') closeDialogue();
+        if (e.key === 'Escape') {
+          const resetModal = document.getElementById('reset-modal');
+          const helpModal = document.getElementById('help-modal');
+          if (!resetModal.classList.contains('hidden')) closeResetModal();
+          else if (!helpModal.classList.contains('hidden')) helpModal.classList.add('hidden');
+          else closeDialogue();
+          return;
+        }
         if (e.key === ' ' && state.nearbyNpc && !state.activeNpc) {
           e.preventDefault();
           openDialogue(state.nearbyNpc);
@@ -1269,44 +1667,115 @@
         mapKey(e.key, true);
       });
       window.addEventListener('keyup', e => mapKey(e.key, false));
+      window.addEventListener('blur', clearMovementKeys);
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) clearMovementKeys();
+      });
 
+      // Pad directionnel unifié (Pointer Events pour tactile & souris sans touche bloquée)
       document.querySelectorAll('.dpad-btn').forEach(btn => {
         const dir = btn.dataset.dir;
         const setDir = (val) => {
-          initAudioFX();
+          if (val) initAudioFX();
           if (dir in state.keys) state.keys[dir] = val;
+          btn.classList.toggle('is-pressed', val);
         };
-        btn.addEventListener('mousedown', () => setDir(true));
-        btn.addEventListener('mouseup', () => setDir(false));
-        btn.addEventListener('mouseleave', () => setDir(false));
-        btn.addEventListener('touchstart', e => { e.preventDefault(); setDir(true); });
-        btn.addEventListener('touchend', e => { e.preventDefault(); setDir(false); });
+        btn.addEventListener('pointerdown', e => {
+          e.preventDefault();
+          try { btn.setPointerCapture(e.pointerId); } catch (_) {}
+          setDir(true);
+        });
+        const release = (e) => {
+          if (e) e.preventDefault();
+          setDir(false);
+        };
+        btn.addEventListener('pointerup', release);
+        btn.addEventListener('pointercancel', release);
+        btn.addEventListener('lostpointercapture', () => setDir(false));
+        btn.addEventListener('contextmenu', e => e.preventDefault());
       });
 
       document.getElementById('btn-reset-cam').addEventListener('click', () => {
         state.cameraYaw = 0;
         state.cameraPitch = 0.42;
+        state.cameraDistance = getDefaultCameraDistance();
         playFX('click');
       });
 
+      // Modale d'aide / accueil
+      const helpModal = document.getElementById('help-modal');
       document.getElementById('btn-start-sim').addEventListener('click', async () => {
         await initAudioFX();
         playFX('success');
-        document.getElementById('help-modal').classList.add('hidden');
+        helpModal.classList.add('hidden');
+      });
+      helpModal.addEventListener('click', e => {
+        if (e.target === helpModal) helpModal.classList.add('hidden');
       });
       document.getElementById('btn-help').addEventListener('click', () => {
-        document.getElementById('help-modal').classList.remove('hidden');
+        syncProgressUI();
+        helpModal.classList.remove('hidden');
       });
+
+      // Boutons de réinitialisation (HUD + Modale d'aide + Confirmation)
+      const resetModal = document.getElementById('reset-modal');
+      document.getElementById('btn-reset-progress').addEventListener('click', openResetModal);
+      document.getElementById('btn-help-reset').addEventListener('click', () => {
+        helpModal.classList.add('hidden');
+        openResetModal();
+      });
+      document.getElementById('btn-cancel-reset').addEventListener('click', closeResetModal);
+      document.getElementById('btn-confirm-reset').addEventListener('click', resetProgress);
+      resetModal.addEventListener('click', e => {
+        if (e.target === resetModal) closeResetModal();
+      });
+
       document.getElementById('btn-sound-toggle').addEventListener('click', () => {
         state.soundEnabled = !state.soundEnabled;
         document.getElementById('btn-sound-toggle').textContent = state.soundEnabled ? '🔊' : '🔇';
+        saveProgress();
       });
       document.getElementById('btn-talk-nearby').addEventListener('click', () => {
         if (state.nearbyNpc) openDialogue(state.nearbyNpc);
       });
       document.getElementById('btn-close-dialogue').addEventListener('click', closeDialogue);
 
-      // Bouton pour basculer la fenêtre entre la droite et la gauche
+      // Glisser vers le bas sur l'en-tête du dialogue pour le fermer sur mobile
+      const dragZone = document.getElementById('dialogue-drag-zone');
+      const dialogueSheet = document.getElementById('dialogue-sheet');
+      let sheetStartY = 0;
+      let sheetDeltaY = 0;
+      let sheetDragging = false;
+
+      dragZone.addEventListener('touchstart', e => {
+        if (window.innerWidth >= 640 || e.touches.length !== 1) return;
+        if (e.target.closest('button')) return;
+        sheetDragging = true;
+        sheetStartY = e.touches[0].clientY;
+        sheetDeltaY = 0;
+        dialogueSheet.style.transition = 'none';
+      }, { passive: true });
+
+      dragZone.addEventListener('touchmove', e => {
+        if (!sheetDragging || e.touches.length !== 1) return;
+        sheetDeltaY = Math.max(0, e.touches[0].clientY - sheetStartY);
+        dialogueSheet.style.transform = `translateY(${sheetDeltaY}px)`;
+      }, { passive: true });
+
+      const finishSheetDrag = () => {
+        if (!sheetDragging) return;
+        sheetDragging = false;
+        dialogueSheet.style.transition = 'transform 0.18s ease';
+        if (sheetDeltaY > 65) {
+          closeDialogue();
+        } else {
+          dialogueSheet.style.transform = '';
+        }
+      };
+      dragZone.addEventListener('touchend', finishSheetDrag);
+      dragZone.addEventListener('touchcancel', finishSheetDrag);
+
+      // Bouton pour basculer la fenêtre entre la droite et la gauche (desktop)
       let dockedRight = true;
       document.getElementById('btn-dock-side').addEventListener('click', () => {
         const modal = document.getElementById('dialogue-modal');
@@ -1334,11 +1803,15 @@
     }
 
     window.onload = async function () {
+      const restored = loadProgress();
       await tryLoadNotebookLessons();
-      buildQuickNav();
       bindUIEvents();
-      initThreeScene();
-      animate();
+      const sceneReady = initThreeScene();
+      syncProgressUI();
+      if (sceneReady) animate();
+      if (restored) {
+        showToast(`💾 Progression restaurée : ${state.xp} XP • ${state.visitedIds.size}/${NEIGHBORHOOD_DATA.length} lieux • ${state.completedQuizIds.size}/${NEIGHBORHOOD_DATA.length} quiz`);
+      }
     };
   </script>
 </body>
