@@ -1,5 +1,5 @@
 /* ==========================================================================
-   DAVID Speak — Design System Clair & Chaleureux (Style Duolingo)
+   DAVID-DA Speak — Design System Clair & Chaleureux (Style Duolingo)
    ========================================================================== */
 
 :root {
@@ -1693,6 +1693,18 @@ input {
   margin-bottom: 18px;
 }
 
+.onboarding-tagline {
+  display: inline-block;
+  margin: 8px auto 2px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--blue-bg);
+  color: var(--blue-dark);
+  border: 1.5px solid var(--blue-border);
+  font-size: 12.5px;
+  font-weight: 800;
+}
+
 .modal-head-row {
   display: flex;
   align-items: center;
@@ -2258,11 +2270,11 @@ input {
 
 @media (max-width: 900px) {
   .brand-subtitle {
-    display: none;
+    font-size: 10px;
   }
 
   .unit-progress-box {
-    min-width: 120px;
+    min-width: 115px;
   }
 }
 
@@ -2281,7 +2293,15 @@ input {
 
   .brand-block {
     order: 1;
-    gap: 8px;
+    gap: 7px;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .brand-subtitle {
+    font-size: 9.5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .brand-emblem {

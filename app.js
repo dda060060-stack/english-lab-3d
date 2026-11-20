@@ -1,7 +1,7 @@
 /*****************************************************************************
- * DAVID Speak — Application Web 3D d'Apprentissage de l'Anglais
+ * DAVID-DA Speak — Apprendre l'anglais Niveau 0 • Unit 1 à Unit 8
  * Architecture propre : Portraits SVG 2D, Scène 3D Burkina Faso (Three.js),
- * Profil localStorage + compression photo canvas, Audio Edge-TTS & Quiz.
+ * Cel-Shading Toon, Textures Procédurales Canvas, Profil localStorage & Audio.
  *****************************************************************************/
 
 'use strict';
@@ -1318,6 +1318,305 @@ function updateCameraForViewport() {
   renderer.setSize(w, h);
 }
 
+/* ===========================================================================
+   7A. RENDU CEL-SHADING (TOON) & TEXTURES PROCÉDURALES LÉGÈRES (<canvas>)
+   =========================================================================== */
+let _toonGradientMap = null;
+let _toonOutlineMat = null;
+const _toonMatCache = new Map();
+const SCENE_TEX = {
+  laterite: null,
+  asphalt: null,
+  sidewalk: null,
+  stucco: null,
+  corrugated: null,
+  window: null,
+  fasoFabric: null,
+  glowSprite: null
+};
+
+function getToonGradientMap() {
+  if (_toonGradientMap) return _toonGradientMap;
+  if (typeof THREE === 'undefined' || typeof THREE.DataTexture !== 'function') return null;
+  try {
+    // Dégradé cel-shading net en 3 tons (ombre douce, ton moyen, lumière vive)
+    const tones = new Uint8Array([146, 214, 255]);
+    const format = THREE.LuminanceFormat !== undefined ? THREE.LuminanceFormat : THREE.RedFormat;
+    const tex = new THREE.DataTexture(tones, 3, 1, format);
+    if (THREE.NearestFilter !== undefined) {
+      tex.minFilter = THREE.NearestFilter;
+      tex.magFilter = THREE.NearestFilter;
+    }
+    tex.generateMipmaps = false;
+    tex.needsUpdate = true;
+    _toonGradientMap = tex;
+    return tex;
+  } catch (_) {
+    return null;
+  }
+}
+
+function createToonMaterial(colorHex) {
+  const key = String(colorHex);
+  if (_toonMatCache.has(key)) return _toonMatCache.get(key);
+  let mat;
+  const gradMap = getToonGradientMap();
+  if (typeof THREE.MeshToonMaterial === 'function') {
+    mat = new THREE.MeshToonMaterial({ color: colorHex, gradientMap: gradMap });
+  } else {
+    mat = new THREE.MeshLambertMaterial({ color: colorHex });
+  }
+  _toonMatCache.set(key, mat);
+  return mat;
+}
+
+function getToonOutlineMaterial() {
+  if (_toonOutlineMat) return _toonOutlineMat;
+  _toonOutlineMat = new THREE.MeshBasicMaterial({
+    color: 0x1f1714,
+    side: THREE.BackSide
+  });
+  return _toonOutlineMat;
+}
+
+function addToonOutline(parent, sourceMesh, scaleFactor = 1.06) {
+  if (!parent || !sourceMesh || !sourceMesh.geometry) return null;
+  const outline = new THREE.Mesh(sourceMesh.geometry, getToonOutlineMaterial());
+  outline.position.copy ? outline.position.copy(sourceMesh.position) : outline.position.set(sourceMesh.position.x, sourceMesh.position.y, sourceMesh.position.z);
+  outline.rotation.set(sourceMesh.rotation.x, sourceMesh.rotation.y, sourceMesh.rotation.z);
+  outline.scale.set(
+    sourceMesh.scale.x * scaleFactor,
+    sourceMesh.scale.y * scaleFactor,
+    sourceMesh.scale.z * scaleFactor
+  );
+  parent.add(outline);
+  return outline;
+}
+
+function makeProceduralCanvasTexture(w, h, drawFn, repeatX = 1, repeatY = 1) {
+  try {
+    if (typeof document === 'undefined' || typeof THREE.CanvasTexture !== 'function') return null;
+    const c = document.createElement('canvas');
+    c.width = w;
+    c.height = h;
+    const ctx = c.getContext && c.getContext('2d');
+    if (!ctx) return null;
+    drawFn(ctx, w, h);
+    const tex = new THREE.CanvasTexture(c);
+    if (THREE.RepeatWrapping !== undefined) {
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+    }
+    if (tex.repeat && typeof tex.repeat.set === 'function') {
+      tex.repeat.set(repeatX, repeatY);
+    }
+    tex.needsUpdate = true;
+    return tex;
+  } catch (_) {
+    return null;
+  }
+}
+
+function buildProceduralTextures() {
+  // 1. Terre de latérite rouge-ocre du Burkina Faso (inspirée photo aérienne)
+  SCENE_TEX.laterite = makeProceduralCanvasTexture(128, 128, (ctx, w, h) => {
+    ctx.fillStyle = '#ba6c3e';
+    ctx.fillRect(0, 0, w, h);
+    for (let i = 0; i < 420; i++) {
+      const x = (i * 37) % w;
+      const y = (i * 53) % h;
+      const r = 1 + (i % 4);
+      ctx.fillStyle = i % 3 === 0 ? '#a3582f' : (i % 3 === 1 ? '#ce8352' : '#d6976a');
+      ctx.globalAlpha = 0.32;
+      ctx.fillRect(x, y, r * 2, r);
+    }
+    ctx.globalAlpha = 1;
+  }, 28, 28);
+
+  // 2. Bitume de boulevard texturé (poussière chaude + grain fin satiné)
+  SCENE_TEX.asphalt = makeProceduralCanvasTexture(128, 128, (ctx, w, h) => {
+    ctx.fillStyle = '#605c58';
+    ctx.fillRect(0, 0, w, h);
+    // Traces de roulement très subtiles
+    ctx.fillStyle = 'rgba(42, 40, 38, 0.22)';
+    ctx.fillRect(0, 18, w, 24);
+    ctx.fillRect(0, 84, w, 24);
+    for (let i = 0; i < 520; i++) {
+      const x = (i * 29) % w;
+      const y = (i * 47) % h;
+      ctx.fillStyle = i % 2 === 0 ? '#77716a' : '#4b4845';
+      ctx.globalAlpha = 0.35;
+      ctx.fillRect(x, y, 2, 2);
+    }
+    ctx.globalAlpha = 1;
+  }, 16, 2);
+
+  // 3. Trottoirs dallés sable-ocre
+  SCENE_TEX.sidewalk = makeProceduralCanvasTexture(128, 128, (ctx, w, h) => {
+    ctx.fillStyle = '#d8ba98';
+    ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = 'rgba(135, 102, 74, 0.32)';
+    ctx.lineWidth = 2;
+    for (let y = 0; y < h; y += 32) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+    }
+    for (let x = 0; x < w; x += 32) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+    }
+    for (let i = 0; i < 160; i++) {
+      ctx.fillStyle = i % 2 === 0 ? 'rgba(255,244,225,0.22)' : 'rgba(165,120,82,0.18)';
+      ctx.fillRect((i * 43) % w, (i * 61) % h, 3, 3);
+    }
+  }, 18, 1);
+
+  // 4. Crépi de façade chaud subtil (remplace l'aspect blocs plats)
+  SCENE_TEX.stucco = makeProceduralCanvasTexture(128, 128, (ctx, w, h) => {
+    ctx.fillStyle = '#f3ede4';
+    ctx.fillRect(0, 0, w, h);
+    for (let i = 0; i < 360; i++) {
+      const x = (i * 41) % w;
+      const y = (i * 23) % h;
+      ctx.fillStyle = i % 2 === 0 ? 'rgba(255,255,255,0.25)' : 'rgba(120,90,65,0.12)';
+      ctx.fillRect(x, y, 4, 2);
+    }
+    // Légère bande de soubassement chaleureuse
+    ctx.fillStyle = 'rgba(135, 92, 58, 0.14)';
+    ctx.fillRect(0, h - 18, w, 18);
+  }, 2, 2);
+
+  // 5. Tôle ondulée métallique légère
+  SCENE_TEX.corrugated = makeProceduralCanvasTexture(64, 64, (ctx, w, h) => {
+    ctx.fillStyle = '#9aa3ac';
+    ctx.fillRect(0, 0, w, h);
+    for (let x = 0; x < w; x += 8) {
+      ctx.fillStyle = 'rgba(255,255,255,0.28)';
+      ctx.fillRect(x, 0, 3, h);
+      ctx.fillStyle = 'rgba(55,64,74,0.26)';
+      ctx.fillRect(x + 4, 0, 3, h);
+    }
+  }, 3, 1);
+
+  // 6. Fenêtre architecturale encadrée avec reflets chauds intérieurs
+  SCENE_TEX.window = makeProceduralCanvasTexture(128, 128, (ctx, w, h) => {
+    // Cadre extérieur crème-brun
+    ctx.fillStyle = '#e8dfd1';
+    ctx.fillRect(0, 0, w, h);
+    // Vitre avec dégradé reflet chaud fin d'après-midi
+    const g = ctx.createLinearGradient(8, 8, w - 8, h - 8);
+    g.addColorStop(0, '#2a435a');
+    g.addColorStop(0.45, '#4c687c');
+    g.addColorStop(0.75, '#d99e5b');
+    g.addColorStop(1, '#f4c77b');
+    ctx.fillStyle = g;
+    ctx.fillRect(8, 8, w - 16, h - 16);
+    // Reflet diagonal doux
+    ctx.fillStyle = 'rgba(255, 246, 220, 0.26)';
+    ctx.beginPath();
+    ctx.moveTo(14, 14); ctx.lineTo(54, 14); ctx.lineTo(24, h - 14); ctx.lineTo(14, h - 14);
+    ctx.closePath();
+    ctx.fill();
+    // Croisillons nets
+    ctx.fillStyle = '#334155';
+    ctx.fillRect(w / 2 - 3, 8, 6, h - 16);
+    ctx.fillRect(8, h / 2 - 3, w - 16, 6);
+  }, 1, 1);
+
+  // 7. Motif tissé Faso Dan Fani coloré
+  SCENE_TEX.fasoFabric = makeProceduralCanvasTexture(128, 64, (ctx, w, h) => {
+    ctx.fillStyle = '#d62828';
+    ctx.fillRect(0, 0, w, h);
+    const stripes = ['#fcd116', '#146334', '#f8fafc', '#1e4d7b', '#fcd116', '#ea580c'];
+    stripes.forEach((col, i) => {
+      ctx.fillStyle = col;
+      ctx.fillRect(0, i * 10 + 2, w, 5);
+    });
+    ctx.fillStyle = 'rgba(0,0,0,0.12)';
+    for (let x = 0; x < w; x += 8) ctx.fillRect(x, 0, 2, h);
+  }, 1, 1);
+
+  // 8. Sprite radial doux pour halos chauds de lampadaires et enseignes
+  SCENE_TEX.glowSprite = makeProceduralCanvasTexture(64, 64, (ctx, w, h) => {
+    const cx = w / 2;
+    const cy = h / 2;
+    const rad = ctx.createRadialGradient(cx, cy, 2, cx, cy, cx);
+    rad.addColorStop(0.0, 'rgba(255, 244, 198, 0.92)');
+    rad.addColorStop(0.35, 'rgba(255, 206, 102, 0.45)');
+    rad.addColorStop(0.7, 'rgba(255, 174, 66, 0.14)');
+    rad.addColorStop(1.0, 'rgba(255, 160, 50, 0.0)');
+    ctx.fillStyle = rad;
+    ctx.fillRect(0, 0, w, h);
+  }, 1, 1);
+}
+
+function createGlowSprite(size = 1.6, opacity = 0.65) {
+  if (typeof THREE.Sprite === 'function' && typeof THREE.SpriteMaterial === 'function' && SCENE_TEX.glowSprite) {
+    const mat = new THREE.SpriteMaterial({
+      map: SCENE_TEX.glowSprite,
+      transparent: true,
+      opacity,
+      depthWrite: false
+    });
+    const sprite = new THREE.Sprite(mat);
+    sprite.scale.set(size, size, 1);
+    return sprite;
+  }
+  const fallback = new THREE.Mesh(
+    new THREE.SphereGeometry(size * 0.24, 7, 6),
+    new THREE.MeshBasicMaterial({ color: 0xffe08a, transparent: true, opacity: opacity * 0.35, depthWrite: false })
+  );
+  return fallback;
+}
+
+function createReadableSignboard(title, subtitle, width = 3.2, height = 0.86, opts = {}) {
+  const {
+    bg = '#fffdf7',
+    border = '#c8372d',
+    header = '#1e4d7b',
+    text = '#2b2b2b'
+  } = opts;
+
+  const signGroup = new THREE.Group();
+  const frame = new THREE.Mesh(
+    new THREE.BoxGeometry(width + 0.14, height + 0.14, 0.12),
+    new THREE.MeshLambertMaterial({ color: border })
+  );
+  signGroup.add(frame);
+
+  const signTex = makeProceduralCanvasTexture(256, 80, (ctx, w, h) => {
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = header;
+    ctx.fillRect(0, 0, w, 14);
+    ctx.fillStyle = border;
+    ctx.fillRect(0, h - 8, w, 8);
+
+    ctx.fillStyle = text;
+    ctx.font = 'bold 22px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(title, w / 2, 37, w - 18);
+
+    if (subtitle) {
+      ctx.fillStyle = header;
+      ctx.font = 'bold 13px sans-serif';
+      ctx.fillText(subtitle, w / 2, 60, w - 20);
+    }
+  }, 1, 1);
+
+  const faceMat = signTex
+    ? new THREE.MeshBasicMaterial({ map: signTex })
+    : new THREE.MeshLambertMaterial({ color: bg });
+  const face = new THREE.Mesh(new THREE.BoxGeometry(width, height, 0.14), faceMat);
+  signGroup.add(face);
+
+  // Petite lueur chaude au-dessus de l'enseigne de boutique
+  const signGlow = createGlowSprite(1.35, 0.42);
+  signGlow.position.set(0, height * 0.55, 0.25);
+  signGroup.add(signGlow);
+
+  return signGroup;
+}
+
 function initThreeScene() {
   if (typeof THREE === 'undefined') return false;
   worldColliders.length = 0;
@@ -1325,6 +1624,7 @@ function initThreeScene() {
   clickableMeshes.length = 0;
   backgroundCitizens.length = 0;
   trafficVehicles.length = 0;
+  _toonMatCache.clear();
   clock = new THREE.Clock();
   _camGoalVec = new THREE.Vector3();
   _camLookVec = new THREE.Vector3(0, 1.4, 7.6);
@@ -1333,9 +1633,15 @@ function initThreeScene() {
   const container = document.getElementById('canvas-container');
   scene = new THREE.Scene();
 
-  // Ambiance fin d'après-midi chaleureuse : fond doux + brouillard doré léger à l'horizon
+  buildProceduralTextures();
+
+  // Ambiance cinématographique fin d'après-midi : ciel doux + brume exponentielle dorée à l'horizon
   scene.background = new THREE.Color(0x9bc4e2);
-  scene.fog = new THREE.Fog(0xe8c7a3, 46, 126);
+  if (typeof THREE.FogExp2 === 'function') {
+    scene.fog = new THREE.FogExp2(0xe6c39c, 0.0088);
+  } else {
+    scene.fog = new THREE.Fog(0xe6c39c, 46, 126);
+  }
 
   state.cameraDistance = getDefaultCameraDistance();
   const initialFov = (window.innerWidth < 640 && window.innerHeight > window.innerWidth) ? 56 : 50;
@@ -1356,11 +1662,11 @@ function initThreeScene() {
   mouse = new THREE.Vector2();
 
   // Éclairage naturel chaud fin d'après-midi : ciel doré + rebond terre de latérite
-  const hemiLight = new THREE.HemisphereLight(0xfff1d6, 0xb06a3c, 0.92);
+  const hemiLight = new THREE.HemisphereLight(0xfff1d6, 0xb06a3c, 0.94);
   hemiLight.position.set(0, 38, 0);
   scene.add(hemiLight);
 
-  const sunLight = new THREE.DirectionalLight(0xffd79b, 1.16);
+  const sunLight = new THREE.DirectionalLight(0xffd79b, 1.18);
   sunLight.position.set(36, 28, -28);
   sunLight.castShadow = true;
   if (sunLight.shadow && sunLight.shadow.mapSize) {
@@ -1378,8 +1684,8 @@ function initThreeScene() {
   }
   scene.add(sunLight);
 
-  // Contre-jour bleu ciel très doux pour sculpter les visages sans les assombrir
-  const fillLight = new THREE.DirectionalLight(0xbcdbff, 0.28);
+  // Contre-jour bleu ciel très doux pour sculpter les visages cel-shaded
+  const fillLight = new THREE.DirectionalLight(0xbcdbff, 0.30);
   fillLight.position.set(-24, 18, 28);
   scene.add(fillLight);
 
@@ -1469,9 +1775,13 @@ function buildSkyAndSun() {
 }
 
 function buildNeighborhoodGround() {
+  const lateriteMat = new THREE.MeshLambertMaterial({
+    color: SCENE_TEX.laterite ? 0xffffff : 0xb86a3e,
+    map: SCENE_TEX.laterite || null
+  });
   const lateriteGround = new THREE.Mesh(
     new THREE.PlaneGeometry(190, 190),
-    new THREE.MeshLambertMaterial({ color: 0xb86a3e })
+    lateriteMat
   );
   lateriteGround.rotation.x = -Math.PI / 2;
   lateriteGround.receiveShadow = true;
@@ -1520,9 +1830,12 @@ function buildNeighborhoodGround() {
     scene.add(tuft);
   });
 
-  const sidewalkMat = new THREE.MeshLambertMaterial({ color: 0xd8b896 });
-  const esplanadeMat = new THREE.MeshLambertMaterial({ color: 0xc9a380 });
-  const paverMat = new THREE.MeshLambertMaterial({ color: 0x9b8978 });
+  const sidewalkMat = new THREE.MeshLambertMaterial({
+    color: SCENE_TEX.sidewalk ? 0xffffff : 0xd8b896,
+    map: SCENE_TEX.sidewalk || null
+  });
+  const esplanadeMat = new THREE.MeshLambertMaterial({ color: 0xc9a380, map: SCENE_TEX.stucco || null });
+  const paverMat = new THREE.MeshLambertMaterial({ color: 0xa69482, map: SCENE_TEX.stucco || null });
 
   [-1.7, 5.7].forEach(z => {
     const sw = new THREE.Mesh(new THREE.BoxGeometry(86, 0.12, 1.7), sidewalkMat);
@@ -1538,7 +1851,16 @@ function buildNeighborhoodGround() {
     scene.add(sw);
   });
 
-  const asphaltMat = new THREE.MeshLambertMaterial({ color: 0x67625d });
+  // Chaussée bitumée texturée légèrement satinée sous le soleil de fin d'après-midi
+  const asphaltMat = typeof THREE.MeshStandardMaterial === 'function'
+    ? new THREE.MeshStandardMaterial({
+      color: SCENE_TEX.asphalt ? 0xffffff : 0x67625d,
+      map: SCENE_TEX.asphalt || null,
+      roughness: 0.58,
+      metalness: 0.08
+    })
+    : new THREE.MeshLambertMaterial({ color: 0x67625d, map: SCENE_TEX.asphalt || null });
+
   const roadH = new THREE.Mesh(new THREE.BoxGeometry(86, 0.08, 5.8), asphaltMat);
   roadH.position.set(0, 0.04, 2);
   roadH.receiveShadow = true;
@@ -1548,6 +1870,16 @@ function buildNeighborhoodGround() {
   roadV.position.set(0, 0.04, 10.5);
   roadV.receiveShadow = true;
   scene.add(roadV);
+
+  // Lignes de rive jaune-crème inspirées du grand boulevard de la photo
+  const edgeLineMat = new THREE.MeshBasicMaterial({ color: 0xf4dca4 });
+  [-0.62, 4.62].forEach(z => {
+    const edgeL = new THREE.Mesh(new THREE.BoxGeometry(31, 0.088, 0.12), edgeLineMat);
+    edgeL.position.set(-24.5, 0.046, z);
+    const edgeR = new THREE.Mesh(new THREE.BoxGeometry(31, 0.088, 0.12), edgeLineMat);
+    edgeR.position.set(24.5, 0.046, z);
+    scene.add(edgeL, edgeR);
+  });
 
   const curbRedMat = new THREE.MeshLambertMaterial({ color: 0xc05e36 });
   const curbCreamMat = new THREE.MeshLambertMaterial({ color: 0xeae0ce });
@@ -1838,6 +2170,35 @@ function buildMonumentDesMartyrs() {
     m.add(p, head);
   });
 
+  // Colonnes jumelles aux poings levés + étoile dorée (inspirées directement de la photo du Monument des Martyrs)
+  const stoneMat = new THREE.MeshLambertMaterial({ color: 0xd6cfc0, map: SCENE_TEX.stucco || null });
+  const bronzeGoldMat = new THREE.MeshLambertMaterial({ color: 0xd9a126 });
+
+  [[-1.35, 5.2, 6.2], [1.35, 5.2, 5.3]].forEach(([px, pz, ph]) => {
+    const pillar = new THREE.Mesh(new THREE.BoxGeometry(1.45, ph, 0.95), stoneMat);
+    pillar.position.set(px, ph / 2 + 0.2, pz);
+    pillar.castShadow = true;
+    m.add(pillar);
+
+    // Corniche supérieure + poing levé stylisé low-poly
+    const collar = new THREE.Mesh(new THREE.BoxGeometry(1.62, 0.22, 1.1), bronzeGoldMat);
+    collar.position.set(px, ph + 0.22, pz);
+    const fistBase = new THREE.Mesh(new THREE.BoxGeometry(1.52, 1.15, 1.02), stoneMat);
+    fistBase.position.set(px, ph + 0.92, pz);
+    const thumb = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.34, 0.36), stoneMat);
+    thumb.position.set(px, ph + 0.72, pz + 0.45);
+    m.add(collar, fistBase, thumb);
+  });
+
+  // Grande étoile dorée à 5 branches entre les deux colonnes (comme sur la photo)
+  const monumentStarGeom = new THREE.ExtrudeGeometry(createStarShape(0.85, 0.34, 5), {
+    depth: 0.18,
+    bevelEnabled: false
+  });
+  const monumentStar = new THREE.Mesh(monumentStarGeom, bronzeGoldMat);
+  monumentStar.position.set(0.05, 3.65, 5.72);
+  m.add(monumentStar);
+
   scene.add(m);
   addCircleCollider(0, -23.5, 9.1, 'monument');
 }
@@ -1969,11 +2330,8 @@ function createSolarLamp(rotY = 0) {
   led.position.set(0, 4.84, 1.24);
   lamp.add(led);
 
-  // Halo lumineux discret de fin d'après-midi sur le lampadaire solaire
-  const lampHalo = new THREE.Mesh(
-    new THREE.SphereGeometry(0.46, 8, 6),
-    new THREE.MeshBasicMaterial({ color: 0xffe08a, transparent: true, opacity: 0.24, depthWrite: false })
-  );
+  // Lueur chaude de fin d'après-midi (sprite léger, zéro PointLight coûteuse)
+  const lampHalo = createGlowSprite(1.85, 0.68);
   lampHalo.position.set(0, 4.74, 1.24);
   lamp.add(lampHalo);
 
@@ -1996,7 +2354,6 @@ function createYStreetLamp(rotY = 0) {
   const poleMat = new THREE.MeshLambertMaterial({ color: 0x9aa4ae });
   const headMat = new THREE.MeshLambertMaterial({ color: 0xe2e8f0 });
   const bulbMat = new THREE.MeshBasicMaterial({ color: 0xfef3c7 });
-  const haloMat = new THREE.MeshBasicMaterial({ color: 0xffe08a, transparent: true, opacity: 0.22, depthWrite: false });
 
   const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.09, 4.5, 6), poleMat);
   pole.position.y = 2.25;
@@ -2012,7 +2369,7 @@ function createYStreetLamp(rotY = 0) {
     head.position.set(side * 0.98, 4.92, 0);
     const bulb = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.05, 0.16), bulbMat);
     bulb.position.set(side * 0.98, 4.86, 0);
-    const halo = new THREE.Mesh(new THREE.SphereGeometry(0.42, 8, 6), haloMat);
+    const halo = createGlowSprite(1.65, 0.62);
     halo.position.set(side * 0.98, 4.78, 0);
     lamp.add(head, bulb, halo);
   });
@@ -2218,20 +2575,20 @@ function createCharacterMesh(locOrConfig, isPlayer = false) {
   const outfitStyle = isPlayer ? 'tunic' : (cfg.outfitStyle || (isFemale ? 'dress' : 'tunic'));
   const accessory = isPlayer ? 'none' : (cfg.accessory || 'none');
 
-  const skinMat = new THREE.MeshLambertMaterial({ color: skinColor });
-  const shirtMat = new THREE.MeshLambertMaterial({ color: shirtColor });
-  const skirtMat = new THREE.MeshLambertMaterial({ color: skirtColor });
-  const trimMat = new THREE.MeshLambertMaterial({ color: trimColor });
-  const pantsMat = new THREE.MeshLambertMaterial({
-    color: isPlayer ? 0x2b3a4a : (cfg.pantsColor || (isFemale ? 0x2c2430 : 0x334155))
-  });
-  const shoeMat = new THREE.MeshLambertMaterial({ color: isPlayer ? 0xffffff : (isFemale ? 0x3a2018 : 0x1f2937) });
-  const hairMat = new THREE.MeshLambertMaterial({ color: 0x1a1715 });
+  const skinMat = createToonMaterial(skinColor);
+  const shirtMat = createToonMaterial(shirtColor);
+  const skirtMat = createToonMaterial(skirtColor);
+  const trimMat = createToonMaterial(trimColor);
+  const pantsMat = createToonMaterial(
+    isPlayer ? 0x2b3a4a : (cfg.pantsColor || (isFemale ? 0x2c2430 : 0x334155))
+  );
+  const shoeMat = createToonMaterial(isPlayer ? 0xffffff : (isFemale ? 0x3a2018 : 0x1f2937));
+  const hairMat = createToonMaterial(0x1a1715);
   const whiteMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
   const pupilMat = new THREE.MeshBasicMaterial({ color: 0x141414 });
   const mouthInsideMat = new THREE.MeshBasicMaterial({ color: 0x3a1216 });
-  const lipMat = new THREE.MeshLambertMaterial({ color: isFemale ? 0xb54454 : 0x9b3b3b });
-  const blushMat = new THREE.MeshBasicMaterial({ color: 0xff8b8b, transparent: true, opacity: isFemale ? 0.48 : 0.36 });
+  const lipMat = createToonMaterial(isFemale ? 0xb54454 : 0x9b3b3b);
+  const blushMat = new THREE.MeshBasicMaterial({ color: 0xff8b8b, transparent: true, opacity: isFemale ? 0.50 : 0.36 });
 
   const markShadow = (mesh) => {
     mesh.castShadow = true;
@@ -2313,6 +2670,7 @@ function createCharacterMesh(locOrConfig, isPlayer = false) {
     ));
     upperBodice.position.y = 0.45;
     torsoGroup.add(upperBodice);
+    addToonOutline(torsoGroup, upperBodice, 1.055);
 
     const shoulderCap = markShadow(new THREE.Mesh(new THREE.SphereGeometry(0.235, 10, 8), shirtMat));
     shoulderCap.scale.set(1.02, 0.5, 0.86);
@@ -2326,6 +2684,7 @@ function createCharacterMesh(locOrConfig, isPlayer = false) {
     ));
     waist.position.y = 0.14;
     torsoGroup.add(waist);
+    addToonOutline(torsoGroup, waist, 1.055);
 
     const belt = new THREE.Mesh(new THREE.CylinderGeometry(0.205, 0.215, 0.09, 12), trimMat);
     belt.position.y = 0.23;
@@ -2347,6 +2706,7 @@ function createCharacterMesh(locOrConfig, isPlayer = false) {
     ));
     skirtBody.position.y = -skirtHeight / 2;
     skirtGroup.add(skirtBody);
+    addToonOutline(skirtGroup, skirtBody, 1.05);
 
     // Bande tissée colorée en bas du pagne / robe
     const hemTrim = new THREE.Mesh(
@@ -2367,15 +2727,17 @@ function createCharacterMesh(locOrConfig, isPlayer = false) {
     bodyPivot.add(skirtGroup);
     skirtMesh = skirtGroup;
   } else {
-    // Silhouette masculine arrondie style Duolingo
+    // Silhouette masculine arrondie style animé / Duolingo
     const torsoCyl = markShadow(new THREE.Mesh(new THREE.CylinderGeometry(0.275, 0.33, 0.68, 12), shirtMat));
     torsoCyl.position.y = 0.34;
     torsoGroup.add(torsoCyl);
+    addToonOutline(torsoGroup, torsoCyl, 1.055);
 
     const torsoTop = markShadow(new THREE.Mesh(new THREE.SphereGeometry(0.275, 10, 8), shirtMat));
     torsoTop.scale.set(1, 0.54, 0.9);
     torsoTop.position.y = 0.66;
     torsoGroup.add(torsoTop);
+    addToonOutline(torsoGroup, torsoTop, 1.055);
 
     const torsoBottom = new THREE.Mesh(new THREE.SphereGeometry(0.33, 10, 8), shirtMat);
     torsoBottom.scale.set(1, 0.38, 0.9);
@@ -2440,7 +2802,7 @@ function createCharacterMesh(locOrConfig, isPlayer = false) {
   const rightElbow = rightArmBuilt.elbowPivot;
   bodyPivot.add(leftArmPivot, rightArmPivot);
 
-  // Cou + Tête sphérique chaleureuse
+  // Cou + Tête sphérique chaleureuse avec contour animé net
   const neck = new THREE.Mesh(new THREE.CylinderGeometry(isFemale ? 0.095 : 0.11, isFemale ? 0.11 : 0.13, 0.18, 9), skinMat);
   neck.position.y = isFemale ? 0.80 : 0.82;
   bodyPivot.add(neck);
@@ -2452,6 +2814,7 @@ function createCharacterMesh(locOrConfig, isPlayer = false) {
   const head = markShadow(new THREE.Mesh(new THREE.SphereGeometry(headRadius, 14, 12), skinMat));
   head.scale.set(isFemale ? 0.98 : 1.02, 1.0, 0.98);
   headGroup.add(head);
+  addToonOutline(headGroup, head, 1.06);
 
   // Oreilles + boucles d'oreilles discrètes
   const earOffset = headRadius * 0.96;
@@ -2470,42 +2833,53 @@ function createCharacterMesh(locOrConfig, isPlayer = false) {
     }
   });
 
-  // Grands yeux expressifs + cils subtils pour les personnages féminins
+  // Grands yeux style animé expressifs (pupilles + double reflet blanc + sourcils dynamiques)
   const eyeZ = headRadius * 0.86;
   const buildEye = (ex) => {
     const eyeGroup = new THREE.Group();
     eyeGroup.position.set(ex, 0.04, eyeZ);
 
-    const sclera = new THREE.Mesh(new THREE.SphereGeometry(0.064, 10, 8), whiteMat);
-    sclera.scale.set(1, 1.08, 0.55);
+    const sclera = new THREE.Mesh(new THREE.SphereGeometry(0.068, 10, 8), whiteMat);
+    sclera.scale.set(1.02, 1.12, 0.55);
     eyeGroup.add(sclera);
 
-    const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.037, 8, 8), pupilMat);
-    pupil.scale.set(1, 1.05, 0.6);
-    pupil.position.set(0, 0, 0.033);
+    const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.041, 8, 8), pupilMat);
+    pupil.scale.set(1, 1.08, 0.6);
+    pupil.position.set(0, 0, 0.034);
     eyeGroup.add(pupil);
 
-    const glint = new THREE.Mesh(new THREE.SphereGeometry(0.014, 6, 6), whiteMat);
-    glint.position.set(0.015, 0.019, 0.055);
+    // Double reflet lumineux style animé
+    const glint = new THREE.Mesh(new THREE.SphereGeometry(0.016, 6, 6), whiteMat);
+    glint.position.set(0.016, 0.020, 0.058);
     eyeGroup.add(glint);
 
+    const glintSecondary = new THREE.Mesh(new THREE.SphereGeometry(0.0085, 6, 5), whiteMat);
+    glintSecondary.position.set(-0.015, -0.013, 0.056);
+    eyeGroup.add(glintSecondary);
+
     if (isFemale) {
-      const lash = new THREE.Mesh(new THREE.BoxGeometry(0.065, 0.016, 0.016), hairMat);
-      lash.position.set(ex < 0 ? -0.045 : 0.045, 0.048, 0.028);
+      const lash = new THREE.Mesh(new THREE.BoxGeometry(0.072, 0.017, 0.016), hairMat);
+      lash.position.set(ex < 0 ? -0.047 : 0.047, 0.051, 0.030);
       lash.rotation.z = ex < 0 ? -0.35 : 0.35;
       eyeGroup.add(lash);
     }
 
-    const brow = new THREE.Mesh(new THREE.BoxGeometry(isFemale ? 0.095 : 0.11, isFemale ? 0.018 : 0.024, 0.022), hairMat);
-    brow.position.set(ex, 0.138, eyeZ + 0.01);
-    brow.rotation.z = ex < 0 ? 0.12 : -0.12;
+    const baseBrowZ = ex < 0 ? 0.12 : -0.12;
+    const brow = new THREE.Mesh(new THREE.BoxGeometry(isFemale ? 0.098 : 0.114, isFemale ? 0.019 : 0.025, 0.022), hairMat);
+    brow.position.set(ex, 0.142, eyeZ + 0.012);
+    brow.rotation.z = baseBrowZ;
+    brow.userData = { baseY: 0.142, baseZ: baseBrowZ };
     headGroup.add(brow);
 
-    return eyeGroup;
+    return { eyeGroup, brow };
   };
 
-  const leftEyeGroup = buildEye(-0.118);
-  const rightEyeGroup = buildEye(0.118);
+  const leftEyeBuilt = buildEye(-0.118);
+  const rightEyeBuilt = buildEye(0.118);
+  const leftEyeGroup = leftEyeBuilt.eyeGroup;
+  const rightEyeGroup = rightEyeBuilt.eyeGroup;
+  const leftBrow = leftEyeBuilt.brow;
+  const rightBrow = rightEyeBuilt.brow;
   headGroup.add(leftEyeGroup, rightEyeGroup);
 
   // Joues rosées subtiles
@@ -2542,7 +2916,7 @@ function createCharacterMesh(locOrConfig, isPlayer = false) {
 
   headGroup.add(mouthOpen);
 
-  // Coiffures variées : tresses longues, chignon haut, foulard/turban coloré, casquette, coupe courte
+  // Coiffures variées stylisées avec contours animés subtils
   if (hairStyle === 'bun') {
     const hairCap = new THREE.Mesh(
       new THREE.SphereGeometry(headRadius * 1.05, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.56),
@@ -2550,26 +2924,29 @@ function createCharacterMesh(locOrConfig, isPlayer = false) {
     );
     hairCap.position.y = 0.04;
     headGroup.add(hairCap);
+    addToonOutline(headGroup, hairCap, 1.05);
 
     // Chignon haut élégant + bandeau coloré
     const bun = markShadow(new THREE.Mesh(new THREE.SphereGeometry(0.15, 10, 8), hairMat));
     bun.position.set(0, headRadius + 0.09, -0.06);
     headGroup.add(bun);
+    addToonOutline(headGroup, bun, 1.06);
 
-    const bandMat = headwrapColor ? new THREE.MeshLambertMaterial({ color: headwrapColor }) : trimMat;
+    const bandMat = headwrapColor ? createToonMaterial(headwrapColor) : trimMat;
     const headband = new THREE.Mesh(new THREE.TorusGeometry(headRadius * 0.97, 0.036, 6, 14), bandMat);
     headband.rotation.x = Math.PI / 2 - 0.2;
     headband.position.y = 0.14;
     headGroup.add(headband);
   } else if (hairStyle === 'braids' || hairStyle === 'braids-wrap') {
     if (headwrapColor) {
-      const wrapMat = new THREE.MeshLambertMaterial({ color: headwrapColor });
+      const wrapMat = createToonMaterial(headwrapColor);
       const wrapCrown = new THREE.Mesh(
         new THREE.SphereGeometry(headRadius * 1.08, 12, 9, 0, Math.PI * 2, 0, Math.PI * 0.54),
         wrapMat
       );
       wrapCrown.position.y = 0.06;
       headGroup.add(wrapCrown);
+      addToonOutline(headGroup, wrapCrown, 1.055);
 
       const wrapBand = new THREE.Mesh(new THREE.TorusGeometry(headRadius * 0.99, 0.04, 6, 14), trimMat);
       wrapBand.rotation.x = Math.PI / 2 - 0.12;
@@ -2582,6 +2959,7 @@ function createCharacterMesh(locOrConfig, isPlayer = false) {
       );
       hairCap.position.y = 0.04;
       headGroup.add(hairCap);
+      addToonOutline(headGroup, hairCap, 1.05);
     }
 
     // Tresses longues descendant sur les côtés et la nuque (low-poly)
@@ -2602,13 +2980,14 @@ function createCharacterMesh(locOrConfig, isPlayer = false) {
       headGroup.add(bead);
     });
   } else if (headwrapColor || hairStyle === 'headwrap') {
-    const wrapMat = new THREE.MeshLambertMaterial({ color: headwrapColor || 0xef4444 });
+    const wrapMat = createToonMaterial(headwrapColor || 0xef4444);
     const wrapCrown = markShadow(new THREE.Mesh(
       new THREE.SphereGeometry(headRadius * 1.1, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.56),
       wrapMat
     ));
     wrapCrown.position.y = 0.06;
     headGroup.add(wrapCrown);
+    addToonOutline(headGroup, wrapCrown, 1.055);
 
     const wrapBand = new THREE.Mesh(new THREE.TorusGeometry(headRadius * 1.01, 0.044, 6, 14), trimMat);
     wrapBand.rotation.x = Math.PI / 2 - 0.12;
@@ -2618,6 +2997,7 @@ function createCharacterMesh(locOrConfig, isPlayer = false) {
     const wrapKnot = new THREE.Mesh(new THREE.SphereGeometry(0.11, 8, 8), wrapMat);
     wrapKnot.position.set(0.22, 0.30, 0.05);
     headGroup.add(wrapKnot);
+    addToonOutline(headGroup, wrapKnot, 1.07);
   } else if (accessory === 'cap') {
     const capDome = new THREE.Mesh(
       new THREE.SphereGeometry(headRadius * 1.07, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.52),
@@ -2625,6 +3005,7 @@ function createCharacterMesh(locOrConfig, isPlayer = false) {
     );
     capDome.position.y = 0.05;
     headGroup.add(capDome);
+    addToonOutline(headGroup, capDome, 1.055);
 
     const visor = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.32, 0.04, 10, 1, false, -0.8, 1.6), trimMat);
     visor.position.set(0, 0.14, 0.24);
@@ -2637,6 +3018,7 @@ function createCharacterMesh(locOrConfig, isPlayer = false) {
     );
     hairCap.position.y = 0.045;
     headGroup.add(hairCap);
+    addToonOutline(headGroup, hairCap, 1.05);
   }
 
   if (accessory === 'beard') {
@@ -2649,7 +3031,7 @@ function createCharacterMesh(locOrConfig, isPlayer = false) {
   }
 
   if (accessory === 'glasses') {
-    const frameMat = new THREE.MeshLambertMaterial({ color: 0x1e293b });
+    const frameMat = createToonMaterial(0x1e293b);
     [-0.118, 0.118].forEach(gx => {
       const rim = new THREE.Mesh(new THREE.TorusGeometry(0.082, 0.014, 6, 12), frameMat);
       rim.position.set(gx, 0.04, eyeZ + 0.045);
@@ -2681,6 +3063,8 @@ function createCharacterMesh(locOrConfig, isPlayer = false) {
       head: headGroup,
       leftEyeGroup,
       rightEyeGroup,
+      leftBrow,
+      rightBrow,
       mouthClosed,
       mouthOpen
     }
@@ -2698,7 +3082,7 @@ function createAnimState(phase = 0) {
 }
 
 /**
- * Contrôleur d'animation articulée réaliste (genoux, coudes, buste, tête, yeux & bouche) :
+ * Contrôleur d'animation articulée réaliste (genoux, coudes, buste, tête, yeux, sourcils & bouche) :
  * Supporte : marche articulée, repos vivant, salut, parole (lip-sync), écoute,
  * lecture assise, smartphone assis/debout, cycliste qui pédale et motard.
  */
@@ -2927,13 +3311,53 @@ function updateCharacterAnimation(parts, anim, opts, elapsed, dt) {
     parts.mouthOpen.visible = false;
     parts.mouthClosed.visible = true;
   }
+
+  // 5. Sourcils animés selon l'émotion (joyeux, concentré, attentif, neutre)
+  if (parts.leftBrow && parts.rightBrow) {
+    const lbBaseY = (parts.leftBrow.userData && parts.leftBrow.userData.baseY) || 0.142;
+    const rbBaseY = (parts.rightBrow.userData && parts.rightBrow.userData.baseY) || 0.142;
+    const lbBaseZ = (parts.leftBrow.userData && parts.leftBrow.userData.baseZ) || 0.12;
+    const rbBaseZ = (parts.rightBrow.userData && parts.rightBrow.userData.baseZ) || -0.12;
+
+    let browLift = breath * 0.002;
+    let browTiltDelta = 0;
+
+    if (isSpeaking) {
+      // Expression vive et enjouée qui suit le rythme de la parole
+      browLift = 0.017 + Math.sin(t * 5.6) * 0.007;
+      browTiltDelta = 0.07;
+    } else if (isGreeting) {
+      // Sourcils relevés chaleureusement lors du salut
+      browLift = 0.022 + Math.sin(elapsed * 6.0) * 0.004;
+      browTiltDelta = 0.09;
+    } else if (pose === 'sit-book' || pose === 'sit-phone' || pose === 'stand-phone' || pose === 'cycle' || pose === 'moto') {
+      // Regard concentré (lecture, smartphone, conduite)
+      browLift = -0.011;
+      browTiltDelta = -0.11;
+    } else if (isListening) {
+      // Écoute attentive
+      browLift = 0.009 + Math.max(0, Math.sin(elapsed * 2.2)) * 0.005;
+      browTiltDelta = 0.03;
+    }
+
+    const targetLeftY = lbBaseY + browLift;
+    const targetRightY = rbBaseY + browLift;
+    const targetLeftZ = lbBaseZ + browTiltDelta;
+    const targetRightZ = rbBaseZ - browTiltDelta;
+
+    parts.leftBrow.position.y += (targetLeftY - parts.leftBrow.position.y) * lerpK;
+    parts.rightBrow.position.y += (targetRightY - parts.rightBrow.position.y) * lerpK;
+    parts.leftBrow.rotation.z += (targetLeftZ - parts.leftBrow.rotation.z) * lerpK;
+    parts.rightBrow.rotation.z += (targetRightZ - parts.rightBrow.rotation.z) * lerpK;
+  }
 }
 
 function createCorrugatedRoof(width, depth, color = 0x9aa3ab, slopeX = 0.16) {
   const roof = new THREE.Group();
-  const baseMat = new THREE.MeshLambertMaterial({ color });
+  const baseMat = new THREE.MeshLambertMaterial({ color, map: SCENE_TEX.corrugated || null });
   const ribMat = new THREE.MeshLambertMaterial({ color: 0x7d8790 });
   const sheet = new THREE.Mesh(new THREE.BoxGeometry(width, 0.08, depth), baseMat);
+  sheet.castShadow = true;
   roof.add(sheet);
   const ribs = Math.max(3, Math.floor(width / 0.85));
   for (let i = 0; i < ribs; i++) {
@@ -2985,26 +3409,35 @@ function createShopSignboard(width, height, bgColor = 0xf4f1ea, borderColor = 0x
 
 function createBuildingMesh(loc) {
   const b = new THREE.Group();
-  const wallMat = new THREE.MeshLambertMaterial({ color: loc.wallColor || 0xd6965c });
-  const creamMat = new THREE.MeshLambertMaterial({ color: 0xeae0cc });
-  const terracottaMat = new THREE.MeshLambertMaterial({ color: 0xb05936 });
-  const brickMat = new THREE.MeshLambertMaterial({ color: 0x9e5437 });
+  const stuccoMap = SCENE_TEX.stucco || null;
+  const windowMap = SCENE_TEX.window || null;
+  const wallMat = new THREE.MeshLambertMaterial({ color: loc.wallColor || 0xd6965c, map: stuccoMap });
+  const creamMat = new THREE.MeshLambertMaterial({ color: 0xeae0cc, map: stuccoMap });
+  const terracottaMat = new THREE.MeshLambertMaterial({ color: 0xb05936, map: stuccoMap });
+  const brickMat = new THREE.MeshLambertMaterial({ color: 0x9e5437, map: stuccoMap });
   const goldMat = new THREE.MeshLambertMaterial({ color: 0xfcd116 });
   const bfGreenMat = new THREE.MeshLambertMaterial({ color: 0x146334 });
   const bfRedMat = new THREE.MeshLambertMaterial({ color: 0xd62828 });
-  const glassMat = new THREE.MeshLambertMaterial({ color: 0x3b5064 });
+  const glassMat = new THREE.MeshLambertMaterial({ color: windowMap ? 0xffffff : 0x3b5064, map: windowMap });
   const doorMat = new THREE.MeshLambertMaterial({ color: 0x5c341d });
   const darkMat = new THREE.MeshLambertMaterial({ color: 0x2f353d });
+
+  const markBldgShadow = (mesh) => {
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    return mesh;
+  };
 
   if (loc.buildingType === 'plaza') {
     const plinth = new THREE.Mesh(new THREE.BoxGeometry(8.2, 0.24, 5.2), creamMat);
     plinth.position.set(0, 0.12, -0.4);
+    plinth.receiveShadow = true;
     b.add(plinth);
 
     [-3.4, -1.9, 1.9, 3.4].forEach(px => {
       const base = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.22, 0.56), creamMat);
       base.position.set(px, 0.24, 1.45);
-      const col = new THREE.Mesh(new THREE.BoxGeometry(0.32, 2.05, 0.32), bfGreenMat);
+      const col = markBldgShadow(new THREE.Mesh(new THREE.BoxGeometry(0.32, 2.05, 0.32), bfGreenMat));
       col.position.set(px, 1.32, 1.45);
       const ball = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 6), goldMat);
       ball.position.set(px, 2.48, 1.45);
@@ -3034,9 +3467,18 @@ function createBuildingMesh(loc) {
     shieldBar.position.set(0, 1.34, 1.45);
     b.add(wingRed, wingGreen, trimTop, trimBot, medallion, shield, shieldBar);
 
-    const obBase = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.65, 1.7), terracottaMat);
+    const plazaSign = createReadableSignboard('PLACE DE LA NATION', 'OUAGADOUGOU • UNIT 1', 3.4, 0.82, {
+      bg: '#fffdf7',
+      border: '#146334',
+      header: '#d62828',
+      text: '#1f2937'
+    });
+    plazaSign.position.set(0, 2.52, 1.46);
+    b.add(plazaSign);
+
+    const obBase = markBldgShadow(new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.65, 1.7), terracottaMat));
     obBase.position.set(0, 0.52, -1.35);
-    const obColumn = new THREE.Mesh(new THREE.BoxGeometry(1.05, 4.4, 1.05), creamMat);
+    const obColumn = markBldgShadow(new THREE.Mesh(new THREE.BoxGeometry(1.05, 4.4, 1.05), creamMat));
     obColumn.position.set(0, 3.0, -1.35);
     const obPlaque = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.12, 10), goldMat);
     obPlaque.rotation.x = Math.PI / 2;
@@ -3049,9 +3491,10 @@ function createBuildingMesh(loc) {
   } else if (loc.buildingType === 'busstop') {
     const platform = new THREE.Mesh(new THREE.BoxGeometry(6.4, 0.2, 3.2), creamMat);
     platform.position.y = 0.1;
+    platform.receiveShadow = true;
     b.add(platform);
 
-    const backWall = new THREE.Mesh(new THREE.BoxGeometry(5.6, 2.5, 0.26), terracottaMat);
+    const backWall = markBldgShadow(new THREE.Mesh(new THREE.BoxGeometry(5.6, 2.5, 0.26), terracottaMat));
     backWall.position.set(0, 1.42, -1.1);
     b.add(backWall);
 
@@ -3071,12 +3514,17 @@ function createBuildingMesh(loc) {
 
     const billPostL = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.08, 3.6, 6), darkMat);
     billPostL.position.set(3.4, 1.8, 0.4);
-    const billBoard = createShopSignboard(2.1, 1.25, 0x228b3b, 0xeae0cc, 0xfcd116);
+    const billBoard = createReadableSignboard('GARE ROUTIÈRE', 'DÉPARTS • UNIT 5', 2.65, 1.05, {
+      bg: '#f4fbf6',
+      border: '#eab308',
+      header: '#146334',
+      text: '#14532d'
+    });
     billBoard.position.set(3.4, 3.35, 0.4);
     b.add(billPostL, billBoard);
 
     const bus = new THREE.Group();
-    const busBody = new THREE.Mesh(new THREE.BoxGeometry(3.6, 1.65, 1.7), new THREE.MeshLambertMaterial({ color: 0x0ea5e9 }));
+    const busBody = markBldgShadow(new THREE.Mesh(new THREE.BoxGeometry(3.6, 1.65, 1.7), new THREE.MeshLambertMaterial({ color: 0x0ea5e9 })));
     busBody.position.y = 1.12;
     const busRoof = new THREE.Mesh(new THREE.BoxGeometry(3.55, 0.14, 1.65), creamMat);
     busRoof.position.y = 1.98;
@@ -3095,7 +3543,7 @@ function createBuildingMesh(loc) {
     b.add(bus);
 
   } else if (loc.buildingType === 'courtyard') {
-    const house = new THREE.Mesh(new THREE.BoxGeometry(4.8, 2.95, 3.4), wallMat);
+    const house = markBldgShadow(new THREE.Mesh(new THREE.BoxGeometry(4.8, 2.95, 3.4), wallMat));
     house.position.set(0, 1.48, -1.2);
     b.add(house);
 
@@ -3106,6 +3554,15 @@ function createBuildingMesh(loc) {
     const verandaRoof = createCorrugatedRoof(4.6, 1.65, 0xb05936, 0.18);
     verandaRoof.position.set(0, 2.38, 1.05);
     b.add(verandaRoof);
+
+    const courtyardSign = createReadableSignboard('COUR FAMILIALE', 'QUARTIER • UNIT 6', 2.85, 0.72, {
+      bg: '#fff8ee',
+      border: '#b05936',
+      header: '#d97706',
+      text: '#451a03'
+    });
+    courtyardSign.position.set(0, 2.86, 1.84);
+    b.add(courtyardSign);
 
     [-2.0, 2.0].forEach(px => {
       const post = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.08, 2.25, 6), doorMat);
@@ -3124,11 +3581,11 @@ function createBuildingMesh(loc) {
     });
 
     const wallH = 1.15;
-    const sideL = new THREE.Mesh(new THREE.BoxGeometry(0.26, wallH, 4.4), wallMat);
+    const sideL = markBldgShadow(new THREE.Mesh(new THREE.BoxGeometry(0.26, wallH, 4.4), wallMat));
     sideL.position.set(-2.9, wallH / 2, 0.8);
     const sideR = sideL.clone();
     sideR.position.x = 2.9;
-    const frontL = new THREE.Mesh(new THREE.BoxGeometry(1.85, wallH, 0.26), wallMat);
+    const frontL = markBldgShadow(new THREE.Mesh(new THREE.BoxGeometry(1.85, wallH, 0.26), wallMat));
     frontL.position.set(-2.05, wallH / 2, 2.9);
     const frontR = frontL.clone();
     frontR.position.x = 2.05;
@@ -3162,9 +3619,12 @@ function createBuildingMesh(loc) {
     const w = 6.2;
     const d = 4.4;
 
-    const groundFloor = new THREE.Mesh(new THREE.BoxGeometry(w, 2.3, d), creamMat);
+    const groundFloor = markBldgShadow(new THREE.Mesh(new THREE.BoxGeometry(w, 2.3, d), creamMat));
     groundFloor.position.y = 1.15;
-    const upperFacade = new THREE.Mesh(new THREE.BoxGeometry(w, 2.0, d), new THREE.MeshLambertMaterial({ color: 0xc8743e }));
+    const upperFacade = markBldgShadow(new THREE.Mesh(
+      new THREE.BoxGeometry(w, 2.0, d),
+      new THREE.MeshLambertMaterial({ color: 0xc8743e, map: stuccoMap })
+    ));
     upperFacade.position.y = 3.3;
     b.add(groundFloor, upperFacade);
 
@@ -3184,8 +3644,13 @@ function createBuildingMesh(loc) {
     redTrim.position.set(1.52, 2.15, d / 2 + 1.48);
     b.add(creamTarp, redTrim);
 
-    const shopSign = createShopSignboard(2.8, 0.82, 0xf5f2eb, 0xc8372d, 0x1e4d7b);
-    shopSign.position.set(1.4, 3.0, d / 2 + 0.12);
+    const shopSign = createReadableSignboard('FASO DAN FANI', 'BOUTIQUE TISSUS • UNIT 4', 3.15, 0.86, {
+      bg: '#fffdf7',
+      border: '#c8372d',
+      header: '#1e4d7b',
+      text: '#1f2937'
+    });
+    shopSign.position.set(1.35, 3.05, d / 2 + 0.14);
     b.add(shopSign);
 
     const door = new THREE.Mesh(new THREE.BoxGeometry(1.25, 1.95, 0.15), darkMat);
@@ -3196,7 +3661,7 @@ function createBuildingMesh(loc) {
     fabricColors.forEach((fc, i) => {
       const roll = new THREE.Mesh(
         new THREE.CylinderGeometry(0.15, 0.15, 1.1, 7),
-        new THREE.MeshLambertMaterial({ color: fc })
+        new THREE.MeshLambertMaterial({ color: fc, map: SCENE_TEX.fasoFabric || null })
       );
       roll.position.set(-2.35 + i * 0.45, 0.58, d / 2 + 0.72);
       b.add(roll);
@@ -3223,7 +3688,7 @@ function createBuildingMesh(loc) {
     const w = 5.8;
     const d = 4.2;
 
-    const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), brickMat);
+    const body = markBldgShadow(new THREE.Mesh(new THREE.BoxGeometry(w, h, d), brickMat));
     body.position.y = h / 2;
     const cornice = new THREE.Mesh(new THREE.BoxGeometry(w + 0.26, 0.28, d + 0.26), creamMat);
     cornice.position.y = h + 0.14;
@@ -3239,8 +3704,13 @@ function createBuildingMesh(loc) {
       b.add(p);
     });
 
-    const maquisSign = createShopSignboard(3.1, 0.72, 0x146334, 0xfcd116, 0xd62828);
-    maquisSign.position.set(0, 3.25, d / 2 + 0.14);
+    const maquisSign = createReadableSignboard('MAQUIS LE FASO', 'GRILLADES & CAFÉ • UNIT 3', 3.3, 0.82, {
+      bg: '#fffdf5',
+      border: '#d62828',
+      header: '#146334',
+      text: '#14532d'
+    });
+    maquisSign.position.set(0, 3.28, d / 2 + 0.16);
     b.add(maquisSign);
 
     const door = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.95, 0.15), doorMat);
@@ -3270,7 +3740,7 @@ function createBuildingMesh(loc) {
     const w = 5.8;
     const d = 4.2;
 
-    const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), terracottaMat);
+    const body = markBldgShadow(new THREE.Mesh(new THREE.BoxGeometry(w, h, d), terracottaMat));
     body.position.y = h / 2;
     b.add(body);
 
@@ -3289,8 +3759,13 @@ function createBuildingMesh(loc) {
     awning.position.set(0, 2.25, d / 2 + 0.55);
     b.add(awning);
 
-    const campusSign = createShopSignboard(3.2, 0.72, 0xf4f1ea, 0x1e4d7b, 0xd9933c);
-    campusSign.position.set(0, h + 0.58, d / 2 - 0.15);
+    const campusSign = createReadableSignboard('LIBRAIRIE / CAMPUS', 'COURS & LIVRES • UNIT 2', 3.4, 0.82, {
+      bg: '#fffdf7',
+      border: '#1e4d7b',
+      header: '#d97706',
+      text: '#1e293b'
+    });
+    campusSign.position.set(0, h + 0.62, d / 2 - 0.12);
     b.add(campusSign);
 
     const door = new THREE.Mesh(new THREE.BoxGeometry(1.15, 1.95, 0.15), doorMat);
@@ -3313,13 +3788,22 @@ function createBuildingMesh(loc) {
     const w = 5.8;
     const d = 4.2;
 
-    const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), creamMat);
+    const body = markBldgShadow(new THREE.Mesh(new THREE.BoxGeometry(w, h, d), creamMat));
     body.position.y = h / 2;
     const cornice = new THREE.Mesh(new THREE.BoxGeometry(w + 0.36, 0.34, d + 0.36), terracottaMat);
     cornice.position.y = h + 0.17;
     const accentBand = new THREE.Mesh(new THREE.BoxGeometry(w + 0.12, 0.3, d + 0.12), terracottaMat);
     accentBand.position.y = 2.42;
     b.add(body, cornice, accentBand);
+
+    const villaSign = createReadableSignboard('VILLA OUAGA 2000', 'RÉSIDENCE • UNIT 7', 3.15, 0.78, {
+      bg: '#fffdf7',
+      border: '#b05936',
+      header: '#1e4d7b',
+      text: '#3b2618'
+    });
+    villaSign.position.set(0, h + 0.60, d / 2 - 0.1);
+    b.add(villaSign);
 
     const balcony = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.16, 0.95), terracottaMat);
     balcony.position.set(0, 2.55, d / 2 + 0.45);
@@ -3354,7 +3838,10 @@ function createBuildingMesh(loc) {
     const w = 6.2;
     const d = 4.4;
 
-    const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshLambertMaterial({ color: 0xd9a86c }));
+    const body = markBldgShadow(new THREE.Mesh(
+      new THREE.BoxGeometry(w, h, d),
+      new THREE.MeshLambertMaterial({ color: 0xd9a86c, map: stuccoMap })
+    ));
     body.position.y = h / 2;
     const cornice = new THREE.Mesh(new THREE.BoxGeometry(w + 0.34, 0.36, d + 0.34), terracottaMat);
     cornice.position.y = h + 0.18;
@@ -3380,8 +3867,13 @@ function createBuildingMesh(loc) {
     bigWin.position.set(0, 3.85, d / 2 + 0.06);
     b.add(bigWin);
 
-    const techSign = createShopSignboard(3.2, 0.72, 0xf4f1ea, 0x0e7490, 0xd9933c);
-    techSign.position.set(0, h + 0.62, d / 2 - 0.1);
+    const techSign = createReadableSignboard('ATELIER TECH', 'BUREAU DIGITAL • UNIT 8', 3.3, 0.82, {
+      bg: '#f5fbff',
+      border: '#0e7490',
+      header: '#1e40af',
+      text: '#0f172a'
+    });
+    techSign.position.set(0, h + 0.66, d / 2 - 0.1);
     b.add(techSign);
 
     const solarMat = new THREE.MeshLambertMaterial({ color: 0x1e40af });
@@ -5748,7 +6240,7 @@ function bindUIEvents() {
     document.getElementById('onboarding-modal').classList.add('hidden');
     syncProgressUI();
     playFX('success');
-    showToast(`Bienvenue sur DAVID Speak, ${state.profile.name} !`);
+    showToast(`Bienvenue sur DAVID-DA Speak, ${state.profile.name} !`);
   });
 
   // Modale Profil
@@ -5941,6 +6433,6 @@ window.addEventListener('load', async () => {
   if (!state.profile) {
     openOnboardingModal();
   } else if (restored) {
-    showToast(`Bon retour sur DAVID Speak, ${state.profile.name} !`);
+    showToast(`Bon retour sur DAVID-DA Speak, ${state.profile.name} !`);
   }
 });
