@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>English City 3D — Simulateur d'Anglais Niveau Zéro</title>
+  <!-- Tailwind CSS pour l'interface moderne -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Three.js pour l'environnement 3D léger et fluide -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- Tone.js pour des effets sonores garantis sans fichiers externes -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: #87ceeb;
+    }
+    #canvas-container {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      cursor: grab;
+    }
+    canvas:active {
+      cursor: grabbing;
+    }
+    .glass {
+      background: rgba(15, 23, 42, 0.82);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+    }
+    .npc-label {
+      position: absolute;
+      transform: translate(-50%, -100%);
+      pointer-events: auto;
+      cursor: pointer;
+      transition: transform 0.15s ease, opacity 0.2s ease;
+      z-index: 10;
+    }
+    .npc-label:hover {
+      transform: translate(-50%, -112%) scale(1.06);
+    }
+    .btn-pop {
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+    }
+    .btn-pop:active {
+      transform: scale(0.95);
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="text-slate-100">
+
+  <!-- Conteneur WebGL 3D -->
+  <div id="canvas-container"></div>
+
+  <!-- Calque des étiquettes flottantes au-dessus des personnages 3D -->
+  <div id="labels-layer" class="fixed inset-0 pointer-events-none z-10 overflow-hidden"></div>
+
+  <!-- Barre supérieure HUD -->
+  <header class="fixed top-0 left-0 right-0 z-20 p-2 sm:p-3 pointer-events-none flex flex-col gap-2">
+    <div class="flex items-center justify-between gap-2 max-w-6xl mx-auto w-full pointer-events-auto">
+      <div class="glass rounded-2xl px-3 py-2 flex items-center gap-2.5 shadow-lg">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-sky-500 flex items-center justify-center text-lg shadow-inner">
+          🏙️
+        </div>
+        <div class="leading-tight">
+          <h1 class="font-extrabold text-sm sm:text-base tracking-tight text-white">English City 3D</h1>
+          <p class="text-[11px] text-sky-300 font-medium">Quartier Interactif • Niveau Zéro</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <div class="glass rounded-2xl px-3 py-2 flex items-center gap-3 shadow-lg">
+          <div class="flex items-center gap-1.5">
+            <span class="text-amber-400 text-base">⭐</span>
+            <span id="xp-display" class="font-bold text-sm text-white">0 XP</span>
+          </div>
+          <div class="h-4 w-px bg-slate-600"></div>
+          <div class="text-xs text-slate-300 font-medium">
+            <span id="visited-count" class="text-emerald-400 font-bold">0</span>/7 lieux
+          </div>
+        </div>
+
+        <button id="btn-sound-toggle" title="Activer/Couper les effets sonores"
+          class="glass btn-pop rounded-2xl p-2.5 text-white hover:bg-slate-800/90 shadow-lg text-sm">
+          🔊
+        </button>
+
+        <button id="btn-help" title="Aide & Commandes"
+          class="glass btn-pop rounded-2xl px-3 py-2.5 text-xs font-semibold text-sky-300 hover:bg-slate-800/90 shadow-lg">
+          ❓ Aide
+        </button>
+      </div>
+    </div>
+
+    <div id="quick-nav" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar max-w-6xl mx-auto w-full px-1 pointer-events-auto"></div>
+  </header>
+
+  <!-- Invite contextuelle quand on s'approche d'un personnage -->
+  <div id="proximity-prompt" class="hidden fixed bottom-28 sm:bottom-10 left-1/2 -translate-x-1/2 z-20 pointer-events-auto">
+    <button id="btn-talk-nearby"
+      class="btn-pop bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-extrabold px-5 py-3 rounded-full shadow-2xl flex items-center gap-2 border-2 border-white/60 animate-bounce">
+      <span>💬</span>
+      <span id="proximity-text">Parler à Emma</span>
+      <span class="hidden sm:inline text-xs bg-slate-950/20 px-2 py-0.5 rounded-full">Espace</span>
+    </button>
+  </div>
+
+  <!-- Pad directionnel tactile / souris -->
+  <div id="dpad-controls" class="fixed bottom-4 left-4 z-20 grid grid-cols-3 gap-1.5 w-32 h-32 pointer-events-auto opacity-85 hover:opacity-100 transition-opacity">
+    <div></div>
+    <button data-dir="up" class="dpad-btn glass btn-pop rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md">▲</button>
+    <div></div>
+    <button data-dir="left" class="dpad-btn glass btn-pop rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md">◀</button>
+    <button data-dir="center" id="btn-reset-cam" title="Recentrer la caméra" class="glass btn-pop rounded-xl flex items-center justify-center text-sky-300 text-sm shadow-md">🎯</button>
+    <button data-dir="right" class="dpad-btn glass btn-pop rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md">▶</button>
+  <!-- Boîte de Dialogue RPG Interactive (compacte sur le côté) -->
+  <section id="dialogue-modal" class="hidden fixed bottom-3 right-3 left-3 sm:left-auto sm:w-[350px] z-30 pointer-events-none transition-all duration-200">
+    <div class="glass pointer-events-auto w-full rounded-2xl p-3.5 shadow-2xl border border-white/20 max-h-[72vh] overflow-y-auto">
+      <div class="flex items-start justify-between gap-2 mb-2.5">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div id="dlg-avatar" class="w-9 h-9 shrink-0 rounded-xl flex items-center justify-center text-lg shadow-lg bg-sky-500/30 border border-white/20">
+            👋
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <h2 id="dlg-npc-name" class="font-extrabold text-sm text-white">Emma</h2>
+              <span id="dlg-place-badge" class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-400/30 truncate">
+                Place Centrale
+              </span>
+            </div>
+            <p id="dlg-theme" class="text-[11px] text-slate-300 font-medium truncate">Introductions & Greetings</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-1 shrink-0">
+          <button id="btn-dock-side" title="Déplacer à gauche / droite" class="btn-pop rounded-lg bg-slate-800/80 hover:bg-slate-700 text-sky-300 px-2 py-1 text-xs font-bold">
+            ⇄
+          </button>
+          <button id="btn-close-dialogue" title="Fermer" class="btn-pop rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white px-2.5 py-1 text-xs font-bold">
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <div class="flex gap-1 bg-slate-900/70 p-1 rounded-xl mb-2.5">
+        <button id="tab-dialogue" class="tab-btn flex-1 py-1.5 px-2 rounded-lg text-[11px] font-bold bg-sky-500 text-slate-950 transition">
+          💬 Dialogue
+        </button>
+        <button id="tab-vocab" class="tab-btn flex-1 py-1.5 px-2 rounded-lg text-[11px] font-bold text-slate-300 hover:text-white transition">
+          📖 Mots
+        </button>
+        <button id="tab-quiz" class="tab-btn flex-1 py-1.5 px-2 rounded-lg text-[11px] font-bold text-slate-300 hover:text-white transition">
+          🎯 Défi
+        </button>
+      </div>
+
+      <!-- PANNEAU 1 : Dialogue -->
+      <div id="panel-dialogue" class="space-y-2.5">
+        <div class="bg-slate-900/75 rounded-xl p-3 border border-white/10">
+          <div class="flex items-center justify-between gap-2 mb-1">
+            <p class="text-[10px] uppercase tracking-wider text-emerald-400 font-bold">Le personnage vous dit :</p>
+            <span id="voice-status" class="text-[10px] text-sky-300 font-medium hidden">🎙️ Lecture...</span>
+          </div>
+          <p id="dlg-en" class="text-sm sm:text-base font-extrabold text-white leading-snug"></p>
+          <p id="dlg-phonetic" class="text-[11px] text-amber-300 font-mono mt-1 break-words"></p>
+          <p id="dlg-fr" class="text-xs text-slate-300 mt-1.5 pt-1.5 border-t border-slate-700/70"></p>
+        </div>
+
+        <div class="flex items-center gap-1.5">
+          <button id="btn-speak-normal" class="btn-pop flex-1 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold py-2 px-2.5 rounded-xl shadow flex items-center justify-center gap-1.5 text-xs">
+            🔊 Normal
+          </button>
+          <button id="btn-speak-slow" class="btn-pop flex-1 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-400/30 font-bold py-2 px-2.5 rounded-xl shadow flex items-center justify-center gap-1.5 text-xs">
+            🐢 Lent
+          </button>
+        </div>
+
+        <div class="bg-emerald-500/10 border border-emerald-400/25 rounded-xl p-2.5 text-[11px] text-emerald-200 flex items-start gap-2">
+          <span class="text-sm">💡</span>
+          <p id="dlg-tip" class="leading-relaxed"></p>
+        </div>
+      </div>
+
+      <!-- PANNEAU 2 : Vocabulaire -->
+      <div id="panel-vocab" class="hidden space-y-1.5">
+        <p class="text-[11px] text-slate-300 mb-1">Cliquez sur un mot pour l'écouter :</p>
+        <div id="vocab-list" class="grid grid-cols-1 gap-1.5"></div>
+      </div>
+
+      <!-- PANNEAU 3 : Mini-Quiz -->
+      <div id="panel-quiz" class="hidden space-y-2.5">
+        <div class="bg-slate-900/75 rounded-xl p-3 border border-white/10">
+          <p class="text-[10px] uppercase tracking-wider text-purple-300 font-bold mb-1">Mise en situation :</p>
+          <p id="quiz-question" class="text-xs sm:text-sm font-bold text-white"></p>
+        </div>
+        <div id="quiz-options" class="space-y-1.5"></div>
+        <div id="quiz-feedback" class="hidden rounded-xl p-2.5 text-xs font-semibold"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Modale d'aide / Bienvenue -->
+  <div id="help-modal" class="fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="glass rounded-3xl max-w-md w-full p-6 shadow-2xl border border-white/20 text-center space-y-4">
+      <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-emerald-400 to-sky-500 flex items-center justify-center text-3xl shadow-lg">
+        🏙️
+      </div>
+      <div>
+        <h2 class="text-xl font-extrabold text-white">Bienvenue dans English City 3D !</h2>
+        <p class="text-xs sm:text-sm text-slate-300 mt-1">
+          Explorez un vrai quartier 3D et discutez avec <strong>7 habitants</strong> dotés de <strong>voix humaines naturelles</strong> pour pratiquer votre cours <em>Niveau Zéro</em>.
+        </p>
+      </div>
+      <div class="bg-slate-900/70 rounded-2xl p-3.5 text-left text-xs text-slate-200 space-y-2 border border-white/10">
+        <p>🚶 <strong>Se déplacer :</strong> Touches <strong>Flèches / ZQSD / WASD</strong>, le pad en bas à gauche, ou <strong>cliquez sur un lieu</strong> en haut.</p>
+        <p>🎥 <strong>Tourner la caméra :</strong> Maintenez le clic gauche et faites glisser la souris.</p>
+        <p>💬 <strong>Parler :</strong> Cliquez sur un personnage (ou appuyez sur <strong>Espace</strong> près de lui) pour écouter sa voix naturelle et relever son défi.</p>
+      </div>
+      <button id="btn-start-sim" class="btn-pop w-full bg-gradient-to-r from-emerald-500 to-sky-500 hover:from-emerald-400 hover:to-sky-400 text-slate-950 font-extrabold py-3.5 rounded-2xl shadow-xl text-base">
+        🚀 Entrer dans le quartier
+      </button>
+    </div>
+  </div>
+
+  <!-- Toast de notification -->
+  <div id="toast" class="hidden fixed top-28 right-4 z-40 glass rounded-2xl px-4 py-2.5 text-xs sm:text-sm font-bold text-emerald-300 shadow-xl border border-emerald-400/30"></div>
+
+  <script>
+    /*************************************************************************
+     * 1. DONNÉES PÉDAGOGIQUES (7 LIEUX DU QUARTIER + VOIX HUMAINES)
+     *************************************************************************/
+    const NEIGHBORHOOD_DATA = [
+      {
+        id: 'greetings',
+        placeName: 'Place Centrale',
+        icon: '👋',
+        npcName: 'Emma',
+        voice: 'en-US-JennyNeural',
+        theme: 'Introductions & Greetings',
+        color: 0x38bdf8,
+        shirtColor: 0x2563eb,
+        buildingType: 'arch',
+        pos: { x: 0, z: -10 },
+        dialogueEn: "Hello! Good morning! My name is Emma. Nice to meet you!",
+        phonetic: "/həˈloʊ! ɡʊd ˈmɔːrnɪŋ! maɪ neɪm ɪz ˈɛmə. naɪs tuː miːt juː!/",
+        dialogueFr: "Bonjour ! Bon matin ! Je m'appelle Emma. Ravie de vous rencontrer !",
+        tip: "En anglais, « Good morning » s'utilise jusqu'à midi, puis « Good afternoon » l'après-midi et « Good evening » le soir.",
+        vocab: [
+          { en: "Hello! Hi!", phonetic: "/həˈloʊ/", fr: "Bonjour / Salut" },
+          { en: "My name is Emma.", phonetic: "/maɪ neɪm ɪz/", fr: "Je m'appelle Emma." },
+          { en: "Nice to meet you!", phonetic: "/naɪs tuː miːt juː/", fr: "Enchanté(e) !" },
+          { en: "How are you?", phonetic: "/haʊ ɑːr juː/", fr: "Comment allez-vous ?" }
+        ],
+        quiz: {
+          question: "Emma vous dit « Nice to meet you! ». Quelle est la meilleure réponse ?",
+          options: [
+            { text: "Nice to meet you too!", correct: true },
+            { text: "Good night, see you!", correct: false },
+            { text: "I am a table.", correct: false }
+          ]
+        }
+      },
+      {
+        id: 'origins',
+        placeName: 'World Café',
+        icon: '☕',
+        npcName: 'Lucas',
+        voice: 'en-US-GuyNeural',
+        theme: 'Origins, Nationalities & Descriptions',
+        color: 0xf43f5e,
+        shirtColor: 0xe11d48,
+        buildingType: 'cafe',
+        pos: { x: -16, z: -8 },
+        dialogueEn: "Welcome to the café! Where are you from? I am from Canada, and I am tall and friendly.",
+        phonetic: "/ˈwɛlkəm tuː ðə kæˈfeɪ! wɛər ɑːr juː frɒm? aɪ æm frɒm ˈkænədə/",
+        dialogueFr: "Bienvenue au café ! D'où venez-vous ? Je viens du Canada, et je suis grand et sympathique.",
+        tip: "Pour dire votre origine, utilisez « I am from + Pays » (ex: I am from Burkina Faso) ou « I am + Nationalité ».",
+        vocab: [
+          { en: "Where are you from?", phonetic: "/wɛər ɑːr juː frɒm/", fr: "D'où venez-vous ?" },
+          { en: "I am from Canada.", phonetic: "/aɪ æm frɒm/", fr: "Je viens du Canada." },
+          { en: "Tall and short", phonetic: "/tɔːl / ʃɔːrt/", fr: "Grand et petit" },
+          { en: "Friendly", phonetic: "/ˈfrɛndli/", fr: "Sympathique" }
+        ],
+        quiz: {
+          question: "Comment demander poliment à quelqu'un d'où il vient ?",
+          options: [
+            { text: "What time is it?", correct: false },
+            { text: "Where are you from?", correct: true },
+            { text: "How much is this?", correct: false }
+          ]
+        }
+      },
+      {
+        id: 'objects',
+        placeName: 'Librairie',
+        icon: '🎒',
+        npcName: 'Maya',
+        voice: 'en-US-AriaNeural',
+        theme: 'Everyday Objects',
+        color: 0xf59e0b,
+        shirtColor: 0xd97706,
+        buildingType: 'shop',
+        pos: { x: 16, z: -8 },
+        dialogueEn: "Look at my bag! I have a notebook, a pen, my phone, and my keys.",
+        phonetic: "/lʊk æt maɪ bæɡ! aɪ hæv ə ˈnoʊtbʊk, ə pɛn, maɪ foʊn, ænd maɪ kiːz/",
+        dialogueFr: "Regardez mon sac ! J'ai un cahier, un stylo, mon téléphone et mes clés.",
+        tip: "Utilisez « a » devant une consonne (a pen, a book) et « an » devant une voyelle (an apple, an umbrella).",
+        vocab: [
+          { en: "A notebook", phonetic: "/ə ˈnoʊtbʊk/", fr: "Un cahier" },
+          { en: "A pen", phonetic: "/ə pɛn/", fr: "Un stylo" },
+          { en: "A phone", phonetic: "/ə foʊn/", fr: "Un téléphone" },
+          { en: "Keys", phonetic: "/kiːz/", fr: "Des clés" }
+        ],
+        quiz: {
+          question: "Comment dit-on « J'ai un stylo et un cahier » en anglais ?",
+          options: [
+            { text: "I have a pen and a notebook.", correct: true },
+            { text: "I am a pen and a house.", correct: false },
+            { text: "You are a notebook.", correct: false }
+          ]
+        }
+      },
+      {
+        id: 'time',
+        placeName: 'Arrêt de Bus',
+        icon: '🚌',
+        npcName: 'Tom',
+        voice: 'en-US-GuyNeural',
+        theme: 'Time & Transportation',
+        color: 0x10b981,
+        shirtColor: 0x059669,
+        buildingType: 'busstop',
+        pos: { x: -16, z: 10 },
+        dialogueEn: "Excuse me, what time is it? It is eight o'clock! The bus arrives soon.",
+        phonetic: "/ɪkˈskjuːz miː, wɒt taɪm ɪz ɪt? ɪt ɪz eɪt əˈklɒk! ðə bʌs əˈraɪvz suːn/",
+        dialogueFr: "Excusez-moi, quelle heure est-il ? Il est huit heures ! Le bus arrive bientôt.",
+        tip: "Pour dire l'heure pile, ajoutez « o'clock » (ex: It is 9 o'clock). Pour le transport : « by bus », « by car », « on foot ».",
+        vocab: [
+          { en: "What time is it?", phonetic: "/wɒt taɪm ɪz ɪt/", fr: "Quelle heure est-il ?" },
+          { en: "By bus", phonetic: "/baɪ bʌs/", fr: "En bus" },
+          { en: "On foot", phonetic: "/ɒn fʊt/", fr: "À pied" },
+          { en: "Today and tomorrow", phonetic: "/təˈdeɪ / təˈmɒroʊ/", fr: "Aujourd'hui et demain" }
+        ],
+        quiz: {
+          question: "Vous allez au travail en bus. Quelle phrase est correcte ?",
+          options: [
+            { text: "I go to work by bus.", correct: true },
+            { text: "I eat the bus at 8 o'clock.", correct: false },
+            { text: "The bus is a kitchen.", correct: false }
+          ]
+        }
+      },
+      {
+        id: 'clothing',
+        placeName: 'Boutique Mode',
+        icon: '👕',
+        npcName: 'Chloe',
+        voice: 'en-US-JennyNeural',
+        theme: 'Clothing & Colors',
+        color: 0xa855f7,
+        shirtColor: 0x9333ea,
+        buildingType: 'boutique',
+        pos: { x: 16, z: 10 },
+        dialogueEn: "I love this blue shirt and these black shoes! What is your favorite color?",
+        phonetic: "/aɪ lʌv ðɪs bluː ʃɜːrt ænd ðiːz blæk ʃuːz! wɒt ɪz jʊər ˈfeɪvərɪt ˈkʌlər?/",
+        dialogueFr: "J'adore cette chemise bleue et ces chaussures noires ! Quelle est votre couleur préférée ?",
+        tip: "En anglais, la couleur se place toujours AVANT le vêtement : on dit « a red jacket » (jamais « a jacket red »).",
+        vocab: [
+          { en: "A blue shirt", phonetic: "/ə bluː ʃɜːrt/", fr: "Une chemise bleue" },
+          { en: "Black shoes", phonetic: "/blæk ʃuːz/", fr: "Des chaussures noires" },
+          { en: "A green hat", phonetic: "/ə ɡriːn hæt/", fr: "Un chapeau vert" },
+          { en: "Favorite color", phonetic: "/ˈfeɪvərɪt ˈkʌlər/", fr: "Couleur préférée" }
+        ],
+        quiz: {
+          question: "Comment traduire correctement « une veste rouge » ?",
+          options: [
+            { text: "A jacket red", correct: false },
+            { text: "A red jacket", correct: true },
+            { text: "Red a jacket", correct: false }
+          ]
+        }
+      },
+      {
+        id: 'home',
+        placeName: 'Maison Familiale',
+        icon: '🏠',
+        npcName: 'Sam',
+        voice: 'en-US-GuyNeural',
+        theme: 'Homes, Rooms & Furniture',
+        color: 0xf97316,
+        shirtColor: 0xea580c,
+        buildingType: 'house',
+        pos: { x: -8, z: 20 },
+        dialogueEn: "This is my house! There is a kitchen, a living room, a bed, and a big table.",
+        phonetic: "/ðɪs ɪz maɪ haʊs! ðɛər ɪz ə ˈkɪtʃɪn, ə ˈlɪvɪŋ ruːm, ə bɛd/",
+        dialogueFr: "Voici ma maison ! Il y a une cuisine, un salon, un lit et une grande table.",
+        tip: "« There is » s'utilise pour un seul objet (There is a bed) et « There are » pour plusieurs objets (There are two chairs).",
+        vocab: [
+          { en: "The kitchen", phonetic: "/ðə ˈkɪtʃɪn/", fr: "La cuisine" },
+          { en: "The bedroom", phonetic: "/ðə ˈbɛdruːm/", fr: "La chambre" },
+          { en: "A table", phonetic: "/ə ˈteɪbəl/", fr: "Une table" },
+          { en: "A chair", phonetic: "/ə tʃɛər/", fr: "Une chaise" }
+        ],
+        quiz: {
+          question: "Dans quelle pièce prépare-t-on le repas ?",
+          options: [
+            { text: "In the kitchen", correct: true },
+            { text: "In the bus stop", correct: false },
+            { text: "In the shirt", correct: false }
+          ]
+        }
+      },
+      {
+        id: 'jobs',
+        placeName: 'Bureau Tech',
+        icon: '💼',
+        npcName: 'Alex',
+        voice: 'en-US-GuyNeural',
+        theme: 'Jobs & Workplaces',
+        color: 0x06b6d4,
+        shirtColor: 0x0891b2,
+        buildingType: 'office',
+        pos: { x: 8, z: 20 },
+        dialogueEn: "I am a software developer. I work in an office with my computer. What is your job?",
+        phonetic: "/aɪ æm ə ˈsɒftwɛər dɪˈvɛləpər. aɪ wɜːrk ɪn æn ˈɒfɪs/",
+        dialogueFr: "Je suis développeur logiciel. Je travaille dans un bureau avec mon ordinateur. Quel est votre métier ?",
+        tip: "N'oubliez jamais l'article « a / an » devant un métier : « I am a teacher », « I am an engineer ».",
+        vocab: [
+          { en: "A teacher", phonetic: "/ə ˈtiːtʃər/", fr: "Un(e) enseignant(e)" },
+          { en: "A doctor", phonetic: "/ə ˈdɒktər/", fr: "Un médecin" },
+          { en: "An office", phonetic: "/æn ˈɒfɪs/", fr: "Un bureau" },
+          { en: "A computer", phonetic: "/ə kəmˈpjuːtər/", fr: "Un ordinateur" }
+        ],
+        quiz: {
+          question: "Comment dire correctement « Je suis étudiant » ?",
+          options: [
+            { text: "I am student.", correct: false },
+            { text: "I am a student.", correct: true },
+            { text: "I work student.", correct: false }
+          ]
+        }
+      }
+    ];
+
+    /*************************************************************************
+     * 2. ÉTAT GLOBAL & AUDIO (VOIX HUMAINES EDGE-TTS + TONE.JS)
+     *************************************************************************/
+    const state = {
+      xp: 0,
+      visitedIds: new Set(),
+      completedQuizIds: new Set(),
+      soundEnabled: true,
+      toneReady: false,
+      activeNpc: null,
+      nearbyNpc: null,
+      autoWalkTarget: null,
+      keys: { up: false, down: false, left: false, right: false },
+      cameraYaw: 0,
+      cameraPitch: 0.42,
+      cameraDistance: 14,
+      isDragging: false,
+      lastPointer: { x: 0, y: 0 }
+    };
+
+    let synthFX = null;
+    let chimeFX = null;
+    let currentAudio = null;
+    let speechRequestId = 0;
+
+    async function initAudioFX() {
+      if (state.toneReady) return;
+      try {
+        await Tone.start();
+        synthFX = new Tone.Synth({
+          oscillator: { type: 'triangle' },
+          envelope: { attack: 0.01, decay: 0.12, sustain: 0.05, release: 0.2 }
+        }).toDestination();
+        synthFX.volume.value = -10;
+
+        chimeFX = new Tone.PolySynth(Tone.Synth, {
+          oscillator: { type: 'sine' },
+          envelope: { attack: 0.02, decay: 0.2, sustain: 0.1, release: 0.4 }
+        }).toDestination();
+        chimeFX.volume.value = -8;
+        state.toneReady = true;
+      } catch (e) {}
+    }
+
+    function playFX(type) {
+      if (!state.soundEnabled || !state.toneReady) return;
+      try {
+        const now = Tone.now();
+        if (type === 'click') synthFX.triggerAttackRelease('C5', '32n', now);
+        else if (type === 'open') chimeFX.triggerAttackRelease(['E5', 'G5'], '16n', now);
+        else if (type === 'success') chimeFX.triggerAttackRelease(['C5', 'E5', 'G5', 'C6'], '8n', now);
+        else if (type === 'error') synthFX.triggerAttackRelease('A2', '8n', now);
+        else if (type === 'step') synthFX.triggerAttackRelease('G3', '64n', now);
+      } catch (e) {}
+    }
+
+    function stopCurrentSpeech() {
+      speechRequestId++;
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+        currentAudio = null;
+      }
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      const statusEl = document.getElementById('voice-status');
+      if (statusEl) statusEl.classList.add('hidden');
+    }
+
+    // Utilise d'abord le serveur local /tts (voix humaines Edge-TTS), puis repli Web Speech API
+    async function speakEnglish(text, slow = false, voice = null) {
+      playFX('click');
+      stopCurrentSpeech();
+      const myReqId = speechRequestId;
+      const chosenVoice = voice || (state.activeNpc ? state.activeNpc.voice : 'en-US-JennyNeural');
+      const rateParam = slow ? '-28%' : '+0%';
+      const statusEl = document.getElementById('voice-status');
+
+      if (statusEl) {
+        statusEl.textContent = '🎙️ Voix humaine...';
+        statusEl.classList.remove('hidden');
+      }
+
+      try {
+        const url = `/tts?text=${encodeURIComponent(text)}&voice=${encodeURIComponent(chosenVoice)}&rate=${encodeURIComponent(rateParam)}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('Local TTS non actif');
+        const blob = await res.blob();
+        if (myReqId !== speechRequestId) return;
+
+        const audioUrl = URL.createObjectURL(blob);
+        const audio = new Audio(audioUrl);
+        currentAudio = audio;
+        audio.onended = () => {
+          URL.revokeObjectURL(audioUrl);
+          if (myReqId === speechRequestId && statusEl) statusEl.classList.add('hidden');
+        };
+        audio.onerror = () => {
+          URL.revokeObjectURL(audioUrl);
+          if (myReqId === speechRequestId && statusEl) statusEl.classList.add('hidden');
+        };
+        await audio.play();
+        return;
+      } catch (e) {
+        // Repli sur la voix du navigateur si server.py ne tourne pas
+        if (myReqId !== speechRequestId) return;
+        if (statusEl) statusEl.classList.add('hidden');
+        if ('speechSynthesis' in window) {
+          const utter = new SpeechSynthesisUtterance(text);
+          utter.lang = 'en-US';
+          utter.rate = slow ? 0.65 : 0.95;
+          window.speechSynthesis.speak(utter);
+        }
+      }
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.remove('hidden');
+      clearTimeout(t._timer);
+      t._timer = setTimeout(() => t.classList.add('hidden'), 2600);
+    }
+
+    /*************************************************************************
+     * 3. CHARGEMENT OPTIONNEL DE ./lessons.json (ISSU DE NOTEBOOKLM)
+     *************************************************************************/
+    async function tryLoadNotebookLessons() {
+      try {
+        const res = await fetch('./lessons.json');
+        if (!res.ok) return;
+        const data = await res.json();
+        const items = Array.isArray(data) ? data : (data.lessons || data.modules || []);
+        if (!Array.isArray(items) || items.length === 0) return;
+
+        items.forEach((item, idx) => {
+          if (idx >= NEIGHBORHOOD_DATA.length) return;
+          const target = NEIGHBORHOOD_DATA[idx];
+          if (item.category || item.title) target.theme = item.category || item.title;
+          if (item.sentenceEn) target.dialogueEn = item.sentenceEn;
+          if (item.sentenceFr) target.dialogueFr = item.sentenceFr;
+          if (item.phonetic) target.phonetic = item.phonetic;
+          if (item.tip) target.tip = item.tip;
+          if (item.en && item.fr) {
+            target.vocab.unshift({ en: item.en, phonetic: item.phonetic || '', fr: item.fr });
+          }
+        });
+        showToast('📚 Cours NotebookLM (lessons.json) synchronisé !');
+      } catch (e) {}
+    }
+
+    /*************************************************************************
+     * 4. MOTEUR 3D THREE.JS — QUARTIER, BÂTIMENTS & PERSONNAGES ANIMÉS
+     *************************************************************************/
+    let scene, camera, renderer, raycaster, mouse;
+    let playerGroup, playerParts;
+    const npcEntities = [];
+    const clickableMeshes = [];
+    const clock = new THREE.Clock();
+    let stepTimer = 0;
+
+    function initThreeScene() {
+      const container = document.getElementById('canvas-container');
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x8fd3f4);
+      scene.fog = new THREE.Fog(0x8fd3f4, 38, 95);
+
+      camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 150);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'default' });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      container.appendChild(renderer.domElement);
+
+      raycaster = new THREE.Raycaster();
+      mouse = new THREE.Vector2();
+
+      const hemiLight = new THREE.HemisphereLight(0xffffff, 0x4d7c0f, 0.85);
+      hemiLight.position.set(0, 30, 0);
+      scene.add(hemiLight);
+
+      const sunLight = new THREE.DirectionalLight(0xfffbeb, 0.9);
+      sunLight.position.set(22, 35, 18);
+      scene.add(sunLight);
+
+      buildNeighborhoodGround();
+      buildEnvironmentDecor();
+      buildAllLocationsAndNPCs();
+      buildPlayerAvatar();
+
+      setupCanvasEvents(renderer.domElement);
+      window.addEventListener('resize', onWindowResize);
+    }
+
+    function buildNeighborhoodGround() {
+      const grass = new THREE.Mesh(
+        new THREE.PlaneGeometry(140, 140),
+        new THREE.MeshLambertMaterial({ color: 0x65a30d })
+      );
+      grass.rotation.x = -Math.PI / 2;
+      scene.add(grass);
+
+      const plaza = new THREE.Mesh(
+        new THREE.CylinderGeometry(7.5, 7.8, 0.12, 24),
+        new THREE.MeshLambertMaterial({ color: 0xe2e8f0 })
+      );
+      plaza.position.set(0, 0.02, 2);
+      scene.add(plaza);
+
+      const roadMat = new THREE.MeshLambertMaterial({ color: 0x334155 });
+      const roadH = new THREE.Mesh(new THREE.BoxGeometry(70, 0.08, 6), roadMat);
+      roadH.position.set(0, 0.04, 2);
+      scene.add(roadH);
+
+      const roadV = new THREE.Mesh(new THREE.BoxGeometry(6, 0.08, 70), roadMat);
+      roadV.position.set(0, 0.04, 2);
+      scene.add(roadV);
+
+      const stripeMat = new THREE.MeshBasicMaterial({ color: 0xf8fafc });
+      for (let i = -30; i <= 30; i += 4.5) {
+        if (Math.abs(i) < 5) continue;
+        const sH = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.09, 0.22), stripeMat);
+        sH.position.set(i, 0.05, 2);
+        scene.add(sH);
+
+        const sV = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.09, 2.2), stripeMat);
+        sV.position.set(0, 0.05, i + 2);
+        scene.add(sV);
+      }
+    }
+
+    function buildEnvironmentDecor() {
+      const treeSpots = [
+        [-24, -14], [-9, -15], [9, -15], [24, -14],
+        [-24, 16], [24, 16], [-18, 25], [18, 25],
+        [-25, 2], [25, 2], [0, -22]
+      ];
+      treeSpots.forEach(([x, z]) => {
+        const tree = new THREE.Group();
+        const trunk = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.28, 0.38, 1.8, 7),
+          new THREE.MeshLambertMaterial({ color: 0x78350f })
+        );
+        trunk.position.y = 0.9;
+        tree.add(trunk);
+
+        const foliage1 = new THREE.Mesh(
+          new THREE.ConeGeometry(1.5, 2.4, 7),
+          new THREE.MeshLambertMaterial({ color: 0x15803d })
+        );
+        foliage1.position.y = 2.6;
+        tree.add(foliage1);
+
+        const foliage2 = new THREE.Mesh(
+          new THREE.ConeGeometry(1.1, 1.9, 7),
+          new THREE.MeshLambertMaterial({ color: 0x22c55e })
+        );
+        foliage2.position.y = 3.8;
+        tree.add(foliage2);
+
+        tree.position.set(x, 0, z);
+        scene.add(tree);
+      });
+
+      const cloudMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
+      for (let i = 0; i < 8; i++) {
+        const cloud = new THREE.Group();
+        for (let j = 0; j < 3; j++) {
+          const puff = new THREE.Mesh(new THREE.SphereGeometry(1.4 + (j === 1 ? 0.5 : 0), 8, 8), cloudMat);
+          puff.position.set((j - 1) * 1.4, j === 1 ? 0.3 : 0, 0);
+          cloud.add(puff);
+        }
+        cloud.position.set((i - 4) * 11, 16 + (i % 3) * 2.5, -24 + (i % 2) * 18);
+        scene.add(cloud);
+      }
+
+      const lampSpots = [[-4.2, -2.2], [4.2, -2.2], [-4.2, 6.2], [4.2, 6.2]];
+      lampSpots.forEach(([x, z]) => {
+        const post = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.08, 0.1, 3.6, 6),
+          new THREE.MeshLambertMaterial({ color: 0x1e293b })
+        );
+        post.position.set(x, 1.8, z);
+        scene.add(post);
+
+        const bulb = new THREE.Mesh(
+          new THREE.SphereGeometry(0.24, 8, 8),
+          new THREE.MeshBasicMaterial({ color: 0xfef08a })
+        );
+        bulb.position.set(x, 3.7, z);
+        scene.add(bulb);
+      });
+    }
+
+    function createCharacterMesh(shirtColor, hairColor = 0x1e293b, isPlayer = false) {
+      const group = new THREE.Group();
+      const skinMat = new THREE.MeshLambertMaterial({ color: 0xf1c27d });
+      const shirtMat = new THREE.MeshLambertMaterial({ color: shirtColor });
+      const pantsMat = new THREE.MeshLambertMaterial({ color: isPlayer ? 0x1d4ed8 : 0x334155 });
+      const hairMat = new THREE.MeshLambertMaterial({ color: hairColor });
+      const eyeMat = new THREE.MeshBasicMaterial({ color: 0x0f172a });
+
+      const leftLeg = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.72, 0.26), pantsMat);
+      leftLeg.position.set(-0.17, 0.36, 0);
+      group.add(leftLeg);
+
+      const rightLeg = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.72, 0.26), pantsMat);
+      rightLeg.position.set(0.17, 0.36, 0);
+      group.add(rightLeg);
+
+      const torso = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.85, 0.38), shirtMat);
+      torso.position.y = 1.15;
+      group.add(torso);
+
+      const leftArmPivot = new THREE.Group();
+      leftArmPivot.position.set(-0.46, 1.48, 0);
+      const leftArm = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.68, 0.22), shirtMat);
+      leftArm.position.y = -0.3;
+      leftArmPivot.add(leftArm);
+      group.add(leftArmPivot);
+
+      const rightArmPivot = new THREE.Group();
+      rightArmPivot.position.set(0.46, 1.48, 0);
+      const rightArm = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.68, 0.22), shirtMat);
+      rightArm.position.y = -0.3;
+      rightArmPivot.add(rightArm);
+      group.add(rightArmPivot);
+
+      const head = new THREE.Mesh(new THREE.BoxGeometry(0.54, 0.54, 0.54), skinMat);
+      head.position.y = 1.88;
+      group.add(head);
+
+      const hair = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.18, 0.58), hairMat);
+      hair.position.y = 2.18;
+      group.add(hair);
+
+      const eyeL = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.05), eyeMat);
+      eyeL.position.set(-0.12, 1.9, 0.27);
+      group.add(eyeL);
+
+      const eyeR = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.05), eyeMat);
+      eyeR.position.set(0.12, 1.9, 0.27);
+      group.add(eyeR);
+
+      return { group, parts: { leftLeg, rightLeg, leftArmPivot, rightArmPivot, head } };
+    }
+
+    function createBuildingMesh(loc) {
+      const b = new THREE.Group();
+      const wallMat = new THREE.MeshLambertMaterial({ color: 0xf8fafc });
+      const accentMat = new THREE.MeshLambertMaterial({ color: loc.color });
+      const glassMat = new THREE.MeshLambertMaterial({ color: 0xbae6fd });
+      const doorMat = new THREE.MeshLambertMaterial({ color: 0x78350f });
+
+      if (loc.buildingType === 'arch') {
+        const p1 = new THREE.Mesh(new THREE.BoxGeometry(0.6, 3.8, 0.6), accentMat);
+        p1.position.set(-2.2, 1.9, 0);
+        const p2 = p1.clone();
+        p2.position.x = 2.2;
+        const top = new THREE.Mesh(new THREE.BoxGeometry(5.6, 0.8, 0.8), accentMat);
+        top.position.set(0, 4.0, 0);
+        b.add(p1, p2, top);
+      } else if (loc.buildingType === 'busstop') {
+        const back = new THREE.Mesh(new THREE.BoxGeometry(4.6, 2.6, 0.2), glassMat);
+        back.position.set(0, 1.3, -0.8);
+        const roof = new THREE.Mesh(new THREE.BoxGeometry(5.0, 0.25, 2.2), accentMat);
+        roof.position.set(0, 2.7, 0);
+        const bench = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.35, 0.7), doorMat);
+        bench.position.set(0, 0.55, -0.3);
+        const signPost = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 3.4, 6), accentMat);
+        signPost.position.set(2.8, 1.7, 0.5);
+        b.add(back, roof, bench, signPost);
+      } else {
+        const h = loc.buildingType === 'office' ? 5.2 : 3.4;
+        const w = 5.4;
+        const d = 4.2;
+        const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), wallMat);
+        body.position.y = h / 2;
+        b.add(body);
+
+        if (loc.buildingType === 'house') {
+          const roof = new THREE.Mesh(new THREE.ConeGeometry(4.2, 2.2, 4), accentMat);
+          roof.rotation.y = Math.PI / 4;
+          roof.position.y = h + 1.1;
+          b.add(roof);
+        } else {
+          const roof = new THREE.Mesh(new THREE.BoxGeometry(w + 0.4, 0.45, d + 0.4), accentMat);
+          roof.position.y = h + 0.22;
+          b.add(roof);
+          const awning = new THREE.Mesh(new THREE.BoxGeometry(w - 0.6, 0.25, 1.1), accentMat);
+          awning.position.set(0, 2.3, d / 2 + 0.45);
+          b.add(awning);
+        }
+
+        const door = new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.9, 0.15), doorMat);
+        door.position.set(0, 0.95, d / 2 + 0.05);
+        b.add(door);
+
+        const winL = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.0, 0.15), glassMat);
+        winL.position.set(-1.6, 1.6, d / 2 + 0.05);
+        const winR = winL.clone();
+        winR.position.x = 1.6;
+        b.add(winL, winR);
+      }
+      return b;
+    }
+
+    function buildAllLocationsAndNPCs() {
+      const labelsLayer = document.getElementById('labels-layer');
+      const hairColors = [0x451a03, 0x0f172a, 0x713f12, 0x1e293b, 0x92400e, 0x334155, 0x0f172a];
+
+      NEIGHBORHOOD_DATA.forEach((loc, idx) => {
+        const building = createBuildingMesh(loc);
+        const dirToCenter = new THREE.Vector2(-loc.pos.x, 2 - loc.pos.z).normalize();
+        building.position.set(loc.pos.x - dirToCenter.x * 3.8, 0, loc.pos.z - dirToCenter.y * 3.8);
+        building.lookAt(loc.pos.x, 0, loc.pos.z);
+        scene.add(building);
+
+        const ring = new THREE.Mesh(
+          new THREE.RingGeometry(0.9, 1.25, 24),
+          new THREE.MeshBasicMaterial({ color: loc.color, side: THREE.DoubleSide })
+        );
+        ring.rotation.x = -Math.PI / 2;
+        ring.position.set(loc.pos.x, 0.07, loc.pos.z);
+        scene.add(ring);
+
+        const npc = createCharacterMesh(loc.shirtColor, hairColors[idx % hairColors.length], false);
+        npc.group.position.set(loc.pos.x, 0, loc.pos.z);
+        npc.group.lookAt(0, 0, 2);
+        npc.group.userData = { npcId: loc.id };
+        npc.group.traverse(obj => {
+          if (obj.isMesh) {
+            obj.userData = { npcId: loc.id };
+            clickableMeshes.push(obj);
+          }
+        });
+        scene.add(npc.group);
+
+        const labelEl = document.createElement('div');
+        labelEl.className = 'npc-label glass rounded-2xl px-2.5 py-1 shadow-lg border border-white/25 text-center';
+        labelEl.innerHTML = `
+          <div class="text-xs font-extrabold text-white whitespace-nowrap">${loc.icon} ${loc.npcName}</div>
+          <div class="text-[10px] text-sky-300 font-medium whitespace-nowrap">${loc.placeName}</div>
+        `;
+        labelEl.addEventListener('click', (e) => {
+          e.stopPropagation();
+          initAudioFX();
+          walkToAndTalk(loc);
+        });
+        labelsLayer.appendChild(labelEl);
+
+        npcEntities.push({ data: loc, group: npc.group, parts: npc.parts, ring, labelEl, phase: idx * 1.1 });
+      });
+    }
+
+    function buildPlayerAvatar() {
+      const player = createCharacterMesh(0x10b981, 0x0f172a, true);
+      playerGroup = player.group;
+      playerParts = player.parts;
+      playerGroup.position.set(0, 0, 2);
+      scene.add(playerGroup);
+    }
+
+    /*************************************************************************
+     * 5. CONTRÔLES & ORBITE CAMÉRA
+     *************************************************************************/
+    function setupCanvasEvents(dom) {
+      let dragDistance = 0;
+
+      const onDown = (clientX, clientY) => {
+        initAudioFX();
+        state.isDragging = true;
+        dragDistance = 0;
+        state.lastPointer = { x: clientX, y: clientY };
+      };
+
+      const onMove = (clientX, clientY) => {
+        if (!state.isDragging) return;
+        const dx = clientX - state.lastPointer.x;
+        const dy = clientY - state.lastPointer.y;
+        dragDistance += Math.abs(dx) + Math.abs(dy);
+        state.cameraYaw -= dx * 0.0065;
+        state.cameraPitch = Math.max(0.22, Math.min(1.05, state.cameraPitch + dy * 0.0045));
+        state.lastPointer = { x: clientX, y: clientY };
+      };
+
+      const onUp = (clientX, clientY) => {
+        if (!state.isDragging) return;
+        state.isDragging = false;
+        if (dragDistance < 8) {
+          const rect = dom.getBoundingClientRect();
+          mouse.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+          mouse.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+          raycaster.setFromCamera(mouse, camera);
+          const hits = raycaster.intersectObjects(clickableMeshes, false);
+          if (hits.length > 0 && hits[0].object.userData.npcId) {
+            const loc = NEIGHBORHOOD_DATA.find(n => n.id === hits[0].object.userData.npcId);
+            if (loc) walkToAndTalk(loc);
+          }
+        }
+      };
+
+      dom.addEventListener('mousedown', e => onDown(e.clientX, e.clientY));
+      window.addEventListener('mousemove', e => onMove(e.clientX, e.clientY));
+      window.addEventListener('mouseup', e => onUp(e.clientX, e.clientY));
+
+      dom.addEventListener('touchstart', e => {
+        if (e.touches.length === 1) onDown(e.touches[0].clientX, e.touches[0].clientY);
+      }, { passive: true });
+      window.addEventListener('touchmove', e => {
+        if (e.touches.length === 1) onMove(e.touches[0].clientX, e.touches[0].clientY);
+      }, { passive: true });
+      window.addEventListener('touchend', e => {
+        if (e.changedTouches.length === 1) onUp(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+      });
+    }
+
+    function walkToAndTalk(loc) {
+      playFX('click');
+      closeDialogue();
+      const angle = Math.atan2(playerGroup.position.x - loc.pos.x, playerGroup.position.z - loc.pos.z);
+      state.autoWalkTarget = {
+        x: loc.pos.x + Math.sin(angle) * 2.2,
+        z: loc.pos.z + Math.cos(angle) * 2.2,
+        openNpc: loc
+      };
+      showToast(`🚶 En route vers ${loc.placeName} (${loc.npcName})...`);
+    }
+
+    function onWindowResize() {
+      const container = document.getElementById('canvas-container');
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    }
+
+    /*************************************************************************
+     * 6. BOUCLE D'ANIMATION 3D
+     *************************************************************************/
+    function animate() {
+      requestAnimationFrame(animate);
+      const dt = Math.min(clock.getDelta(), 0.05);
+      const elapsed = clock.getElapsedTime();
+
+      let moveX = 0;
+      let moveZ = 0;
+      const speed = 7.2;
+
+      if (state.keys.up) moveZ -= 1;
+      if (state.keys.down) moveZ += 1;
+      if (state.keys.left) moveX -= 1;
+      if (state.keys.right) moveX += 1;
+
+      const manualMove = (moveX !== 0 || moveZ !== 0);
+      if (manualMove) {
+        state.autoWalkTarget = null;
+        const forwardX = -Math.sin(state.cameraYaw);
+        const forwardZ = -Math.cos(state.cameraYaw);
+        const rightX = Math.cos(state.cameraYaw);
+        const rightZ = -Math.sin(state.cameraYaw);
+
+        const vx = (forwardX * -moveZ + rightX * moveX);
+        const vz = (forwardZ * -moveZ + rightZ * moveX);
+        const len = Math.hypot(vx, vz) || 1;
+        playerGroup.position.x += (vx / len) * speed * dt;
+        playerGroup.position.z += (vz / len) * speed * dt;
+        playerGroup.rotation.y = Math.atan2(vx, vz);
+      } else if (state.autoWalkTarget) {
+        const dx = state.autoWalkTarget.x - playerGroup.position.x;
+        const dz = state.autoWalkTarget.z - playerGroup.position.z;
+        const dist = Math.hypot(dx, dz);
+        if (dist < 0.45) {
+          const npcToOpen = state.autoWalkTarget.openNpc;
+          state.autoWalkTarget = null;
+          if (npcToOpen) openDialogue(npcToOpen);
+        } else {
+          playerGroup.position.x += (dx / dist) * (speed * 1.15) * dt;
+          playerGroup.position.z += (dz / dist) * (speed * 1.15) * dt;
+          playerGroup.rotation.y = Math.atan2(dx, dz);
+        }
+      }
+
+      playerGroup.position.x = Math.max(-28, Math.min(28, playerGroup.position.x));
+      playerGroup.position.z = Math.max(-20, Math.min(28, playerGroup.position.z));
+
+      const isMoving = manualMove || Boolean(state.autoWalkTarget);
+      if (isMoving) {
+        const swing = Math.sin(elapsed * 12) * 0.65;
+        playerParts.leftLeg.rotation.x = swing;
+        playerParts.rightLeg.rotation.x = -swing;
+        playerParts.leftArmPivot.rotation.x = -swing * 0.7;
+        playerParts.rightArmPivot.rotation.x = swing * 0.7;
+        stepTimer += dt;
+        if (stepTimer > 0.34) {
+          stepTimer = 0;
+          playFX('step');
+        }
+      } else {
+        playerParts.leftLeg.rotation.x *= 0.8;
+        playerParts.rightLeg.rotation.x *= 0.8;
+        playerParts.leftArmPivot.rotation.x *= 0.8;
+        playerParts.rightArmPivot.rotation.x *= 0.8;
+      }
+
+      let closestNpc = null;
+      let closestDist = 4.2;
+
+      npcEntities.forEach(npc => {
+        const dx = playerGroup.position.x - npc.group.position.x;
+        const dz = playerGroup.position.z - npc.group.position.z;
+        const dist = Math.hypot(dx, dz);
+
+        npc.group.position.y = Math.sin(elapsed * 2.5 + npc.phase) * 0.04;
+        npc.ring.scale.setScalar(1 + Math.sin(elapsed * 3 + npc.phase) * 0.07);
+
+        if (dist < 6.5) {
+          npc.group.rotation.y = Math.atan2(dx, dz);
+          npc.parts.rightArmPivot.rotation.z = -2.4 + Math.sin(elapsed * 8) * 0.35;
+        } else {
+          npc.parts.rightArmPivot.rotation.z *= 0.9;
+        }
+
+        if (dist < closestDist) {
+          closestDist = dist;
+          closestNpc = npc.data;
+        }
+
+        const labelPos = new THREE.Vector3(npc.group.position.x, 2.75, npc.group.position.z);
+        labelPos.project(camera);
+        if (labelPos.z < 1) {
+          const x = (labelPos.x * 0.5 + 0.5) * window.innerWidth;
+          const y = (-labelPos.y * 0.5 + 0.5) * window.innerHeight;
+          npc.labelEl.style.left = `${x}px`;
+          npc.labelEl.style.top = `${y}px`;
+          npc.labelEl.style.opacity = dist < 34 ? '1' : '0.45';
+          npc.labelEl.style.display = 'block';
+        } else {
+          npc.labelEl.style.display = 'none';
+        }
+      });
+
+      state.nearbyNpc = closestNpc;
+      const promptEl = document.getElementById('proximity-prompt');
+      if (closestNpc && !state.activeNpc) {
+        document.getElementById('proximity-text').textContent = `Parler à ${closestNpc.npcName} (${closestNpc.placeName})`;
+        promptEl.classList.remove('hidden');
+      } else {
+        promptEl.classList.add('hidden');
+      }
+
+      const camX = playerGroup.position.x + Math.sin(state.cameraYaw) * Math.cos(state.cameraPitch) * state.cameraDistance;
+      const camY = playerGroup.position.y + 1.8 + Math.sin(state.cameraPitch) * state.cameraDistance;
+      const camZ = playerGroup.position.z + Math.cos(state.cameraYaw) * Math.cos(state.cameraPitch) * state.cameraDistance;
+
+      camera.position.lerp(new THREE.Vector3(camX, camY, camZ), 0.12);
+      camera.lookAt(playerGroup.position.x, playerGroup.position.y + 1.4, playerGroup.position.z);
+
+      renderer.render(scene, camera);
+    }
+
+    /*************************************************************************
+     * 7. INTERFACE : DIALOGUES, VOCABULAIRE & MINI-QUIZ
+     *************************************************************************/
+    function buildQuickNav() {
+      const nav = document.getElementById('quick-nav');
+      nav.innerHTML = '';
+      NEIGHBORHOOD_DATA.forEach(loc => {
+        const btn = document.createElement('button');
+        btn.className = 'glass btn-pop shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold text-slate-100 hover:bg-sky-500/30 flex items-center gap-1.5 shadow';
+        btn.innerHTML = `<span>${loc.icon}</span><span>${loc.placeName}</span>`;
+        btn.addEventListener('click', () => {
+          initAudioFX();
+          walkToAndTalk(loc);
+        });
+        nav.appendChild(btn);
+      });
+    }
+
+    function openDialogue(loc) {
+      state.activeNpc = loc;
+      playFX('open');
+
+      if (!state.visitedIds.has(loc.id)) {
+        state.visitedIds.add(loc.id);
+        addXP(10);
+        document.getElementById('visited-count').textContent = state.visitedIds.size;
+      }
+
+      document.getElementById('dlg-avatar').textContent = loc.icon;
+      document.getElementById('dlg-npc-name').textContent = loc.npcName;
+      document.getElementById('dlg-place-badge').textContent = loc.placeName;
+      document.getElementById('dlg-theme').textContent = loc.theme;
+      document.getElementById('dlg-en').textContent = loc.dialogueEn;
+      document.getElementById('dlg-phonetic').textContent = loc.phonetic;
+      document.getElementById('dlg-fr').textContent = loc.dialogueFr;
+      document.getElementById('dlg-tip').textContent = loc.tip;
+
+      const vList = document.getElementById('vocab-list');
+      vList.innerHTML = '';
+      loc.vocab.forEach(item => {
+        const card = document.createElement('button');
+        card.className = 'btn-pop text-left bg-slate-900/80 hover:bg-slate-800 border border-white/10 rounded-2xl p-3 flex items-center justify-between gap-2';
+        card.innerHTML = `
+          <div>
+            <div class="font-bold text-sm text-white">${item.en}</div>
+            <div class="text-[11px] font-mono text-amber-300">${item.phonetic || ''}</div>
+            <div class="text-xs text-slate-300 mt-0.5">${item.fr}</div>
+          </div>
+          <span class="text-lg shrink-0">🔊</span>
+        `;
+        card.addEventListener('click', () => speakEnglish(item.en, false, loc.voice));
+        vList.appendChild(card);
+      });
+
+      renderQuiz(loc);
+      switchTab('dialogue');
+      document.getElementById('dialogue-modal').classList.remove('hidden');
+
+      speakEnglish(loc.dialogueEn, false, loc.voice);
+    }
+
+    function renderQuiz(loc) {
+      document.getElementById('quiz-question').textContent = loc.quiz.question;
+      const optBox = document.getElementById('quiz-options');
+      const feedback = document.getElementById('quiz-feedback');
+      feedback.classList.add('hidden');
+      optBox.innerHTML = '';
+
+      loc.quiz.options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'btn-pop w-full text-left bg-slate-900/80 hover:bg-slate-800 border border-white/15 rounded-2xl px-4 py-3 text-sm font-semibold text-white flex items-center justify-between';
+        btn.innerHTML = `<span>${opt.text}</span><span class="text-xs text-slate-400">Choisir</span>`;
+        btn.addEventListener('click', () => {
+          speakEnglish(opt.text, false, loc.voice);
+          feedback.classList.remove('hidden');
+          if (opt.correct) {
+            playFX('success');
+            btn.classList.add('border-emerald-400', 'bg-emerald-500/20');
+            feedback.className = 'rounded-2xl p-3 text-sm font-semibold bg-emerald-500/20 text-emerald-200 border border-emerald-400/40';
+            if (!state.completedQuizIds.has(loc.id)) {
+              state.completedQuizIds.add(loc.id);
+              addXP(20);
+              feedback.textContent = `🎉 Excellent ! +20 XP gagnés avec ${loc.npcName} !`;
+            } else {
+              feedback.textContent = `✅ Bravo, c'est la bonne réponse !`;
+            }
+          } else {
+            playFX('error');
+            btn.classList.add('border-rose-400', 'bg-rose-500/20');
+            feedback.className = 'rounded-2xl p-3 text-sm font-semibold bg-rose-500/20 text-rose-200 border border-rose-400/40';
+            feedback.textContent = `❌ Pas tout à fait ! Réécoutez le dialogue de ${loc.npcName} et réessayez.`;
+          }
+        });
+        optBox.appendChild(btn);
+      });
+    }
+
+    function closeDialogue() {
+      state.activeNpc = null;
+      document.getElementById('dialogue-modal').classList.add('hidden');
+      stopCurrentSpeech();
+    }
+
+    function switchTab(tabName) {
+      ['dialogue', 'vocab', 'quiz'].forEach(name => {
+        const panel = document.getElementById(`panel-${name}`);
+        const btn = document.getElementById(`tab-${name}`);
+        if (name === tabName) {
+          panel.classList.remove('hidden');
+          btn.className = 'tab-btn flex-1 py-1.5 px-2 rounded-lg text-[11px] font-bold bg-sky-500 text-slate-950 transition';
+        } else {
+          panel.classList.add('hidden');
+          btn.className = 'tab-btn flex-1 py-1.5 px-2 rounded-lg text-[11px] font-bold text-slate-300 hover:text-white transition';
+        }
+      });
+    }
+
+    function addXP(amount) {
+      state.xp += amount;
+      document.getElementById('xp-display').textContent = `${state.xp} XP`;
+    }
+
+    /*************************************************************************
+     * 8. LIAISON DES ÉVÉNEMENTS & DÉMARRAGE
+     *************************************************************************/
+    function bindUIEvents() {
+      const mapKey = (key, pressed) => {
+        const k = key.toLowerCase();
+        if (k === 'arrowup' || k === 'w' || k === 'z') state.keys.up = pressed;
+        if (k === 'arrowdown' || k === 's') state.keys.down = pressed;
+        if (k === 'arrowleft' || k === 'a' || k === 'q') state.keys.left = pressed;
+        if (k === 'arrowright' || k === 'd') state.keys.right = pressed;
+      };
+      window.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closeDialogue();
+        if (e.key === ' ' && state.nearbyNpc && !state.activeNpc) {
+          e.preventDefault();
+          openDialogue(state.nearbyNpc);
+        }
+        mapKey(e.key, true);
+      });
+      window.addEventListener('keyup', e => mapKey(e.key, false));
+
+      document.querySelectorAll('.dpad-btn').forEach(btn => {
+        const dir = btn.dataset.dir;
+        const setDir = (val) => {
+          initAudioFX();
+          if (dir in state.keys) state.keys[dir] = val;
+        };
+        btn.addEventListener('mousedown', () => setDir(true));
+        btn.addEventListener('mouseup', () => setDir(false));
+        btn.addEventListener('mouseleave', () => setDir(false));
+        btn.addEventListener('touchstart', e => { e.preventDefault(); setDir(true); });
+        btn.addEventListener('touchend', e => { e.preventDefault(); setDir(false); });
+      });
+
+      document.getElementById('btn-reset-cam').addEventListener('click', () => {
+        state.cameraYaw = 0;
+        state.cameraPitch = 0.42;
+        playFX('click');
+      });
+
+      document.getElementById('btn-start-sim').addEventListener('click', async () => {
+        await initAudioFX();
+        playFX('success');
+        document.getElementById('help-modal').classList.add('hidden');
+      });
+      document.getElementById('btn-help').addEventListener('click', () => {
+        document.getElementById('help-modal').classList.remove('hidden');
+      });
+      document.getElementById('btn-sound-toggle').addEventListener('click', () => {
+        state.soundEnabled = !state.soundEnabled;
+        document.getElementById('btn-sound-toggle').textContent = state.soundEnabled ? '🔊' : '🔇';
+      });
+      document.getElementById('btn-talk-nearby').addEventListener('click', () => {
+        if (state.nearbyNpc) openDialogue(state.nearbyNpc);
+      });
+      document.getElementById('btn-close-dialogue').addEventListener('click', closeDialogue);
+
+      // Bouton pour basculer la fenêtre entre la droite et la gauche
+      let dockedRight = true;
+      document.getElementById('btn-dock-side').addEventListener('click', () => {
+        const modal = document.getElementById('dialogue-modal');
+        dockedRight = !dockedRight;
+        if (dockedRight) {
+          modal.classList.remove('sm:left-3', 'sm:right-auto');
+          modal.classList.add('sm:right-3', 'sm:left-auto');
+        } else {
+          modal.classList.remove('sm:right-3', 'sm:left-auto');
+          modal.classList.add('sm:left-3', 'sm:right-auto');
+        }
+        playFX('click');
+      });
+
+      document.getElementById('tab-dialogue').addEventListener('click', () => switchTab('dialogue'));
+      document.getElementById('tab-vocab').addEventListener('click', () => switchTab('vocab'));
+      document.getElementById('tab-quiz').addEventListener('click', () => switchTab('quiz'));
+
+      document.getElementById('btn-speak-normal').addEventListener('click', () => {
+        if (state.activeNpc) speakEnglish(state.activeNpc.dialogueEn, false, state.activeNpc.voice);
+      });
+      document.getElementById('btn-speak-slow').addEventListener('click', () => {
+        if (state.activeNpc) speakEnglish(state.activeNpc.dialogueEn, true, state.activeNpc.voice);
+      });
+    }
+
+    window.onload = async function () {
+      await tryLoadNotebookLessons();
+      buildQuickNav();
+      bindUIEvents();
+      initThreeScene();
+      animate();
+    };
+  </script>
+</body>
+</html>
