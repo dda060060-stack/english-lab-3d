@@ -1,6 +1,6 @@
 {
-  "course": "Interchange Intro (5th Edition) — English City 3D Burkina Faso (Unités 1 à 8)",
-  "version": 3,
+  "course": "Interchange Intro (5th Edition) — English City 3D Burkina Faso (Unités 1 à 16)",
+  "version": 4,
   "units": [
     {
       "unit": 1,
@@ -2516,6 +2516,1447 @@
             }
           ],
           "explanation": "En anglais, « be + adjective » (« My job is great. ») équivaut à « adjective + noun » (« I have a great job. »)."
+        }
+      ]
+    },
+    {
+      "unit": 9,
+      "title": "I always eat breakfast.",
+      "theme": "Nourriture, boissons, noms dénombrables/indénombrables, some/any et adverbes de fréquence",
+      "placeName": "Marché & Alimentation",
+      "npcName": "Boubacar",
+      "dialogues": [
+        {
+          "speaker": "Boubacar",
+          "en": "Welcome to the market! What do you need for dinner tonight?",
+          "fr": "Bienvenue au marché ! De quoi avez-vous besoin pour le dîner ce soir ?"
+        },
+        {
+          "speaker": "Amina",
+          "en": "Let's make chicken and rice. Do we have any tomatoes and onions?",
+          "fr": "Préparons du poulet et du riz. Avons-nous des tomates et des oignons ?"
+        },
+        {
+          "speaker": "Boubacar",
+          "en": "We have some fresh tomatoes, some lettuce, and some nice mangoes, too.",
+          "fr": "Nous avons des tomates fraîches, de la laitue et aussi de belles mangues."
+        },
+        {
+          "speaker": "Amina",
+          "en": "Great! Do we need any bread or cheese?",
+          "fr": "Super ! Avons-nous besoin de pain ou de fromage ?"
+        },
+        {
+          "speaker": "Boubacar",
+          "en": "No, we don't need any cheese, but let's buy some bread and some eggs for breakfast.",
+          "fr": "Non, nous n'avons pas besoin de fromage, mais achetons du pain et des œufs pour le petit-déjeuner."
+        },
+        {
+          "speaker": "Amina",
+          "en": "Good idea! What do you usually have for breakfast, Boubacar?",
+          "fr": "Bonne idée ! Que prenez-vous habituellement au petit-déjeuner, Boubacar ?"
+        },
+        {
+          "speaker": "Boubacar",
+          "en": "I always eat breakfast! I usually have bread, eggs, and coffee. I sometimes eat fruit.",
+          "fr": "Je prends toujours le petit-déjeuner ! Je mange habituellement du pain, des œufs et je bois du café. Je mange parfois des fruits."
+        },
+        {
+          "speaker": "Amina",
+          "en": "I hardly ever drink coffee, and I never skip breakfast on workdays!",
+          "fr": "Je ne bois presque jamais de café, et je ne saute jamais le petit-déjeuner les jours de travail !"
+        }
+      ],
+      "grammar": [
+        {
+          "title": "Noms dénombrables / indénombrables avec « some » et « any »",
+          "explanation": "On utilise « some » dans les phrases affirmatives (pluriel ou indénombrable : some eggs, some bread) et « any » dans les phrases négatives et les questions (Do we have any cheese? No, we don't have any cheese.).",
+          "examples": [
+            {
+              "en": "We need some tomatoes and some rice.",
+              "fr": "Nous avons besoin de tomates et de riz."
+            },
+            {
+              "en": "Do we have any milk? No, we don't have any.",
+              "fr": "Avons-nous du lait ? Non, nous n'en avons pas."
+            },
+            {
+              "en": "Let's buy some apples and some orange juice.",
+              "fr": "Achetons des pommes et du jus d'orange."
+            }
+          ]
+        },
+        {
+          "title": "Les adverbes de fréquence (always, usually, often, sometimes, hardly ever, never)",
+          "explanation": "Les adverbes de fréquence se placent AVANT le verbe principal (« I always eat breakfast ») mais APRÈS le verbe « be » (« Breakfast is always ready at seven »). Avec « never » et « hardly ever », on garde le verbe à la forme affirmative (jamais de double négation).",
+          "examples": [
+            {
+              "en": "I always eat breakfast at seven o'clock.",
+              "fr": "Je prends toujours le petit-déjeuner à sept heures."
+            },
+            {
+              "en": "She usually drinks tea in the morning.",
+              "fr": "Elle boit habituellement du thé le matin."
+            },
+            {
+              "en": "I hardly ever eat fast food, and I never drink soda.",
+              "fr": "Je ne mange presque jamais de fast-food et je ne bois jamais de soda."
+            }
+          ]
+        },
+        {
+          "title": "Poser des questions de fréquence avec « Do you ever...? »",
+          "explanation": "Pour demander si quelqu'un fait parfois une activité, utilisez « Do you ever + base verbale ? » (T'arrive-t-il de... ?).",
+          "examples": [
+            {
+              "en": "Do you ever have fish for breakfast?",
+              "fr": "Vous arrive-t-il de manger du poisson au petit-déjeuner ?"
+            },
+            {
+              "en": "Yes, I sometimes do. / No, I never do.",
+              "fr": "Oui, parfois. / Non, jamais."
+            }
+          ]
+        }
+      ],
+      "tip": "Règle d'or de l'Unité 9 : « some » pour affirmer (« I want some rice »), « any » pour nier ou questionner (« Do we have any rice? We don't have any »), et placez l'adverbe de fréquence juste avant le verbe d'action.",
+      "vocab": [
+        { "en": "breakfast", "fr": "petit-déjeuner (Repas)" },
+        { "en": "lunch", "fr": "déjeuner (Repas)" },
+        { "en": "dinner", "fr": "dîner (Repas)" },
+        { "en": "chicken", "fr": "poulet (Viande)" },
+        { "en": "beef", "fr": "bœuf (Viande)" },
+        { "en": "fish", "fr": "poisson (Aliment)" },
+        { "en": "eggs", "fr": "œufs (Aliment)" },
+        { "en": "rice", "fr": "riz (Céréale)" },
+        { "en": "bread", "fr": "pain (Céréale)" },
+        { "en": "pasta", "fr": "pâtes (Céréale)" },
+        { "en": "noodles", "fr": "nouilles (Céréale)" },
+        { "en": "cheese", "fr": "fromage (Produit laitier)" },
+        { "en": "milk", "fr": "lait (Produit laitier)" },
+        { "en": "yogurt", "fr": "yaourt (Produit laitier)" },
+        { "en": "butter", "fr": "beurre (Produit laitier)" },
+        { "en": "tomatoes", "fr": "tomates (Légume)" },
+        { "en": "potatoes", "fr": "pommes de terre (Légume)" },
+        { "en": "carrots", "fr": "carottes (Légume)" },
+        { "en": "lettuce", "fr": "laitue / salade (Légume)" },
+        { "en": "onions", "fr": "oignons (Légume)" },
+        { "en": "apples", "fr": "pommes (Fruit)" },
+        { "en": "bananas", "fr": "bananes (Fruit)" },
+        { "en": "oranges", "fr": "oranges (Fruit)" },
+        { "en": "mangoes", "fr": "mangues (Fruit)" },
+        { "en": "coffee", "fr": "café (Boisson)" },
+        { "en": "tea", "fr": "thé (Boisson)" },
+        { "en": "orange juice", "fr": "jus d'orange (Boisson)" },
+        { "en": "always", "fr": "toujours (Fréquence — 100%)" },
+        { "en": "usually", "fr": "habituellement (Fréquence — 80%)" },
+        { "en": "often", "fr": "souvent (Fréquence — 65%)" },
+        { "en": "sometimes", "fr": "parfois (Fréquence — 40%)" },
+        { "en": "hardly ever", "fr": "presque jamais (Fréquence — 10%)" },
+        { "en": "never", "fr": "jamais (Fréquence — 0%)" }
+      ],
+      "quizzes": [
+        {
+          "question": "A: Do we have ___ eggs for breakfast? — B: No, we don't have ___.",
+          "options": [
+            { "text": "some — some", "correct": false },
+            { "text": "any — any", "correct": true },
+            { "text": "some — any", "correct": false },
+            { "text": "a — any", "correct": false }
+          ],
+          "explanation": "On emploie « any » dans les questions et les phrases négatives."
+        },
+        {
+          "question": "Complétez la phrase affirmative : « Let's buy ___ bread and ___ tomatoes. »",
+          "options": [
+            { "text": "any — any", "correct": false },
+            { "text": "a — some", "correct": false },
+            { "text": "some — some", "correct": true },
+            { "text": "an — any", "correct": false }
+          ],
+          "explanation": "Dans une phrase affirmative, on utilise « some » devant un indénombrable (bread) et un pluriel (tomatoes)."
+        },
+        {
+          "question": "Quelle phrase place correctement l'adverbe de fréquence ?",
+          "options": [
+            { "text": "I eat always breakfast.", "correct": false },
+            { "text": "Always I eat breakfast.", "correct": false },
+            { "text": "I always eat breakfast.", "correct": true },
+            { "text": "I eat breakfast always.", "correct": false }
+          ],
+          "explanation": "L'adverbe de fréquence (« always ») se place avant le verbe principal (« eat »)."
+        },
+        {
+          "question": "Comment dire correctement « Je ne bois jamais de café » en anglais ?",
+          "options": [
+            { "text": "I don't never drink coffee.", "correct": false },
+            { "text": "I never drink coffee.", "correct": true },
+            { "text": "I drink never coffee.", "correct": false },
+            { "text": "I am never drink coffee.", "correct": false }
+          ],
+          "explanation": "Avec « never », on n'ajoute pas « don't » : on dit « I never drink coffee. »."
+        },
+        {
+          "question": "A: ___ you ever eat soup for lunch? — B: Yes, I ___ do.",
+          "options": [
+            { "text": "Are — often", "correct": false },
+            { "text": "Do — often", "correct": true },
+            { "text": "Does — always", "correct": false },
+            { "text": "Do — never", "correct": false }
+          ],
+          "explanation": "La question est « Do you ever...? » et une réponse positive utilise un adverbe positif comme « often »."
+        }
+      ]
+    },
+    {
+      "unit": 10,
+      "title": "What sports do you like?",
+      "theme": "Sports, loisirs, questions au présent simple (Wh-questions) et talents avec can / can't",
+      "placeName": "Terrain de Sport & Loisirs",
+      "npcName": "Clarisse",
+      "dialogues": [
+        {
+          "speaker": "Clarisse",
+          "en": "Hi! Do you like sports? What sports do you play in your free time?",
+          "fr": "Salut ! Aimez-vous le sport ? Quels sports pratiquez-vous pendant votre temps libre ?"
+        },
+        {
+          "speaker": "Issa",
+          "en": "I love soccer and basketball! I play soccer with my friends every Saturday afternoon.",
+          "fr": "J'adore le football et le basket ! Je joue au football avec mes amis chaque samedi après-midi."
+        },
+        {
+          "speaker": "Clarisse",
+          "en": "That's awesome! Where do you usually play?",
+          "fr": "C'est génial ! Où jouez-vous habituellement ?"
+        },
+        {
+          "speaker": "Issa",
+          "en": "We play at the sports field near the park. What about you, Clarisse? Who do you play with?",
+          "fr": "Nous jouons sur le terrain de sport près du parc. Et toi, Clarisse ? Avec qui joues-tu ?"
+        },
+        {
+          "speaker": "Clarisse",
+          "en": "I play volleyball with my sister, and I go swimming twice a week.",
+          "fr": "Je joue au volley-ball avec ma sœur, et je vais nager deux fois par semaine."
+        },
+        {
+          "speaker": "Issa",
+          "en": "Cool! Can you play the guitar or sing, too?",
+          "fr": "Cool ! Sais-tu aussi jouer de la guitare ou chanter ?"
+        },
+        {
+          "speaker": "Clarisse",
+          "en": "I can sing very well, and I can dance, too! But I can't play the guitar at all.",
+          "fr": "Je sais très bien chanter, et je sais danser aussi ! Mais je ne sais pas du tout jouer de la guitare."
+        },
+        {
+          "speaker": "Issa",
+          "en": "Really? I can play the djembe, and I can cook delicious rice, too!",
+          "fr": "Vraiment ? Je sais jouer du djembé, et je sais aussi cuisiner un riz délicieux !"
+        }
+      ],
+      "grammar": [
+        {
+          "title": "Questions en Wh- au présent simple (What, Who, Where, When)",
+          "explanation": "Pour poser une question sur les sports et les loisirs : Mot interrogatif + do/does + sujet + base verbale. Notez la préposition « with » en fin de question (« Who do you play with? »).",
+          "examples": [
+            {
+              "en": "What sports do you like?",
+              "fr": "Quels sports aimez-vous ?"
+            },
+            {
+              "en": "Who do you practice with?",
+              "fr": "Avec qui vous entraînez-vous ?"
+            },
+            {
+              "en": "When does she go swimming?",
+              "fr": "Quand va-t-elle nager ?"
+            }
+          ]
+        },
+        {
+          "title": "Exprimer ses capacités et talents avec « can » et « can't »",
+          "explanation": "Le modal « can » est invariable à toutes les personnes (pas de -s avec he/she/it) et toujours suivi de la base verbale sans « to ». Questions : « Can + sujet + verbe ? ».",
+          "examples": [
+            {
+              "en": "I can swim, and she can play tennis very well.",
+              "fr": "Je sais nager, et elle sait très bien jouer au tennis."
+            },
+            {
+              "en": "He can't drive a car, and I can't ice-skate.",
+              "fr": "Il ne sait pas conduire une voiture, et je ne sais pas patiner sur glace."
+            },
+            {
+              "en": "Can you cook? Yes, I can. / No, I can't.",
+              "fr": "Savez-vous cuisiner ? Oui. / Non."
+            }
+          ]
+        },
+        {
+          "title": "Play / Go / Do avec les sports",
+          "explanation": "On utilise « play » avec les sports de ballon ou d'équipe (play soccer, play tennis), « go » avec les activités en -ing (go swimming, go bike riding), et « do » avec les arts martiaux ou la gym (do yoga, do karate).",
+          "examples": [
+            {
+              "en": "They play basketball on weekends.",
+              "fr": "Ils jouent au basket le week-end."
+            },
+            {
+              "en": "I go running every morning.",
+              "fr": "Je vais courir chaque matin."
+            }
+          ]
+        }
+      ],
+      "tip": "Règle d'or de l'Unité 10 : « can » ne prend JAMAIS de « -s » et n'est JAMAIS suivi de « to » — dites « She can sing » (jamais « She cans to sing »).",
+      "vocab": [
+        { "en": "soccer", "fr": "football (Sport)" },
+        { "en": "basketball", "fr": "basket-ball (Sport)" },
+        { "en": "volleyball", "fr": "volley-ball (Sport)" },
+        { "en": "tennis", "fr": "tennis (Sport)" },
+        { "en": "baseball", "fr": "baseball (Sport)" },
+        { "en": "swimming", "fr": "natation (Sport)" },
+        { "en": "running", "fr": "course à pied (Sport)" },
+        { "en": "bike riding", "fr": "cyclisme / vélo (Sport)" },
+        { "en": "hiking", "fr": "randonnée (Sport)" },
+        { "en": "yoga", "fr": "yoga (Sport)" },
+        { "en": "karate", "fr": "karaté (Sport)" },
+        { "en": "ice-skating", "fr": "patinage sur glace (Sport)" },
+        { "en": "skiing", "fr": "ski (Sport)" },
+        { "en": "sports field", "fr": "terrain de sport (Lieu)" },
+        { "en": "free time", "fr": "temps libre (Loisir)" },
+        { "en": "sing", "fr": "chanter (Talent)" },
+        { "en": "dance", "fr": "danser (Talent)" },
+        { "en": "swim", "fr": "nager (Talent)" },
+        { "en": "cook", "fr": "cuisiner (Talent)" },
+        { "en": "draw", "fr": "dessiner (Talent)" },
+        { "en": "paint", "fr": "peindre (Talent)" },
+        { "en": "play the guitar", "fr": "jouer de la guitare (Talent)" },
+        { "en": "play the piano", "fr": "jouer du piano (Talent)" },
+        { "en": "ride a bike", "fr": "faire du vélo (Talent)" },
+        { "en": "drive a car", "fr": "conduire une voiture (Talent)" },
+        { "en": "fix a computer", "fr": "réparer un ordinateur (Talent)" },
+        { "en": "tell good jokes", "fr": "raconter de bonnes blagues (Talent)" },
+        { "en": "very well", "fr": "très bien (Niveau)" },
+        { "en": "not at all", "fr": "pas du tout (Niveau)" },
+        { "en": "twice a week", "fr": "deux fois par semaine (Fréquence)" }
+      ],
+      "quizzes": [
+        {
+          "question": "A: ___ do you play soccer with? — B: I play with my friends from school.",
+          "options": [
+            { "text": "Where", "correct": false },
+            { "text": "Who", "correct": true },
+            { "text": "When", "correct": false },
+            { "text": "What", "correct": false }
+          ],
+          "explanation": "Pour demander « avec qui », on utilise « Who ... with? »."
+        },
+        {
+          "question": "Choisissez la phrase grammaticalement correcte avec « can » :",
+          "options": [
+            { "text": "Clarisse cans sing very well.", "correct": false },
+            { "text": "Clarisse can to sing very well.", "correct": false },
+            { "text": "Clarisse can sing very well.", "correct": true },
+            { "text": "Does Clarisse can sing very well?", "correct": false }
+          ],
+          "explanation": "« can » est invariable et suivi directement de la base verbale sans « to »."
+        },
+        {
+          "question": "A: Can your brother play the guitar? — B: No, ___.",
+          "options": [
+            { "text": "he doesn't", "correct": false },
+            { "text": "he isn't", "correct": false },
+            { "text": "he can't", "correct": true },
+            { "text": "he no can", "correct": false }
+          ],
+          "explanation": "On répond à une question en « Can he...? » par « Yes, he can. » ou « No, he can't. »."
+        },
+        {
+          "question": "Complétez : « On weekends, I ___ swimming and my friends ___ basketball. »",
+          "options": [
+            { "text": "go — play", "correct": true },
+            { "text": "play — go", "correct": false },
+            { "text": "do — go", "correct": false },
+            { "text": "go — do", "correct": false }
+          ],
+          "explanation": "On dit « go swimming » (activité en -ing) et « play basketball » (sport de ballon)."
+        },
+        {
+          "question": "A: ___ do you practice volleyball? — B: At the community center.",
+          "options": [
+            { "text": "When", "correct": false },
+            { "text": "Where", "correct": true },
+            { "text": "Who", "correct": false },
+            { "text": "How often", "correct": false }
+          ],
+          "explanation": "La réponse indique un lieu (« At the community center »), donc la question commence par « Where »."
+        }
+      ]
+    },
+    {
+      "unit": 11,
+      "title": "I'm going to have a party.",
+      "theme": "Mois de l'année, dates ordinales, anniversaires, fêtes et futur proche avec be going to",
+      "placeName": "Espace Culturel & Fêtes",
+      "npcName": "Drissa",
+      "dialogues": [
+        {
+          "speaker": "Drissa",
+          "en": "Hey! Guess what? My birthday is next week, on November twenty-eighth!",
+          "fr": "Hé ! Devinez quoi ? Mon anniversaire est la semaine prochaine, le 28 novembre !"
+        },
+        {
+          "speaker": "Sadia",
+          "en": "Happy early birthday, Drissa! What are you going to do to celebrate?",
+          "fr": "Joyeux anniversaire en avance, Drissa ! Qu'allez-vous faire pour fêter ça ?"
+        },
+        {
+          "speaker": "Drissa",
+          "en": "I'm going to have a big party right here at the cultural center!",
+          "fr": "Je vais organiser une grande fête juste ici au centre culturel !"
+        },
+        {
+          "speaker": "Sadia",
+          "en": "That sounds fun! Are you going to invite all our friends from English class?",
+          "fr": "Ça a l'air super ! Allez-vous inviter tous nos amis du cours d'anglais ?"
+        },
+        {
+          "speaker": "Drissa",
+          "en": "Yes, I am! We're going to listen to music, dance, and eat a huge birthday cake.",
+          "fr": "Oui ! Nous allons écouter de la musique, danser et manger un énorme gâteau d'anniversaire."
+        },
+        {
+          "speaker": "Sadia",
+          "en": "When is your sister's birthday? Is it in December?",
+          "fr": "Quand est l'anniversaire de votre sœur ? Est-ce en décembre ?"
+        },
+        {
+          "speaker": "Drissa",
+          "en": "No, her birthday is on January third. She's going to travel to Bobo-Dioulasso this year.",
+          "fr": "Non, son anniversaire est le 3 janvier. Elle va voyager à Bobo-Dioulasso cette année."
+        },
+        {
+          "speaker": "Sadia",
+          "en": "I'm definitely going to bring a gift to your party on Saturday!",
+          "fr": "Je vais absolument apporter un cadeau à votre fête samedi !"
+        }
+      ],
+      "grammar": [
+        {
+          "title": "Le futur proche avec « be going to »",
+          "explanation": "Pour parler de projets et d'intentions futures, utilisez : sujet + am/is/are + going to + base verbale. Questions : « Are you going to + verbe ? » / « What are you going to do? ».",
+          "examples": [
+            {
+              "en": "I'm going to have a birthday party on Saturday.",
+              "fr": "Je vais faire une fête d'anniversaire samedi."
+            },
+            {
+              "en": "She's not going to work tomorrow.",
+              "fr": "Elle ne va pas travailler demain."
+            },
+            {
+              "en": "Are they going to bake a cake? Yes, they are.",
+              "fr": "Vont-ils préparer un gâteau ? Oui."
+            }
+          ]
+        },
+        {
+          "title": "Les mois et les dates ordinales (first, second, third, fourth...)",
+          "explanation": "En anglais, on utilise les nombres ordinaux pour les dates : May first (1st), June second (2nd), July third (3rd), August fourth (4th). Prépositions : « in » devant un mois seul (« in May »), « on » devant une date précise (« on May 1st »).",
+          "examples": [
+            {
+              "en": "My birthday is in October.",
+              "fr": "Mon anniversaire est en octobre."
+            },
+            {
+              "en": "Independence Day is on August fifth.",
+              "fr": "La fête de l'indépendance est le 5 août."
+            },
+            {
+              "en": "New Year's Day is on January first.",
+              "fr": "Le Jour de l'An est le 1er janvier."
+            }
+          ]
+        }
+      ],
+      "tip": "Règle d'or de l'Unité 11 : « in » + mois seul (« in July »), mais « on » + mois + jour (« on July fourth »). Et n'oubliez jamais le verbe « be » devant « going to » !",
+      "vocab": [
+        { "en": "January", "fr": "janvier (Mois)" },
+        { "en": "February", "fr": "février (Mois)" },
+        { "en": "March", "fr": "mars (Mois)" },
+        { "en": "April", "fr": "avril (Mois)" },
+        { "en": "May", "fr": "mai (Mois)" },
+        { "en": "June", "fr": "juin (Mois)" },
+        { "en": "July", "fr": "juillet (Mois)" },
+        { "en": "August", "fr": "août (Mois)" },
+        { "en": "September", "fr": "septembre (Mois)" },
+        { "en": "October", "fr": "octobre (Mois)" },
+        { "en": "November", "fr": "novembre (Mois)" },
+        { "en": "December", "fr": "décembre (Mois)" },
+        { "en": "first (1st)", "fr": "premier (Ordinal)" },
+        { "en": "second (2nd)", "fr": "deuxième (Ordinal)" },
+        { "en": "third (3rd)", "fr": "troisième (Ordinal)" },
+        { "en": "fourth (4th)", "fr": "quatrième (Ordinal)" },
+        { "en": "fifth (5th)", "fr": "cinquième (Ordinal)" },
+        { "en": "twentieth (20th)", "fr": "vingtième (Ordinal)" },
+        { "en": "birthday", "fr": "anniversaire (Fête)" },
+        { "en": "party", "fr": "fête / soirée (Fête)" },
+        { "en": "holiday", "fr": "jour férié / fête (Fête)" },
+        { "en": "gift / present", "fr": "cadeau (Fête)" },
+        { "en": "birthday cake", "fr": "gâteau d'anniversaire (Fête)" },
+        { "en": "balloons", "fr": "ballons (Fête)" },
+        { "en": "fireworks", "fr": "feux d'artifice (Fête)" },
+        { "en": "parade", "fr": "défilé (Fête)" },
+        { "en": "celebrate", "fr": "célébrer / fêter (Verbe)" },
+        { "en": "invite friends", "fr": "inviter des amis (Action)" },
+        { "en": "next week", "fr": "la semaine prochaine (Futur)" },
+        { "en": "tonight", "fr": "ce soir (Futur)" }
+      ],
+      "quizzes": [
+        {
+          "question": "A: What ___ you going to do this weekend? — B: I ___ going to visit my cousins.",
+          "options": [
+            { "text": "do — am", "correct": false },
+            { "text": "are — am", "correct": true },
+            { "text": "is — are", "correct": false },
+            { "text": "are — do", "correct": false }
+          ],
+          "explanation": "Le futur proche utilise l'auxiliaire « be » : « What are you going to do? — I am going to... »."
+        },
+        {
+          "question": "Complétez avec la bonne préposition : « My birthday is ___ March, ___ March twenty-first. »",
+          "options": [
+            { "text": "on — in", "correct": false },
+            { "text": "at — on", "correct": false },
+            { "text": "in — on", "correct": true },
+            { "text": "in — at", "correct": false }
+          ],
+          "explanation": "« in » devant un mois seul (« in March ») et « on » devant une date complète (« on March 21st »)."
+        },
+        {
+          "question": "Comment prononce-t-on et écrit-on le nombre ordinal pour « 3 » ?",
+          "options": [
+            { "text": "threeth", "correct": false },
+            { "text": "third", "correct": true },
+            { "text": "three", "correct": false },
+            { "text": "thirty", "correct": false }
+          ],
+          "explanation": "Les trois premiers ordinaux sont irréguliers : first (1st), second (2nd), third (3rd)."
+        },
+        {
+          "question": "A: Is Drissa going to bake a cake? — B: Yes, ___.",
+          "options": [
+            { "text": "he's", "correct": false },
+            { "text": "he does", "correct": false },
+            { "text": "he is", "correct": true },
+            { "text": "he going", "correct": false }
+          ],
+          "explanation": "On répond avec « be » sans contraction à l'affirmative : « Yes, he is. »."
+        },
+        {
+          "question": "Choisissez la forme négative correcte au futur proche :",
+          "options": [
+            { "text": "We aren't going to stay home tonight.", "correct": true },
+            { "text": "We don't going to stay home tonight.", "correct": false },
+            { "text": "We not going to stay home tonight.", "correct": false },
+            { "text": "We aren't go to stay home tonight.", "correct": false }
+          ],
+          "explanation": "Forme négative : sujet + am not / isn't / aren't + going to + base verbale."
+        }
+      ]
+    },
+    {
+      "unit": 12,
+      "title": "How do you feel?",
+      "theme": "Parties du corps, santé, symptômes, remèdes et conseils à l'impératif affirmatif et négatif",
+      "placeName": "Pharmacie & Dispensaire",
+      "npcName": "Dr. Kaboré",
+      "dialogues": [
+        {
+          "speaker": "Dr. Kaboré",
+          "en": "Good morning! Come in, please. How do you feel today?",
+          "fr": "Bonjour ! Entrez, je vous en prie. Comment vous sentez-vous aujourd'hui ?"
+        },
+        {
+          "speaker": "Patient",
+          "en": "Not so good, Dr. Kaboré. I have a terrible headache and a sore throat.",
+          "fr": "Pas très bien, Dr Kaboré. J'ai un terrible mal de tête et mal à la gorge."
+        },
+        {
+          "speaker": "Dr. Kaboré",
+          "en": "I'm sorry to hear that! Do you have a fever or a cough?",
+          "fr": "Je suis désolé d'entendre cela ! Avez-vous de la fièvre ou de la toux ?"
+        },
+        {
+          "speaker": "Patient",
+          "en": "I don't have a fever, but I feel very tired and I have a little cough.",
+          "fr": "Je n'ai pas de fièvre, mais je me sens très fatigué(e) et je tousse un peu."
+        },
+        {
+          "speaker": "Dr. Kaboré",
+          "en": "Okay, it sounds like a bad cold. Take two aspirin and drink plenty of warm water.",
+          "fr": "D'accord, cela ressemble à un gros rhume. Prenez deux aspirines et buvez beaucoup d'eau tiède."
+        },
+        {
+          "speaker": "Patient",
+          "en": "Should I go to work this afternoon?",
+          "fr": "Devrais-je aller travailler cet après-midi ?"
+        },
+        {
+          "speaker": "Dr. Kaboré",
+          "en": "No! Go home, get some rest, and don't work too hard today.",
+          "fr": "Non ! Rentrez chez vous, reposez-vous et ne travaillez pas trop dur aujourd'hui."
+        },
+        {
+          "speaker": "Patient",
+          "en": "Thank you very much, Dr. Kaboré. I'll follow your advice!",
+          "fr": "Merci beaucoup, Dr Kaboré. Je vais suivre vos conseils !"
+        }
+      ],
+      "grammar": [
+        {
+          "title": "Exprimer la santé avec « have + nom » et « feel + adjectif »",
+          "explanation": "On utilise « have + a + symptôme » pour un mal physique (« I have a headache / a cold / a toothache ») et « feel + adjectif » pour l'état général (« I feel sick / tired / great »).",
+          "examples": [
+            {
+              "en": "What's the matter? I have a stomachache.",
+              "fr": "Qu'est-ce qui ne va pas ? J'ai mal au ventre."
+            },
+            {
+              "en": "How do you feel? I feel much better today.",
+              "fr": "Comment vous sentez-vous ? Je me sens beaucoup mieux aujourd'hui."
+            },
+            {
+              "en": "She has a fever and a sore throat.",
+              "fr": "Elle a de la fièvre et mal à la gorge."
+            }
+          ]
+        },
+        {
+          "title": "Donner des conseils à l'impératif (affirmatif et négatif)",
+          "explanation": "L'impératif utilise la base verbale sans sujet (« Take some medicine. », « Get some rest. »). À la forme négative, placez toujours « Don't » devant la base verbale (« Don't drink cold water. »).",
+          "examples": [
+            {
+              "en": "Drink lots of water and go to bed early.",
+              "fr": "Buvez beaucoup d'eau et couchez-vous tôt."
+            },
+            {
+              "en": "Don't stay up late, and don't eat heavy food.",
+              "fr": "Ne veillez pas tard et ne mangez pas d'aliments lourds."
+            },
+            {
+              "en": "See a doctor if you still feel sick tomorrow.",
+              "fr": "Consultez un médecin si vous vous sentez encore malade demain."
+            }
+          ]
+        }
+      ],
+      "tip": "Règle d'or de l'Unité 12 : « have + a + symptôme » (« I have a headache ») vs « feel + adjectif » (« I feel sick »). À l'impératif négatif, dites toujours « Don't + verbe » (jamais « No + verbe »).",
+      "vocab": [
+        { "en": "head", "fr": "tête (Corps)" },
+        { "en": "eye", "fr": "œil (Corps)" },
+        { "en": "ear", "fr": "oreille (Corps)" },
+        { "en": "nose", "fr": "nez (Corps)" },
+        { "en": "mouth", "fr": "bouche (Corps)" },
+        { "en": "tooth", "fr": "dent (Corps)" },
+        { "en": "throat", "fr": "gorge (Corps)" },
+        { "en": "neck", "fr": "cou (Corps)" },
+        { "en": "shoulder", "fr": "épaule (Corps)" },
+        { "en": "arm", "fr": "bras (Corps)" },
+        { "en": "hand", "fr": "main (Corps)" },
+        { "en": "back", "fr": "dos (Corps)" },
+        { "en": "stomach", "fr": "ventre / estomac (Corps)" },
+        { "en": "leg", "fr": "jambe (Corps)" },
+        { "en": "knee", "fr": "genou (Corps)" },
+        { "en": "foot", "fr": "pied (Corps)" },
+        { "en": "a headache", "fr": "un mal de tête (Symptôme)" },
+        { "en": "a stomachache", "fr": "un mal de ventre (Symptôme)" },
+        { "en": "a backache", "fr": "un mal de dos (Symptôme)" },
+        { "en": "a toothache", "fr": "un mal de dents (Symptôme)" },
+        { "en": "an earache", "fr": "un mal d'oreille (Symptôme)" },
+        { "en": "a sore throat", "fr": "un mal de gorge (Symptôme)" },
+        { "en": "a cold", "fr": "un rhume (Symptôme)" },
+        { "en": "a fever", "fr": "de la fièvre (Symptôme)" },
+        { "en": "a cough", "fr": "une toux (Symptôme)" },
+        { "en": "the flu", "fr": "la grippe (Symptôme)" },
+        { "en": "tired", "fr": "fatigué(e) (État)" },
+        { "en": "sick", "fr": "malade (État)" },
+        { "en": "aspirin", "fr": "aspirine (Remède)" },
+        { "en": "cough syrup", "fr": "sirop contre la toux (Remède)" },
+        { "en": "get some rest", "fr": "se reposer (Conseil)" },
+        { "en": "see a doctor", "fr": "consulter un médecin (Conseil)" }
+      ],
+      "quizzes": [
+        {
+          "question": "A: What's the matter? — B: I ___ a terrible headache and I ___ very tired.",
+          "options": [
+            { "text": "feel — have", "correct": false },
+            { "text": "have — feel", "correct": true },
+            { "text": "am — have", "correct": false },
+            { "text": "have — am feel", "correct": false }
+          ],
+          "explanation": "On emploie « have » devant un nom de symptôme (« a headache ») et « feel » devant un adjectif (« tired »)."
+        },
+        {
+          "question": "Quel conseil à l'impératif négatif est correct ?",
+          "options": [
+            { "text": "No drink cold water.", "correct": false },
+            { "text": "Not drink cold water.", "correct": false },
+            { "text": "Don't drink cold water.", "correct": true },
+            { "text": "Doesn't drink cold water.", "correct": false }
+          ],
+          "explanation": "L'impératif négatif se forme toujours avec « Don't + base verbale »."
+        },
+        {
+          "question": "Quel remède Dr. Kaboré recommande-t-il pour un rhume ?",
+          "options": [
+            { "text": "Take some medicine and get some rest.", "correct": true },
+            { "text": "Takes some medicine and gets some rest.", "correct": false },
+            { "text": "To take medicine and resting.", "correct": false },
+            { "text": "Taking some medicine.", "correct": false }
+          ],
+          "explanation": "L'impératif affirmatif utilise directement la base verbale sans -s ni « to »."
+        },
+        {
+          "question": "Si vous avez mal à la gorge, comment le dites-vous en anglais ?",
+          "options": [
+            { "text": "I have a sore throat.", "correct": true },
+            { "text": "I have a throatache.", "correct": false },
+            { "text": "I feel a sore throat.", "correct": false },
+            { "text": "I am throat.", "correct": false }
+          ],
+          "explanation": "Pour la gorge, on dit « a sore throat » (et non « throatache »)."
+        },
+        {
+          "question": "A: ___ do you feel today? — B: Much better, thank you!",
+          "options": [
+            { "text": "What", "correct": false },
+            { "text": "Where", "correct": false },
+            { "text": "How", "correct": true },
+            { "text": "Who", "correct": false }
+          ],
+          "explanation": "Pour prendre des nouvelles de la santé de quelqu'un : « How do you feel? »."
+        }
+      ]
+    },
+    {
+      "unit": 13,
+      "title": "How do I get there?",
+      "theme": "Magasins, lieux de la ville, prépositions de lieu (across from, between, on the corner of) et itinéraires",
+      "placeName": "Carrefour & Plan de Ville",
+      "npcName": "Rasmata",
+      "dialogues": [
+        {
+          "speaker": "Visiteur",
+          "en": "Excuse me! Is there a bank near here? I need to get some cash.",
+          "fr": "Excusez-moi ! Y a-t-il une banque près d'ici ? J'ai besoin de retirer de l'argent."
+        },
+        {
+          "speaker": "Rasmata",
+          "en": "Yes, there is! The bank is on Kwamé Nkrumah Avenue, across from the post office.",
+          "fr": "Oui, il y en a une ! La banque est sur l'avenue Kwamé Nkrumah, juste en face de la poste."
+        },
+        {
+          "speaker": "Visiteur",
+          "en": "Great! How do I get there from this intersection?",
+          "fr": "Super ! Comment puis-je y aller depuis ce carrefour ?"
+        },
+        {
+          "speaker": "Rasmata",
+          "en": "Walk straight ahead for two blocks, then turn left on Main Street.",
+          "fr": "Marchez tout droit pendant deux pâtés de maisons, puis tournez à gauche sur Main Street."
+        },
+        {
+          "speaker": "Visiteur",
+          "en": "Okay, walk two blocks and turn left. Is it on the right or on the left?",
+          "fr": "D'accord, marcher deux pâtés de maisons et tourner à gauche. Est-ce à droite ou à gauche ?"
+        },
+        {
+          "speaker": "Rasmata",
+          "en": "It's on your right, right between the pharmacy and the bookstore. You can't miss it!",
+          "fr": "C'est sur votre droite, juste entre la pharmacie et la librairie. Vous ne pouvez pas la manquer !"
+        },
+        {
+          "speaker": "Visiteur",
+          "en": "Awesome! And where is the closest coffee shop?",
+          "fr": "Génial ! Et où est le café le plus proche ?"
+        },
+        {
+          "speaker": "Rasmata",
+          "en": "There's a nice coffee shop right on the corner of First Avenue and Main Street!",
+          "fr": "Il y a un joli café juste au coin de First Avenue et Main Street !"
+        }
+      ],
+      "grammar": [
+        {
+          "title": "Prépositions de lieu en ville (on, on the corner of, across from, next to, between)",
+          "explanation": "Utilisez « on » pour une rue (« on Main Street »), « on the corner of » pour un angle de rues, « across from » pour « en face de », « next to » pour « à côté de », et « between A and B » pour « entre A et B ».",
+          "examples": [
+            {
+              "en": "The bank is on Main Street, across from the park.",
+              "fr": "La banque est sur Main Street, en face du parc."
+            },
+            {
+              "en": "The bakery is between the pharmacy and the bookstore.",
+              "fr": "La boulangerie est entre la pharmacie et la librairie."
+            },
+            {
+              "en": "The gas station is on the corner of First Avenue and Oak Street.",
+              "fr": "La station-service est au coin de First Avenue et Oak Street."
+            }
+          ]
+        },
+        {
+          "title": "Demander et donner un itinéraire",
+          "explanation": "Pour demander le chemin : « How do I get to...? » ou « Can you tell me the way to...? ». Pour guider quelqu'un, utilisez l'impératif : « Walk up / Walk down », « Go straight ahead », « Turn left / Turn right ».",
+          "examples": [
+            {
+              "en": "How do I get to the train station?",
+              "fr": "Comment vais-je à la gare ?"
+            },
+            {
+              "en": "Walk up First Avenue for two blocks and turn right.",
+              "fr": "Remontez First Avenue sur deux blocs et tournez à droite."
+            },
+            {
+              "en": "It's on the left, next to the supermarket.",
+              "fr": "C'est sur la gauche, à côté du supermarché."
+            }
+          ]
+        }
+      ],
+      "tip": "Règle d'or de l'Unité 13 : utilisez toujours « on » devant un nom de rue (« on Main Street ») et « between ... and ... » dès qu'un lieu se trouve entre deux bâtiments.",
+      "vocab": [
+        { "en": "bank", "fr": "banque (Lieu)" },
+        { "en": "post office", "fr": "bureau de poste (Lieu)" },
+        { "en": "supermarket", "fr": "supermarché (Magasin)" },
+        { "en": "drugstore / pharmacy", "fr": "pharmacie (Magasin)" },
+        { "en": "bookstore", "fr": "librairie (Magasin)" },
+        { "en": "bakery", "fr": "boulangerie (Magasin)" },
+        { "en": "coffee shop", "fr": "café / salon de café (Lieu)" },
+        { "en": "gas station", "fr": "station-service (Lieu)" },
+        { "en": "department store", "fr": "grand magasin (Magasin)" },
+        { "en": "shoe store", "fr": "magasin de chaussures (Magasin)" },
+        { "en": "restaurant", "fr": "restaurant (Lieu)" },
+        { "en": "hotel", "fr": "hôtel (Lieu)" },
+        { "en": "park", "fr": "parc (Lieu)" },
+        { "en": "museum", "fr": "musée (Lieu)" },
+        { "en": "intersection", "fr": "carrefour / intersection (Ville)" },
+        { "en": "block", "fr": "pâté de maisons (Ville)" },
+        { "en": "avenue", "fr": "avenue (Ville)" },
+        { "en": "street", "fr": "rue (Ville)" },
+        { "en": "map", "fr": "plan / carte (Ville)" },
+        { "en": "across from", "fr": "en face de (Préposition)" },
+        { "en": "next to", "fr": "à côté de (Préposition)" },
+        { "en": "between", "fr": "entre (Préposition)" },
+        { "en": "on the corner of", "fr": "au coin de (Préposition)" },
+        { "en": "go straight ahead", "fr": "aller tout droit (Itinéraire)" },
+        { "en": "turn left", "fr": "tourner à gauche (Itinéraire)" },
+        { "en": "turn right", "fr": "tourner à droite (Itinéraire)" },
+        { "en": "walk up", "fr": "remonter à pied (Itinéraire)" },
+        { "en": "walk down", "fr": "descendre à pied (Itinéraire)" },
+        { "en": "on the left", "fr": "sur la gauche (Itinéraire)" },
+        { "en": "on the right", "fr": "sur la droite (Itinéraire)" }
+      ],
+      "quizzes": [
+        {
+          "question": "The pharmacy is ___ the bank and the bookstore.",
+          "options": [
+            { "text": "across from", "correct": false },
+            { "text": "between", "correct": true },
+            { "text": "on the corner of", "correct": false },
+            { "text": "next", "correct": false }
+          ],
+          "explanation": "On utilise « between ... and ... » pour situer un bâtiment entre deux autres."
+        },
+        {
+          "question": "Quelle préposition complète : « The coffee shop is ___ Main Street, ___ the corner of First Avenue. » ?",
+          "options": [
+            { "text": "in — in", "correct": false },
+            { "text": "at — between", "correct": false },
+            { "text": "on — on", "correct": true },
+            { "text": "on — across", "correct": false }
+          ],
+          "explanation": "On dit « on Main Street » et « on the corner of... »."
+        },
+        {
+          "question": "Comment demander « Comment puis-je aller au musée ? » en anglais ?",
+          "options": [
+            { "text": "How do I get to the museum?", "correct": true },
+            { "text": "How I get to the museum?", "correct": false },
+            { "text": "Where do I get the museum?", "correct": false },
+            { "text": "What do I go to the museum?", "correct": false }
+          ],
+          "explanation": "La formule standard est « How do I get to + lieu ? »."
+        },
+        {
+          "question": "Que signifie « The post office is across from the hotel. » ?",
+          "options": [
+            { "text": "La poste est derrière l'hôtel.", "correct": false },
+            { "text": "La poste est en face de l'hôtel.", "correct": true },
+            { "text": "La poste est dans l'hôtel.", "correct": false },
+            { "text": "La poste est loin de l'hôtel.", "correct": false }
+          ],
+          "explanation": "« across from » signifie « de l'autre côté de la rue / en face de »."
+        },
+        {
+          "question": "Complétez l'itinéraire : « Walk straight for two blocks, then ___ right. »",
+          "options": [
+            { "text": "turning", "correct": false },
+            { "text": "turns", "correct": false },
+            { "text": "turn", "correct": true },
+            { "text": "to turn", "correct": false }
+          ],
+          "explanation": "Les instructions d'itinéraire s'expriment à l'impératif : « turn right »."
+        }
+      ]
+    },
+    {
+      "unit": 14,
+      "title": "I had a good time.",
+      "theme": "Récits au Simple Past (verbes réguliers en -ed et irréguliers), questions Did et négations didn't",
+      "placeName": "Cinéma & Espace Détente",
+      "npcName": "Seydou",
+      "dialogues": [
+        {
+          "speaker": "Seydou",
+          "en": "Hey! Welcome back! Did you have a good weekend?",
+          "fr": "Salut ! Bon retour ! Avez-vous passé un bon week-end ?"
+        },
+        {
+          "speaker": "Kadi",
+          "en": "Yes, I did! I had a great time. On Saturday, I watched a fantastic Burkinabé movie here at the cinema!",
+          "fr": "Oui ! J'ai passé un super moment. Samedi, j'ai regardé un film burkinabé fantastique ici au cinéma !"
+        },
+        {
+          "speaker": "Seydou",
+          "en": "Oh, nice! Did you go with your family or with friends?",
+          "fr": "Oh, super ! Y êtes-vous allée en famille ou avec des amis ?"
+        },
+        {
+          "speaker": "Kadi",
+          "en": "I went with two friends. After the movie, we ate grilled chicken and talked for hours.",
+          "fr": "J'y suis allée avec deux amis. Après le film, nous avons mangé du poulet grillé et parlé pendant des heures."
+        },
+        {
+          "speaker": "Seydou",
+          "en": "That sounds wonderful! What did you do on Sunday?",
+          "fr": "Ça a l'air génial ! Qu'avez-vous fait dimanche ?"
+        },
+        {
+          "speaker": "Kadi",
+          "en": "I stayed home, cleaned my room, and read a book. I didn't go out at all.",
+          "fr": "Je suis restée à la maison, j'ai rangé ma chambre et j'ai lu un livre. Je ne suis pas sortie du tout."
+        },
+        {
+          "speaker": "Seydou",
+          "en": "I played soccer on Saturday morning, and on Sunday I saw my grandparents!",
+          "fr": "Moi, j'ai joué au football samedi matin, et dimanche j'ai vu mes grands-parents !"
+        },
+        {
+          "speaker": "Kadi",
+          "en": "Sounds like we both had a really relaxing weekend!",
+          "fr": "On dirait que nous avons tous les deux passé un week-end vraiment reposant !"
+        }
+      ],
+      "grammar": [
+        {
+          "title": "Simple Past : verbes réguliers (-ed) et irréguliers",
+          "explanation": "Pour les verbes réguliers, ajoutez -ed (work -> worked, watch -> watched, play -> played, study -> studied). De nombreux verbes fréquents sont irréguliers à l'affirmative : go -> went, have -> had, see -> saw, eat -> ate, buy -> bought, do -> did, read -> read.",
+          "examples": [
+            {
+              "en": "I watched a movie and stayed home yesterday.",
+              "fr": "J'ai regardé un film et je suis resté(e) à la maison hier."
+            },
+            {
+              "en": "We went to the park and saw our friends.",
+              "fr": "Nous sommes allés au parc et avons vu nos amis."
+            },
+            {
+              "en": "She bought new shoes and had lunch downtown.",
+              "fr": "Elle a acheté de nouvelles chaussures et a déjeuné en ville."
+            }
+          ]
+        },
+        {
+          "title": "Négations avec « didn't » et questions avec « Did »",
+          "explanation": "Dès qu'on utilise l'auxiliaire « did » ou « didn't », le verbe principal revient TOUJOURS à la base verbale (sans -ed et sans forme irrégulière !).",
+          "examples": [
+            {
+              "en": "I didn't go out on Sunday night.",
+              "fr": "Je ne suis pas sorti(e) dimanche soir."
+            },
+            {
+              "en": "Did you have a good time? Yes, I did. / No, I didn't.",
+              "fr": "Avez-vous passé un bon moment ? Oui. / Non."
+            },
+            {
+              "en": "What did he eat for dinner?",
+              "fr": "Qu'a-t-il mangé pour le dîner ?"
+            }
+          ]
+        }
+      ],
+      "tip": "Règle d'or de l'Unité 14 : avec « Did » ou « didn't », le verbe reste à la BASE VERBALE ! Dites « Did you go? » et « I didn't see him » (jamais « Did you went? » ni « I didn't saw »).",
+      "vocab": [
+        { "en": "yesterday", "fr": "hier (Temps passé)" },
+        { "en": "last night", "fr": "hier soir (Temps passé)" },
+        { "en": "last weekend", "fr": "le week-end dernier (Temps passé)" },
+        { "en": "last week", "fr": "la semaine dernière (Temps passé)" },
+        { "en": "last year", "fr": "l'année dernière (Temps passé)" },
+        { "en": "watched a movie", "fr": "a regardé un film (Régulier)" },
+        { "en": "stayed home", "fr": "est resté(e) à la maison (Régulier)" },
+        { "en": "worked", "fr": "a travaillé (Régulier)" },
+        { "en": "studied", "fr": "a étudié (Régulier)" },
+        { "en": "cleaned the house", "fr": "a nettoyé la maison (Régulier)" },
+        { "en": "listened to music", "fr": "a écouté de la musique (Régulier)" },
+        { "en": "visited friends", "fr": "a rendu visite à des amis (Régulier)" },
+        { "en": "cooked dinner", "fr": "a cuisiné le dîner (Régulier)" },
+        { "en": "exercised", "fr": "a fait du sport (Régulier)" },
+        { "en": "went (go)", "fr": "est allé(e) (Irrégulier)" },
+        { "en": "had (have)", "fr": "a eu / a passé (Irrégulier)" },
+        { "en": "did (do)", "fr": "a fait (Irrégulier)" },
+        { "en": "saw (see)", "fr": "a vu (Irrégulier)" },
+        { "en": "ate (eat)", "fr": "a mangé (Irrégulier)" },
+        { "en": "drank (drink)", "fr": "a bu (Irrégulier)" },
+        { "en": "bought (buy)", "fr": "a acheté (Irrégulier)" },
+        { "en": "met (meet)", "fr": "a rencontré (Irrégulier)" },
+        { "en": "read (read)", "fr": "a lu (Irrégulier)" },
+        { "en": "got up (get up)", "fr": "s'est levé(e) (Irrégulier)" },
+        { "en": "made (make)", "fr": "a fait / fabriqué (Irrégulier)" },
+        { "en": "took (take)", "fr": "a pris (Irrégulier)" },
+        { "en": "cinema / movie theater", "fr": "cinéma (Lieu)" },
+        { "en": "a good time", "fr": "un bon moment (Expression)" },
+        { "en": "relaxing", "fr": "reposant / relaxant (Adjectif)" },
+        { "en": "boring", "fr": "ennuyeux (Adjectif)" }
+      ],
+      "quizzes": [
+        {
+          "question": "A: ___ you ___ to the cinema last night? — B: Yes, I did!",
+          "options": [
+            { "text": "Did — went", "correct": false },
+            { "text": "Did — go", "correct": true },
+            { "text": "Do — went", "correct": false },
+            { "text": "Were — go", "correct": false }
+          ],
+          "explanation": "Après l'auxiliaire « Did », le verbe revient toujours à la base verbale : « Did you go...? »."
+        },
+        {
+          "question": "Complétez à l'affirmatif au passé : « Yesterday, we ___ a great movie and ___ dinner together. »",
+          "options": [
+            { "text": "see — have", "correct": false },
+            { "text": "saw — had", "correct": true },
+            { "text": "seed — haved", "correct": false },
+            { "text": "saw — have", "correct": false }
+          ],
+          "explanation": "« see » -> « saw » et « have » -> « had » sont deux verbes irréguliers essentiels."
+        },
+        {
+          "question": "Mettez cette phrase à la forme négative : « She bought a ticket. »",
+          "options": [
+            { "text": "She didn't bought a ticket.", "correct": false },
+            { "text": "She don't buy a ticket.", "correct": false },
+            { "text": "She didn't buy a ticket.", "correct": true },
+            { "text": "She wasn't buy a ticket.", "correct": false }
+          ],
+          "explanation": "Avec « didn't », on repasse à la base verbale « buy » : « She didn't buy a ticket. »."
+        },
+        {
+          "question": "Quel est le passé régulier correct du verbe « study » ?",
+          "options": [
+            { "text": "studyed", "correct": false },
+            { "text": "studied", "correct": true },
+            { "text": "studid", "correct": false },
+            { "text": "studying", "correct": false }
+          ],
+          "explanation": "Consonne + y devient « -ied » au Simple Past : study -> studied."
+        },
+        {
+          "question": "A: Did Seydou stay home on Sunday? — B: No, ___.",
+          "options": [
+            { "text": "he wasn't", "correct": false },
+            { "text": "he doesn't", "correct": false },
+            { "text": "he didn't", "correct": true },
+            { "text": "he no did", "correct": false }
+          ],
+          "explanation": "Réponse courte négative au Simple Past : « No, he didn't. »."
+        }
+      ]
+    },
+    {
+      "unit": 15,
+      "title": "Where were you born?",
+      "theme": "Naissance, enfance, parcours scolaire, matières, passé du verbe be (was/were) et Wh-questions",
+      "placeName": "Université & Archives",
+      "npcName": "Ousmane",
+      "dialogues": [
+        {
+          "speaker": "Ousmane",
+          "en": "Welcome to the university archives! Tell me about yourself — where were you born?",
+          "fr": "Bienvenue aux archives de l'université ! Parlez-moi de vous : où êtes-vous né(e) ?"
+        },
+        {
+          "speaker": "Étudiante",
+          "en": "I was born in Koudougou, in 2002. I grew up there with my big family.",
+          "fr": "Je suis née à Koudougou, en 2002. J'y ai grandi avec ma grande famille."
+        },
+        {
+          "speaker": "Ousmane",
+          "en": "Really? Were your parents born in Koudougou, too?",
+          "fr": "Vraiment ? Vos parents sont-ils nés à Koudougou aussi ?"
+        },
+        {
+          "speaker": "Étudiante",
+          "en": "My mother was, but my father wasn't. He was born in Ouahigouya.",
+          "fr": "Ma mère oui, mais mon père non. Il est né à Ouahigouya."
+        },
+        {
+          "speaker": "Ousmane",
+          "en": "Interesting! When did you move to Ouagadougou?",
+          "fr": "Intéressant ! Quand avez-vous déménagé à Ouagadougou ?"
+        },
+        {
+          "speaker": "Étudiante",
+          "en": "We moved here six years ago, when I started high school.",
+          "fr": "Nous avons déménagé ici il y a six ans, quand j'ai commencé le lycée."
+        },
+        {
+          "speaker": "Ousmane",
+          "en": "What were your favorite subjects in high school?",
+          "fr": "Quelles étaient vos matières préférées au lycée ?"
+        },
+        {
+          "speaker": "Étudiante",
+          "en": "My favorite subjects were English, history, and geography! My English teacher was amazing.",
+          "fr": "Mes matières préférées étaient l'anglais, l'histoire et la géographie ! Mon professeur d'anglais était formidable."
+        }
+      ],
+      "grammar": [
+        {
+          "title": "Le passé du verbe « be » : was / were (et « be born »)",
+          "explanation": "On utilise « was / wasn't » avec I, he, she, it, et « were / weren't » avec you, we, they. Pour dire « naître », l'anglais utilise toujours le passé passif « was/were born ».",
+          "examples": [
+            {
+              "en": "I was born in Burkina Faso in 2000.",
+              "fr": "Je suis né(e) au Burkina Faso en 2000."
+            },
+            {
+              "en": "Were you a good student? Yes, I was. / No, I wasn't.",
+              "fr": "Étiez-vous un bon élève ? Oui. / Non."
+            },
+            {
+              "en": "My parents weren't born in the capital.",
+              "fr": "Mes parents ne sont pas nés dans la capitale."
+            }
+          ]
+        },
+        {
+          "title": "Wh-questions avec « did » vs « was / were »",
+          "explanation": "Avec le verbe « be » au passé, on n'utilise JAMAIS « did » : on inverse directement « was / were » (« Where were you born? », « Who was your favorite teacher? »). Avec tous les autres verbes, on utilise « did » (« When did you graduate? »).",
+          "examples": [
+            {
+              "en": "Where were you born?",
+              "fr": "Où êtes-vous né(e) ?"
+            },
+            {
+              "en": "How old were you in 2015?",
+              "fr": "Quel âge aviez-vous en 2015 ?"
+            },
+            {
+              "en": "Where did you grow up?",
+              "fr": "Où avez-vous grandi ?"
+            }
+          ]
+        },
+        {
+          "title": "Situations dans le passé avec « ago » et « in + année »",
+          "explanation": "On place « ago » APRÈS la durée (« five years ago » = il y a cinq ans) et « in » devant une année (« in 2018 »).",
+          "examples": [
+            {
+              "en": "I graduated from high school three years ago.",
+              "fr": "J'ai eu mon diplôme de lycée il y a trois ans."
+            },
+            {
+              "en": "She started university in 2021.",
+              "fr": "Elle a commencé l'université en 2021."
+            }
+          ]
+        }
+      ],
+      "tip": "Règle d'or de l'Unité 15 : pour la naissance, dites toujours « I was born » (jamais « I am born ») et n'employez jamais « did » avec « was / were ».",
+      "vocab": [
+        { "en": "be born", "fr": "naître (Biographie)" },
+        { "en": "grow up", "fr": "grandir (Biographie)" },
+        { "en": "move to", "fr": "déménager à (Biographie)" },
+        { "en": "graduate", "fr": "obtenir son diplôme (Biographie)" },
+        { "en": "elementary school", "fr": "école primaire (École)" },
+        { "en": "middle school", "fr": "collège (École)" },
+        { "en": "high school", "fr": "lycée (École)" },
+        { "en": "college / university", "fr": "université (École)" },
+        { "en": "classmate", "fr": "camarade de classe (École)" },
+        { "en": "principal", "fr": "directeur / proviseur (École)" },
+        { "en": "major", "fr": "spécialité universitaire (École)" },
+        { "en": "history", "fr": "histoire (Matière)" },
+        { "en": "geography", "fr": "géographie (Matière)" },
+        { "en": "math", "fr": "mathématiques (Matière)" },
+        { "en": "science", "fr": "sciences (Matière)" },
+        { "en": "biology", "fr": "biologie (Matière)" },
+        { "en": "chemistry", "fr": "chimie (Matière)" },
+        { "en": "physics", "fr": "physique (Matière)" },
+        { "en": "literature", "fr": "littérature (Matière)" },
+        { "en": "foreign languages", "fr": "langues étrangères (Matière)" },
+        { "en": "computer science", "fr": "informatique (Matière)" },
+        { "en": "physical education (PE)", "fr": "éducation physique / sport (Matière)" },
+        { "en": "art", "fr": "arts plastiques (Matière)" },
+        { "en": "music", "fr": "musique (Matière)" },
+        { "en": "childhood", "fr": "enfance (Vie)" },
+        { "en": "hometown", "fr": "ville natale (Vie)" },
+        { "en": "ago", "fr": "il y a (Temps)" },
+        { "en": "nineteen ninety-eight (1998)", "fr": "mille neuf cent quatre-vingt-dix-huit (Année)" },
+        { "en": "two thousand ten (2010)", "fr": "deux mille dix (Année)" },
+        { "en": "friendly", "fr": "sympathique / amical (Description)" }
+      ],
+      "quizzes": [
+        {
+          "question": "A: Where ___ you born? — B: I ___ born in Ouagadougou.",
+          "options": [
+            { "text": "did — was", "correct": false },
+            { "text": "were — was", "correct": true },
+            { "text": "are — am", "correct": false },
+            { "text": "was — were", "correct": false }
+          ],
+          "explanation": "On utilise « were » avec « you » et « was » avec « I » : « Where were you born? — I was born... »."
+        },
+        {
+          "question": "A: ___ your parents born in Burkina Faso? — B: Yes, they ___.",
+          "options": [
+            { "text": "Was — was", "correct": false },
+            { "text": "Did — did", "correct": false },
+            { "text": "Were — were", "correct": true },
+            { "text": "Are — were", "correct": false }
+          ],
+          "explanation": "« your parents » est au pluriel (they), donc on utilise « Were » et « were »."
+        },
+        {
+          "question": "Choisissez la question correcte pour demander où quelqu'un a grandi :",
+          "options": [
+            { "text": "Where were you grow up?", "correct": false },
+            { "text": "Where did you grew up?", "correct": false },
+            { "text": "Where did you grow up?", "correct": true },
+            { "text": "Where you grew up?", "correct": false }
+          ],
+          "explanation": "Avec le verbe d'action « grow up », on emploie « did + sujet + base verbale »."
+        },
+        {
+          "question": "Comment dire « Nous avons déménagé ici il y a cinq ans » ?",
+          "options": [
+            { "text": "We moved here ago five years.", "correct": false },
+            { "text": "We moved here five years ago.", "correct": true },
+            { "text": "We move here since five years.", "correct": false },
+            { "text": "We were move here five years ago.", "correct": false }
+          ],
+          "explanation": "En anglais, « ago » se place toujours APRÈS la durée : « five years ago »."
+        },
+        {
+          "question": "A: Who ___ your favorite teacher in high school? — B: Mr. Ousmane!",
+          "options": [
+            { "text": "was", "correct": true },
+            { "text": "were", "correct": false },
+            { "text": "did", "correct": false },
+            { "text": "is been", "correct": false }
+          ],
+          "explanation": "« your favorite teacher » est au singulier, donc on utilise « was »."
+        }
+      ]
+    },
+    {
+      "unit": 16,
+      "title": "Can I take a message?",
+      "theme": "Appels téléphoniques, prépositions at/in/on, pronoms compléments (me, him, her, us, them) et invitations (verb + to)",
+      "placeName": "Centre d'Appels & Accueil",
+      "npcName": "Nadia",
+      "dialogues": [
+        {
+          "speaker": "Nadia",
+          "en": "Hello, DAVID-DA Reception! Nadia speaking. How can I help you?",
+          "fr": "Allô, accueil DAVID-DA ! Nadia à l'appareil. Comment puis-je vous aider ?"
+        },
+        {
+          "speaker": "Appelant",
+          "en": "Hi, Nadia! Is Moussa there? I need to talk to him about our English club.",
+          "fr": "Salut, Nadia ! Moussa est-il là ? J'ai besoin de lui parler de notre club d'anglais."
+        },
+        {
+          "speaker": "Nadia",
+          "en": "I'm sorry, he's not at his desk right now. He's in a meeting. Can I take a message?",
+          "fr": "Je suis désolée, il n'est pas à son bureau en ce moment. Il est en réunion. Puis-je prendre un message ?"
+        },
+        {
+          "speaker": "Appelant",
+          "en": "Yes, please! Could you ask him to call me back this afternoon?",
+          "fr": "Oui, s'il vous plaît ! Pourriez-vous lui demander de me rappeler cet après-midi ?"
+        },
+        {
+          "speaker": "Nadia",
+          "en": "Sure! What's your phone number? I'll write it down for him.",
+          "fr": "Bien sûr ! Quel est votre numéro de téléphone ? Je vais le noter pour lui."
+        },
+        {
+          "speaker": "Appelant",
+          "en": "It's 70-55-01-48. Also, would you like to come to our concert with us on Friday night?",
+          "fr": "C'est le 70-55-01-48. Aussi, aimeriez-vous venir à notre concert avec nous vendredi soir ?"
+        },
+        {
+          "speaker": "Nadia",
+          "en": "I'd love to, thank you! What time does it start?",
+          "fr": "J'adorerais, merci ! À quelle heure cela commence-t-il ?"
+        },
+        {
+          "speaker": "Appelant",
+          "en": "It starts at seven thirty. I'll text you the address right now!",
+          "fr": "Cela commence à dix-neuf heures trente. Je vous envoie l'adresse par SMS tout de suite !"
+        }
+      ],
+      "grammar": [
+        {
+          "title": "Les pronoms compléments (me, you, him, her, it, us, them)",
+          "explanation": "Après un verbe ou une préposition (to, for, with, about), on utilise les pronoms compléments : I -> me, he -> him, she -> her, we -> us, they -> them.",
+          "examples": [
+            {
+              "en": "Please tell him to call me back.",
+              "fr": "S'il vous plaît, dites-lui (à lui) de me rappeler."
+            },
+            {
+              "en": "Do you know Nadia? Yes, I work with her.",
+              "fr": "Connaissez-vous Nadia ? Oui, je travaille avec elle."
+            },
+            {
+              "en": "We're going to the concert. Come with us!",
+              "fr": "Nous allons au concert. Venez avec nous !"
+            }
+          ]
+        },
+        {
+          "title": "Prépositions de situation : at / in / on",
+          "explanation": "On utilise « at » pour un point précis ou lieu habituel (at home, at work, at school, at the mall), « in » pour un espace clos ou état (in bed, in class, in a meeting, in the shower), et « on » pour une activité ou un trajet (on vacation, on a trip, on the phone).",
+          "examples": [
+            {
+              "en": "She's at work, and he's in a meeting.",
+              "fr": "Elle est au travail, et il est en réunion."
+            },
+            {
+              "en": "Sorry, my brother is on the phone right now.",
+              "fr": "Désolé, mon frère est au téléphone en ce moment."
+            },
+            {
+              "en": "They're on vacation in Banfora this week.",
+              "fr": "Ils sont en vacances à Banfora cette semaine."
+            }
+          ]
+        },
+        {
+          "title": "Invitations et excuses avec « verb + to + base verbale »",
+          "explanation": "Pour inviter poliment : « Would you like to + verbe ? ». Pour accepter : « Yes, I'd love to! ». Pour refuser poliment avec une excuse : « I'd like to, but I have to / need to / want to + verbe ».",
+          "examples": [
+            {
+              "en": "Would you like to go to a movie tonight?",
+              "fr": "Aimeriez-vous aller au cinéma ce soir ?"
+            },
+            {
+              "en": "I'd love to, thanks!",
+              "fr": "J'adorerais, merci !"
+            },
+            {
+              "en": "I'd like to, but I have to study for a test.",
+              "fr": "J'aimerais bien, mais je dois étudier pour un examen."
+            }
+          ]
+        }
+      ],
+      "tip": "Règle d'or de l'Unité 16 : n'oubliez jamais le « to » dans « Would you like to...? » et « I'd love to! », et utilisez toujours un pronom complément après un verbe (« Call him », « Tell her », « Come with us »).",
+      "vocab": [
+        { "en": "phone call", "fr": "appel téléphonique (Téléphone)" },
+        { "en": "take a message", "fr": "prendre un message (Téléphone)" },
+        { "en": "leave a message", "fr": "laisser un message (Téléphone)" },
+        { "en": "call back", "fr": "rappeler (Téléphone)" },
+        { "en": "voicemail", "fr": "messagerie vocale (Téléphone)" },
+        { "en": "text message", "fr": "SMS / message texte (Téléphone)" },
+        { "en": "phone number", "fr": "numéro de téléphone (Téléphone)" },
+        { "en": "reception", "fr": "accueil / réception (Lieu)" },
+        { "en": "at home", "fr": "à la maison (Position)" },
+        { "en": "at work", "fr": "au travail (Position)" },
+        { "en": "at school", "fr": "à l'école (Position)" },
+        { "en": "at the mall", "fr": "au centre commercial (Position)" },
+        { "en": "in class", "fr": "en cours (Position)" },
+        { "en": "in bed", "fr": "au lit (Position)" },
+        { "en": "in a meeting", "fr": "en réunion (Position)" },
+        { "en": "in the shower", "fr": "sous la douche (Position)" },
+        { "en": "on vacation", "fr": "en vacances (Position)" },
+        { "en": "on a trip", "fr": "en voyage (Position)" },
+        { "en": "on the phone", "fr": "au téléphone (Position)" },
+        { "en": "me", "fr": "me / moi (Pronom complément)" },
+        { "en": "him", "fr": "le / lui (Pronom complément)" },
+        { "en": "her", "fr": "la / lui (Pronom complément)" },
+        { "en": "us", "fr": "nous (Pronom complément)" },
+        { "en": "them", "fr": "les / leur / eux (Pronom complément)" },
+        { "en": "concert", "fr": "concert (Sortie)" },
+        { "en": "art exhibit", "fr": "exposition d'art (Sortie)" },
+        { "en": "comedy show", "fr": "spectacle d'humour (Sortie)" },
+        { "en": "I'd love to!", "fr": "J'adorerais ! (Accepter)" },
+        { "en": "I have to study.", "fr": "Je dois étudier. (Excuse)" },
+        { "en": "I need to work late.", "fr": "J'ai besoin de travailler tard. (Excuse)" }
+      ],
+      "quizzes": [
+        {
+          "question": "A: Is Nadia there? — B: No, she isn't. Please tell ___ to call ___ back.",
+          "options": [
+            { "text": "she — I", "correct": false },
+            { "text": "her — me", "correct": true },
+            { "text": "him — me", "correct": false },
+            { "text": "her — my", "correct": false }
+          ],
+          "explanation": "Après les verbes « tell » et « call », on utilise les pronoms compléments : « her » (pour Nadia) et « me »."
+        },
+        {
+          "question": "Complétez avec les bonnes prépositions : « He's ___ work, ___ a meeting right now. »",
+          "options": [
+            { "text": "at — in", "correct": true },
+            { "text": "in — on", "correct": false },
+            { "text": "on — at", "correct": false },
+            { "text": "at — on", "correct": false }
+          ],
+          "explanation": "On dit « at work » (au travail) et « in a meeting » (en réunion)."
+        },
+        {
+          "question": "A: Would you like ___ to the concert tonight? — B: Yes, I'd love ___!",
+          "options": [
+            { "text": "going — it", "correct": false },
+            { "text": "to go — to", "correct": true },
+            { "text": "go — to", "correct": false },
+            { "text": "to go — go", "correct": false }
+          ],
+          "explanation": "La structure d'invitation est « Would you like to + verbe ? » et la réponse courte est « I'd love to! »."
+        },
+        {
+          "question": "Comment refuser poliment une invitation avec une excuse ?",
+          "options": [
+            { "text": "I'd like to, but I have to study.", "correct": true },
+            { "text": "I'd like, but I have study.", "correct": false },
+            { "text": "I like to, but I need studying.", "correct": false },
+            { "text": "I'd love, but I must to study.", "correct": false }
+          ],
+          "explanation": "Formule polie : « I'd like to, but I have to / need to + base verbale »."
+        },
+        {
+          "question": "Complétez : « My friends are ___ vacation this week. I'm going to call ___ tonight. »",
+          "options": [
+            { "text": "in — they", "correct": false },
+            { "text": "at — them", "correct": false },
+            { "text": "on — them", "correct": true },
+            { "text": "on — they", "correct": false }
+          ],
+          "explanation": "On dit « on vacation » et le pronom complément de « they » est « them »."
         }
       ]
     }

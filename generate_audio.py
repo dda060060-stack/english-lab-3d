@@ -2,7 +2,7 @@
 """
 Générateur d'audio MP3 statiques pour DAVID-DA Speak (compatible GitHub Pages).
 
-Lit les 8 unités de `lessons.json` (dialogues, exemples de grammaire, vocabulaire
+Lit les 16 unités de `lessons.json` (dialogues, exemples de grammaire, vocabulaire
 et réponses audio de quiz), génère les fichiers `.mp3` dans `audio/` avec `edge_tts`
 (voix masculine `en-US-GuyNeural` et féminine `en-US-JennyNeural`), ignore les
 fichiers déjà générés et crée l'index `audio/manifest.json`.
@@ -28,8 +28,8 @@ MANIFEST_FILE = AUDIO_DIR / "manifest.json"
 MALE_VOICE = "en-US-GuyNeural"
 FEMALE_VOICE = "en-US-JennyNeural"
 
-# Unités dont le personnage principal est masculin (Moussa, Ibrahim, Salif, Wendpanga)
-MALE_UNITS = {1, 3, 5, 7}
+# Unités dont le personnage principal est masculin (Moussa, Ibrahim, Salif, Wendpanga, Boubacar, Drissa, Dr. Kaboré, Seydou, Ousmane)
+MALE_UNITS = {1, 3, 5, 7, 9, 11, 12, 14, 15}
 
 
 def normalize_text(text: str) -> str:

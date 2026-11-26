@@ -3,7 +3,7 @@
    Stratégie : Cache-First avec pré-cache cœur + pré-cache MP3 en arrière-plan
    =========================================================================== */
 
-const CACHE_NAME = 'david-da-speak-v2';
+const CACHE_NAME = 'david-da-speak-v3';
 
 const CORE_ASSETS = [
   './',

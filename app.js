@@ -170,6 +170,40 @@ const CHARACTER_PORTRAIT_SPECS = {
     shirt: '#0891B2', trim: '#FDE047', headwrap: '#06B6D4', headwrapAccent: '#FDE047',
     style: 'headwrap-tech', glasses: '#1E293B'
   },
+  'unit-9': {
+    bg: '#DCFCE7', bgAccent: '#BBF7D0', skin: '#683A1E', skinShadow: '#4E2B15',
+    shirt: '#16A34A', trim: '#FACC15', style: 'short-fade', beard: true
+  },
+  'unit-10': {
+    bg: '#FFE4E6', bgAccent: '#FECDD3', skin: '#7A482B', skinShadow: '#5E351E',
+    shirt: '#E11D48', trim: '#FFFFFF', style: 'puffs', earrings: true
+  },
+  'unit-11': {
+    bg: '#F3E8FF', bgAccent: '#E9D5FF', skin: '#63361C', skinShadow: '#4A2713',
+    shirt: '#9333EA', trim: '#FCD116', style: 'curly-top'
+  },
+  'unit-12': {
+    bg: '#E0F2FE', bgAccent: '#BAE6FD', skin: '#5B3118', skinShadow: '#442310',
+    shirt: '#0284C7', trim: '#FFFFFF', style: 'short-fade', glasses: '#0F172A', beard: true
+  },
+  'unit-13': {
+    bg: '#FEF9C3', bgAccent: '#FEF08A', skin: '#7B492C', skinShadow: '#5F361E',
+    shirt: '#CA8A04', trim: '#1E3A8A', headwrap: '#1D4ED8', headwrapAccent: '#FDE047',
+    style: 'headwrap-knot', earrings: true
+  },
+  'unit-14': {
+    bg: '#FEE2E2', bgAccent: '#FECACA', skin: '#6A3C20', skinShadow: '#502C16',
+    shirt: '#B91C1C', trim: '#FBBF24', style: 'cap'
+  },
+  'unit-15': {
+    bg: '#E0E7FF', bgAccent: '#C7D2FE', skin: '#60351B', skinShadow: '#472613',
+    shirt: '#3730A3', trim: '#FCD116', style: 'short-fade', glasses: '#1E293B'
+  },
+  'unit-16': {
+    bg: '#FCE7F3', bgAccent: '#FBCFE8', skin: '#824F31', skinShadow: '#653B23',
+    shirt: '#DB2777', trim: '#FDE047', headwrap: '#0EA5E9', headwrapAccent: '#FDE047',
+    style: 'headwrap-tech', glasses: '#1E293B', earrings: true
+  },
   'partner': {
     bg: '#E8F7D4', bgAccent: '#D1F0AB', skin: '#8D5838', skinShadow: '#6E4228',
     shirt: '#58CC02', trim: '#FFFFFF', style: 'curly-top'
@@ -548,6 +582,297 @@ const NEIGHBORHOOD_DATA = [
     ],
     grammar: [],
     tip: "N'oubliez jamais l'article « a / an » devant un métier : « I am an engineer ».",
+    vocab: [],
+    quizzes: []
+  },
+  {
+    unit: 9,
+    id: 'unit-9',
+    placeName: 'Marché & Alimentation',
+    shortName: 'Marché',
+    npcName: 'Boubacar',
+    gender: 'male',
+    hairStyle: 'short',
+    outfitStyle: 'tunic',
+    voice: 'en-US-GuyNeural',
+    unitTitle: 'I always eat breakfast.',
+    theme: 'Nourriture, boissons, some/any et adverbes de fréquence',
+    color: 0x16a34a,
+    wallColor: 0xe6bc8a,
+    awningColor: 0x16a34a,
+    shirtColor: 0x16a34a,
+    trimColor: 0xfacc15,
+    skinColor: 0x683a1e,
+    headwrapColor: null,
+    accessory: 'beard',
+    buildingType: 'market',
+    pos: { x: -31.0, z: -6.2 },
+    buildingPos: { x: -31.0, z: -11.4 },
+    buildingRotY: 0,
+    dialogues: [
+      {
+        speaker: 'Boubacar',
+        en: "Welcome to the market! I always eat breakfast. Do we have any tomatoes and rice?",
+        fr: "Bienvenue au marché ! Je prends toujours le petit-déjeuner. Avons-nous des tomates et du riz ?"
+      }
+    ],
+    grammar: [],
+    tip: "« some » pour affirmer, « any » pour nier ou questionner, et l'adverbe de fréquence avant le verbe.",
+    vocab: [],
+    quizzes: []
+  },
+  {
+    unit: 10,
+    id: 'unit-10',
+    placeName: 'Terrain de Sport & Loisirs',
+    shortName: 'Sport',
+    npcName: 'Clarisse',
+    gender: 'female',
+    hairStyle: 'bun',
+    outfitStyle: 'pagne-skirt',
+    skirtColor: 0x9f1239,
+    voice: 'en-US-JennyNeural',
+    unitTitle: 'What sports do you like?',
+    theme: 'Sports, loisirs, talents et capacités avec can / can\'t',
+    color: 0xe11d48,
+    wallColor: 0xedd6b5,
+    awningColor: 0xe11d48,
+    shirtColor: 0xe11d48,
+    trimColor: 0xffffff,
+    skinColor: 0x7a482b,
+    headwrapColor: null,
+    accessory: 'earrings',
+    buildingType: 'courtyard',
+    pos: { x: -31.0, z: 9.6 },
+    buildingPos: { x: -31.0, z: 14.4 },
+    buildingRotY: Math.PI,
+    dialogues: [
+      {
+        speaker: 'Clarisse',
+        en: "Hi! What sports do you like? I play volleyball and I can sing very well!",
+        fr: "Salut ! Quels sports aimez-vous ? Je joue au volley-ball et je sais très bien chanter !"
+      }
+    ],
+    grammar: [],
+    tip: "« can » est invariable et toujours suivi de la base verbale sans « to ».",
+    vocab: [],
+    quizzes: []
+  },
+  {
+    unit: 11,
+    id: 'unit-11',
+    placeName: 'Espace Culturel & Fêtes',
+    shortName: 'Culturel',
+    npcName: 'Drissa',
+    gender: 'male',
+    hairStyle: 'short',
+    outfitStyle: 'tunic',
+    voice: 'en-US-GuyNeural',
+    unitTitle: "I'm going to have a party.",
+    theme: 'Mois, dates ordinales, anniversaires et futur proche be going to',
+    color: 0x9333ea,
+    wallColor: 0xe4ab66,
+    awningColor: 0x9333ea,
+    shirtColor: 0x9333ea,
+    trimColor: 0xfcd116,
+    skinColor: 0x63361c,
+    headwrapColor: null,
+    accessory: 'none',
+    buildingType: 'plaza',
+    pos: { x: -43.0, z: -6.2 },
+    buildingPos: { x: -43.0, z: -11.4 },
+    buildingRotY: 0,
+    dialogues: [
+      {
+        speaker: 'Drissa',
+        en: "My birthday is next week! I'm going to have a big party at the cultural center!",
+        fr: "Mon anniversaire est la semaine prochaine ! Je vais faire une grande fête au centre culturel !"
+      }
+    ],
+    grammar: [],
+    tip: "« in » + mois seul (« in July »), « on » + date précise (« on July fourth »).",
+    vocab: [],
+    quizzes: []
+  },
+  {
+    unit: 12,
+    id: 'unit-12',
+    placeName: 'Pharmacie & Dispensaire',
+    shortName: 'Pharmacie',
+    npcName: 'Dr. Kaboré',
+    gender: 'male',
+    hairStyle: 'short',
+    outfitStyle: 'tunic',
+    voice: 'en-US-GuyNeural',
+    unitTitle: 'How do you feel?',
+    theme: 'Parties du corps, santé, remèdes et conseils à l\'impératif',
+    color: 0x0284c7,
+    wallColor: 0xf1dec0,
+    awningColor: 0x0284c7,
+    shirtColor: 0x0284c7,
+    trimColor: 0xffffff,
+    skinColor: 0x5b3118,
+    headwrapColor: null,
+    accessory: 'glasses',
+    buildingType: 'campus',
+    pos: { x: -43.0, z: 9.6 },
+    buildingPos: { x: -43.0, z: 14.4 },
+    buildingRotY: Math.PI,
+    dialogues: [
+      {
+        speaker: 'Dr. Kaboré',
+        en: "Good morning! How do you feel today? Get some rest and don't work too hard!",
+        fr: "Bonjour ! Comment vous sentez-vous aujourd'hui ? Reposez-vous et ne travaillez pas trop dur !"
+      }
+    ],
+    grammar: [],
+    tip: "« have + a + symptôme » (« I have a headache ») et « Don't + verbe » à l'impératif négatif.",
+    vocab: [],
+    quizzes: []
+  },
+  {
+    unit: 13,
+    id: 'unit-13',
+    placeName: 'Carrefour & Plan de Ville',
+    shortName: 'Carrefour',
+    npcName: 'Rasmata',
+    gender: 'female',
+    hairStyle: 'headwrap',
+    outfitStyle: 'dress',
+    skirtColor: 0x1d4ed8,
+    voice: 'en-US-JennyNeural',
+    unitTitle: 'How do I get there?',
+    theme: 'Magasins, prépositions de ville et itinéraires',
+    color: 0xca8a04,
+    wallColor: 0xdca56c,
+    awningColor: 0x1d4ed8,
+    shirtColor: 0xca8a04,
+    trimColor: 0x1e3a8a,
+    skinColor: 0x7b492c,
+    headwrapColor: 0x1d4ed8,
+    accessory: 'earrings',
+    buildingType: 'busstop',
+    pos: { x: 32.5, z: -6.2 },
+    buildingPos: { x: 32.5, z: -11.4 },
+    buildingRotY: 0,
+    dialogues: [
+      {
+        speaker: 'Rasmata',
+        en: "How do I get there? Walk straight ahead for two blocks, then turn left!",
+        fr: "Comment y aller ? Marchez tout droit pendant deux blocs, puis tournez à gauche !"
+      }
+    ],
+    grammar: [],
+    tip: "Utilisez « on » devant une rue (« on Main Street ») et « between A and B ».",
+    vocab: [],
+    quizzes: []
+  },
+  {
+    unit: 14,
+    id: 'unit-14',
+    placeName: 'Cinéma & Espace Détente',
+    shortName: 'Cinéma',
+    npcName: 'Seydou',
+    gender: 'male',
+    hairStyle: 'short',
+    outfitStyle: 'tunic',
+    voice: 'en-US-GuyNeural',
+    unitTitle: 'I had a good time.',
+    theme: 'Simple Past régulier (-ed) et irrégulier, Did et didn\'t',
+    color: 0xb91c1c,
+    wallColor: 0xd97d54,
+    awningColor: 0xb91c1c,
+    shirtColor: 0xb91c1c,
+    trimColor: 0xfbbf24,
+    skinColor: 0x6a3c20,
+    headwrapColor: null,
+    accessory: 'cap',
+    buildingType: 'maquis',
+    pos: { x: 31.5, z: 9.6 },
+    buildingPos: { x: 31.5, z: 14.4 },
+    buildingRotY: Math.PI,
+    dialogues: [
+      {
+        speaker: 'Seydou',
+        en: "Did you have a good weekend? I watched a movie and had a great time!",
+        fr: "Avez-vous passé un bon week-end ? J'ai regardé un film et passé un super moment !"
+      }
+    ],
+    grammar: [],
+    tip: "Avec « Did » ou « didn't », le verbe revient toujours à la base verbale.",
+    vocab: [],
+    quizzes: []
+  },
+  {
+    unit: 15,
+    id: 'unit-15',
+    placeName: 'Université & Archives',
+    shortName: 'Université',
+    npcName: 'Ousmane',
+    gender: 'male',
+    hairStyle: 'short',
+    outfitStyle: 'tunic',
+    voice: 'en-US-GuyNeural',
+    unitTitle: 'Where were you born?',
+    theme: 'Naissance, enfance, matières scolaires et passé de be (was/were)',
+    color: 0x3730a3,
+    wallColor: 0xe3b982,
+    awningColor: 0x3730a3,
+    shirtColor: 0x3730a3,
+    trimColor: 0xfcd116,
+    skinColor: 0x60351b,
+    headwrapColor: null,
+    accessory: 'glasses',
+    buildingType: 'campus',
+    pos: { x: 44.0, z: -6.2 },
+    buildingPos: { x: 44.0, z: -11.4 },
+    buildingRotY: 0,
+    dialogues: [
+      {
+        speaker: 'Ousmane',
+        en: "Welcome to the university! Where were you born? I was born in Burkina Faso!",
+        fr: "Bienvenue à l'université ! Où êtes-vous né(e) ? Je suis né au Burkina Faso !"
+      }
+    ],
+    grammar: [],
+    tip: "Pour la naissance, utilisez toujours « was/were born » (jamais « did » avec « was/were »).",
+    vocab: [],
+    quizzes: []
+  },
+  {
+    unit: 16,
+    id: 'unit-16',
+    placeName: "Centre d'Appels & Accueil",
+    shortName: 'Accueil',
+    npcName: 'Nadia',
+    gender: 'female',
+    hairStyle: 'bun',
+    outfitStyle: 'pagne-skirt',
+    skirtColor: 0x9d174d,
+    voice: 'en-US-JennyNeural',
+    unitTitle: 'Can I take a message?',
+    theme: 'Appels téléphoniques, at/in/on, pronoms compléments et invitations',
+    color: 0xdb2777,
+    wallColor: 0xedd6b5,
+    awningColor: 0xdb2777,
+    shirtColor: 0xdb2777,
+    trimColor: 0xfde047,
+    skinColor: 0x824f31,
+    headwrapColor: 0x0ea5e9,
+    accessory: 'glasses',
+    buildingType: 'tech',
+    pos: { x: 43.5, z: 9.6 },
+    buildingPos: { x: 43.5, z: 14.4 },
+    buildingRotY: Math.PI,
+    dialogues: [
+      {
+        speaker: 'Nadia',
+        en: "Hello, DAVID-DA Reception! Can I take a message? Would you like to come with us?",
+        fr: "Allô, accueil DAVID-DA ! Puis-je prendre un message ? Aimeriez-vous venir avec nous ?"
+      }
+    ],
+    grammar: [],
+    tip: "N'oubliez pas le « to » dans « Would you like to...? » et utilisez les pronoms compléments (me, him, her, us, them).",
     vocab: [],
     quizzes: []
   }
@@ -1450,7 +1775,7 @@ let _labelVec = null;
 
 const PLAYER_RADIUS = 0.56;
 const NPC_RADIUS = 0.62;
-const WORLD_BOUNDS = { minX: -28.0, maxX: 28.0, minZ: -17.5, maxZ: 29.2 };
+const WORLD_BOUNDS = { minX: -50.0, maxX: 50.0, minZ: -17.5, maxZ: 29.2 };
 
 function addCircleCollider(x, z, r, tag = 'obstacle', npcId = null) {
   worldColliders.push({ type: 'circle', x, z, r, tag, npcId });
@@ -2134,7 +2459,7 @@ function buildNeighborhoodGround() {
   const paverMat = new THREE.MeshLambertMaterial({ color: 0xa69482, map: SCENE_TEX.stucco || null });
 
   [-1.7, 5.7].forEach(z => {
-    const sw = new THREE.Mesh(new THREE.BoxGeometry(86, 0.12, 1.7), sidewalkMat);
+    const sw = new THREE.Mesh(new THREE.BoxGeometry(120, 0.12, 1.7), sidewalkMat);
     sw.position.set(0, 0.06, z);
     sw.receiveShadow = true;
     scene.add(sw);
@@ -2157,7 +2482,7 @@ function buildNeighborhoodGround() {
     })
     : new THREE.MeshLambertMaterial({ color: 0x67625d, map: SCENE_TEX.asphalt || null });
 
-  const roadH = new THREE.Mesh(new THREE.BoxGeometry(86, 0.08, 5.8), asphaltMat);
+  const roadH = new THREE.Mesh(new THREE.BoxGeometry(120, 0.08, 5.8), asphaltMat);
   roadH.position.set(0, 0.04, 2);
   roadH.receiveShadow = true;
   scene.add(roadH);
@@ -2170,10 +2495,10 @@ function buildNeighborhoodGround() {
   // Lignes de rive jaune-crème inspirées du grand boulevard de la photo
   const edgeLineMat = new THREE.MeshBasicMaterial({ color: 0xf4dca4 });
   [-0.62, 4.62].forEach(z => {
-    const edgeL = new THREE.Mesh(new THREE.BoxGeometry(31, 0.088, 0.12), edgeLineMat);
-    edgeL.position.set(-24.5, 0.046, z);
-    const edgeR = new THREE.Mesh(new THREE.BoxGeometry(31, 0.088, 0.12), edgeLineMat);
-    edgeR.position.set(24.5, 0.046, z);
+    const edgeL = new THREE.Mesh(new THREE.BoxGeometry(49, 0.088, 0.12), edgeLineMat);
+    edgeL.position.set(-33.5, 0.046, z);
+    const edgeR = new THREE.Mesh(new THREE.BoxGeometry(49, 0.088, 0.12), edgeLineMat);
+    edgeR.position.set(33.5, 0.046, z);
     scene.add(edgeL, edgeR);
   });
 
@@ -2182,9 +2507,9 @@ function buildNeighborhoodGround() {
   const curbGeoH = new THREE.BoxGeometry(1.4, 0.14, 0.22);
   const curbGeoV = new THREE.BoxGeometry(0.22, 0.14, 1.4);
 
-  for (let x = -28; x <= 28; x += 2.8) {
+  for (let x = -49; x <= 49; x += 2.8) {
     if (Math.abs(x) < 8.8) continue;
-    const mat = Math.floor((x + 30) / 2.8) % 2 === 0 ? curbRedMat : curbCreamMat;
+    const mat = Math.floor((x + 52) / 2.8) % 2 === 0 ? curbRedMat : curbCreamMat;
     const cTop = new THREE.Mesh(curbGeoH, mat);
     cTop.position.set(x, 0.08, -0.92);
     const cBot = new THREE.Mesh(curbGeoH, mat);
@@ -2201,7 +2526,7 @@ function buildNeighborhoodGround() {
   }
 
   const stripeMat = new THREE.MeshBasicMaterial({ color: 0xf1ece2 });
-  for (let x = -38; x <= 38; x += 4.5) {
+  for (let x = -54; x <= 54; x += 4.5) {
     if (Math.abs(x) < 9.2) continue;
     const dash = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.09, 0.18), stripeMat);
     dash.position.set(x, 0.05, 2);
@@ -7992,7 +8317,7 @@ function resetProgress() {
   closeDialogue();
   syncProgressUI();
   playFX('click');
-  showToast('Progression réinitialisée (0/8 unités).');
+  showToast(`Progression réinitialisée (0/${NEIGHBORHOOD_DATA.length} unités).`);
 }
 
 /* ===========================================================================
@@ -8563,7 +8888,15 @@ const VOICE_CALL_PROMPTS = {
   5: ['What time is it?', "I'm waiting for the bus.", "It's eight thirty."],
   6: ['I ride my bike to school.', 'I get up at six.', 'Good morning!'],
   7: ['Does it have a view?', 'Yes, it does!', 'Nice house!'],
-  8: ['Where do you work?', 'I work in an office.', 'What do you do?']
+  8: ['Where do you work?', 'I work in an office.', 'What do you do?'],
+  9: ['I always eat breakfast.', 'Do we have any tomatoes?', 'I usually drink tea.'],
+  10: ['I love soccer!', 'Can you play the guitar?', 'I can sing very well.'],
+  11: ["I'm going to have a party.", 'When is your birthday?', 'Happy birthday!'],
+  12: ['I have a headache.', 'I feel tired today.', 'Thank you, doctor!'],
+  13: ['How do I get to the bank?', 'Is there a coffee shop near here?', 'Turn left!'],
+  14: ['I had a good time.', 'I watched a great movie.', 'Did you have a good weekend?'],
+  15: ['I was born in Burkina Faso.', 'Where were you born?', 'My favorite subject was English.'],
+  16: ['Can I take a message?', "I'd love to!", 'Please tell him to call me back.']
 };
 
 function getVoiceCallSuggestions(loc) {
@@ -8718,6 +9051,94 @@ function generateNpcVoiceReply(loc, userText) {
       return {
         en: `Great to hear from you, ${userName}! What do you do, and where do you work?`,
         fr: `Ravi d'avoir de vos nouvelles, ${userName} ! Que faites-vous et où travaillez-vous ?`
+      };
+    case 9:
+      if (/\b(breakfast|tomato|rice|bread|coffee|tea|always|usually|never|eat|drink)\b/.test(low)) {
+        return {
+          en: "Delicious! We have some fresh tomatoes, mangoes, and bread right here. I always eat breakfast at seven!",
+          fr: "Délicieux ! Nous avons des tomates fraîches, des mangues et du pain juste ici. Je prends toujours le petit-déjeuner à sept heures !"
+        };
+      }
+      return {
+        en: `Welcome to my market, ${userName}! What do you usually eat for breakfast?`,
+        fr: `Bienvenue à mon marché, ${userName} ! Que mangez-vous habituellement au petit-déjeuner ?`
+      };
+    case 10:
+      if (/\b(soccer|basketball|volleyball|swim|sing|dance|guitar|sport|can|play)\b/.test(low)) {
+        return {
+          en: "Awesome! I love volleyball and swimming, and I can sing very well! What else can you do?",
+          fr: "Génial ! J'adore le volley-ball et la natation, et je sais très bien chanter ! Que savez-vous faire d'autre ?"
+        };
+      }
+      return {
+        en: `Hey ${userName}! What sports do you like, and what can you do well?`,
+        fr: `Salut ${userName} ! Quels sports aimez-vous, et que savez-vous bien faire ?`
+      };
+    case 11:
+      if (/\b(party|birthday|going to|cake|gift|november|december|january|celebrate)\b/.test(low)) {
+        return {
+          en: "Thank you! We're going to have music, dancing, and a big birthday cake! Are you going to come?",
+          fr: "Merci ! Nous allons avoir de la musique, de la danse et un grand gâteau d'anniversaire ! Allez-vous venir ?"
+        };
+      }
+      return {
+        en: `Exciting times, ${userName}! When is your birthday, and what are you going to do this weekend?`,
+        fr: `Super moment, ${userName} ! Quand est votre anniversaire, et qu'allez-vous faire ce week-end ?`
+      };
+    case 12:
+      if (/\b(headache|cold|fever|cough|throat|tired|sick|hurt|feel|matter|doctor)\b/.test(low)) {
+        return {
+          en: "I'm sorry to hear that! Drink plenty of warm water, get some rest, and don't work too hard today.",
+          fr: "Je suis désolé d'entendre cela ! Buvez beaucoup d'eau tiède, reposez-vous et ne travaillez pas trop dur aujourd'hui."
+        };
+      }
+      return {
+        en: `Hello ${userName}! I'm Dr. Kaboré. How do you feel today?`,
+        fr: `Bonjour ${userName} ! Je suis le Dr Kaboré. Comment vous sentez-vous aujourd'hui ?`
+      };
+    case 13:
+      if (/\b(bank|post|coffee|pharmacy|where|get|straight|left|right|corner|between|across)\b/.test(low)) {
+        return {
+          en: "Walk straight ahead for two blocks, then turn left. It's across from the post office, right on the corner!",
+          fr: "Marchez tout droit sur deux pâtés de maisons, puis tournez à gauche. C'est en face de la poste, juste au coin !"
+        };
+      }
+      return {
+        en: `Need directions, ${userName}? Ask me: How do I get to the bank?`,
+        fr: `Besoin d'un itinéraire, ${userName} ? Demandez-moi : « How do I get to the bank? »`
+      };
+    case 14:
+      if (/\b(movie|cinema|weekend|watched|went|had|did|yesterday|stayed|ate|time)\b/.test(low)) {
+        return {
+          en: "That sounds great! Last weekend, I watched a fantastic movie and had dinner with friends!",
+          fr: "Ça a l'air super ! Le week-end dernier, j'ai regardé un film fantastique et dîné avec des amis !"
+        };
+      }
+      return {
+        en: `Hey ${userName}! Did you have a good weekend? What did you do yesterday?`,
+        fr: `Salut ${userName} ! Avez-vous passé un bon week-end ? Qu'avez-vous fait hier ?`
+      };
+    case 15:
+      if (/\b(born|burkina|ouaga|bobo|school|subject|english|math|history|was|were|grew)\b/.test(low)) {
+        return {
+          en: "How interesting! I was born in Burkina Faso, and my favorite subjects in high school were English and history!",
+          fr: "Comme c'est intéressant ! Je suis né au Burkina Faso, et mes matières préférées au lycée étaient l'anglais et l'histoire !"
+        };
+      }
+      return {
+        en: `Welcome to the university, ${userName}! Where were you born, and what was your favorite subject?`,
+        fr: `Bienvenue à l'université, ${userName} ! Où êtes-vous né(e), et quelle était votre matière préférée ?`
+      };
+    case 16:
+      if (/\b(message|call|phone|concert|love to|have to|meeting|work|him|her|us)\b/.test(low)) {
+        return {
+          en: "Sure! I'll write down your message and tell him to call you back. And yes, I'd love to come with you!",
+          fr: "Bien sûr ! Je note votre message et je vais lui dire de vous rappeler. Et oui, j'adorerais venir avec vous !"
+        };
+      }
+      return {
+        en: `Hello, DAVID-DA Reception! Can I take a message for you, ${userName}?`,
+        fr: `Allô, accueil DAVID-DA ! Puis-je prendre un message pour vous, ${userName} ?`
       };
     default:
       return {
