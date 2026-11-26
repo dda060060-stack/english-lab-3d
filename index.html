@@ -24,6 +24,30 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
 </head>
 <body>
+  <!-- Écran de démarrage animé (Splash Screen DAVID-DA Speak) -->
+  <div id="splash-screen" class="splash-screen" role="status" aria-live="polite" aria-label="Chargement de DAVID-DA Speak">
+    <div class="splash-inner">
+      <div class="splash-logo-wrap" aria-hidden="true">
+        <div class="splash-logo-ring"></div>
+        <div class="splash-logo-emblem">
+          <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="36" height="36" rx="10" fill="#FFFFFF" />
+            <path d="M9 14.5C9 10.91 12.13 8 16 8H20C23.87 8 27 10.91 27 14.5C27 18.09 23.87 21 20 21H15.5L10.5 25.2C10.02 25.6 9.3 25.26 9.3 24.64V20.5C9.1 19.6 9 15.5 9 14.5Z" fill="#58CC02" />
+            <circle cx="15" cy="14.5" r="1.7" fill="#FFFFFF" />
+            <circle cx="21" cy="14.5" r="1.7" fill="#FFFFFF" />
+            <path d="M15 17.6C15.9 18.7 20.1 18.7 21 17.6" stroke="#FFC800" stroke-width="2" stroke-linecap="round" />
+          </svg>
+        </div>
+      </div>
+      <h2 class="splash-brand-title">DAVID-DA Speak</h2>
+      <p class="splash-brand-tagline">Apprendre l'anglais Niveau 0 • Unit 1 à Unit 8</p>
+      <div class="splash-soundwave" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <p id="splash-status-text" class="splash-status-text">Préparation du quartier 3D...</p>
+    </div>
+  </div>
+
   <!-- Conteneur WebGL 3D -->
   <div id="canvas-container" aria-label="Scène 3D interactive du quartier du Burkina Faso"></div>
 
@@ -97,19 +121,40 @@
         </div>
 
         <div class="stat-badges">
-          <div class="stat-pill stat-streak" title="Série quotidienne (jours consécutifs)">
+          <button id="btn-daily-goal" type="button" class="stat-pill stat-daily-goal" title="Objectif d'XP quotidien (30 XP/jour)" aria-label="Objectif d'XP quotidien">
+            <span class="daily-ring-wrap" aria-hidden="true">
+              <svg class="daily-ring-svg" viewBox="0 0 36 36">
+                <circle class="daily-ring-bg" cx="18" cy="18" r="14"></circle>
+                <circle id="hud-daily-ring-fill" class="daily-ring-fill" cx="18" cy="18" r="14" stroke-dasharray="87.96" stroke-dashoffset="87.96"></circle>
+              </svg>
+            </span>
+            <span id="daily-xp-display">0/30</span>
+          </button>
+
+          <button id="btn-streak-pill" type="button" class="stat-pill stat-streak" title="Série quotidienne (jours consécutifs)" aria-label="Voir ma série quotidienne">
             <svg class="stat-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M12.5 2.5C12.5 2.5 18 7.2 18 13.2C18 16.95 15.31 20 12 20C8.69 20 6 16.95 6 13.2C6 10.6 7.35 8.1 8.6 6.7C8.6 8.3 9.4 9.5 10.4 9.9C9.8 7.4 10.8 4.4 12.5 2.5Z" fill="#FF9600" />
               <path d="M12.2 11.2C12.2 11.2 14.8 13.2 14.8 15.6C14.8 17.2 13.55 18.4 12 18.4C10.45 18.4 9.2 17.2 9.2 15.6C9.2 14.2 10.3 12.6 12.2 11.2Z" fill="#FFC800" />
             </svg>
             <span id="streak-display">1</span>
-          </div>
+          </button>
 
           <div class="stat-pill stat-xp" title="Points d'expérience gagnés">
             <svg class="stat-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M13 2L4.5 13.5H11.5L10.5 22L19.5 10.5H12.5L13 2Z" fill="#FF9600" stroke="#CC7800" stroke-width="1.3" stroke-linejoin="round" />
             </svg>
             <span id="xp-display">0 XP</span>
+          </div>
+
+          <div class="stat-pill stat-users" title="Nombre total d'utilisateurs inscrits sur DAVID-DA Speak" aria-label="Utilisateurs inscrits">
+            <span class="live-dot" aria-hidden="true"></span>
+            <svg class="stat-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="9" cy="8.5" r="3.2" stroke="currentColor" stroke-width="2.1" />
+              <path d="M3.5 19C3.5 15.9 6 13.8 9 13.8C12 13.8 14.5 15.9 14.5 19" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" />
+              <circle cx="16.5" cy="9.5" r="2.5" stroke="currentColor" stroke-width="2" />
+              <path d="M15.8 14.4C18.2 14.7 20.3 16.4 20.5 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </svg>
+            <span id="users-count-display">—</span>
           </div>
         </div>
       </div>
@@ -180,6 +225,15 @@
           </svg>
         </button>
 
+        <button id="btn-cinema-call" type="button" class="duo-btn duo-btn-purple cinema-btn" title="Discuter au micro en direct avec ce personnage">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect x="9" y="3.5" width="6" height="10.5" rx="3" stroke="currentColor" stroke-width="2.2" />
+            <path d="M5.5 11.5C5.5 15.1 8.4 18 12 18C15.6 18 18.5 15.1 18.5 11.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+            <path d="M12 18V21M9 21H15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+          </svg>
+          <span id="cinema-call-label">Appel vocal</span>
+        </button>
+
         <button id="btn-cinema-grammar" type="button" class="duo-btn duo-btn-white cinema-btn hidden">
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path d="M5 4.5C5 3.67 5.67 3 6.5 3H18.5C19.33 3 20 3.67 20 4.5V19.5C20 20.33 19.33 21 18.5 21H6.5C5.67 21 5 20.33 5 19.5V4.5Z" stroke="currentColor" stroke-width="2.1" />
@@ -209,6 +263,55 @@
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
           </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panneau flottant d'Appel Vocal en direct avec le personnage 3D actif -->
+  <div id="voice-call-panel" class="voice-call-panel hidden" role="region" aria-label="Appel vocal en direct">
+    <div class="voice-call-card">
+      <div class="voice-call-header">
+        <div class="voice-call-peer">
+          <span id="call-npc-avatar" class="avatar-circle avatar-sm"></span>
+          <div class="voice-call-peer-meta">
+            <div class="voice-call-title-row">
+              <strong id="call-npc-name" class="voice-call-name">Moussa</strong>
+              <span class="call-live-pill">
+                <span class="live-dot" aria-hidden="true"></span>
+                <span>Appel en direct</span>
+              </span>
+            </div>
+            <p id="call-status-text" class="voice-call-status">Appuyez sur le micro et parlez en anglais</p>
+          </div>
+        </div>
+        <button id="btn-call-hangup" type="button" class="duo-btn duo-btn-red btn-sm call-hangup-btn" title="Terminer l'appel vocal">
+          Raccrocher
+        </button>
+      </div>
+
+      <div id="call-transcript-box" class="call-transcript-box">
+        <p id="call-user-said" class="call-user-said hidden"></p>
+        <p id="call-npc-reply" class="call-npc-reply"></p>
+      </div>
+
+      <div id="call-suggestions" class="call-suggestions no-scrollbar" aria-label="Exemples de phrases à dire"></div>
+
+      <div class="voice-call-footer">
+        <button id="btn-call-mic" type="button" class="duo-btn duo-btn-green call-mic-btn">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect x="9" y="3.5" width="6" height="10.5" rx="3" stroke="currentColor" stroke-width="2.2" />
+            <path d="M5.5 11.5C5.5 15.1 8.4 18 12 18C15.6 18 18.5 15.1 18.5 11.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+            <path d="M12 18V21M9 21H15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+          </svg>
+          <span id="call-mic-label">Parler au micro</span>
+        </button>
+        <button id="btn-call-repeat" type="button" class="duo-btn duo-btn-white btn-sm" title="Réécouter la réponse">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M5 9.5V14.5H9L14.5 19V5L9 9.5H5Z" fill="currentColor" />
+            <path d="M17.5 8.5C18.7 9.7 19.3 10.8 19.3 12C19.3 13.2 18.7 14.3 17.5 15.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+          </svg>
+          <span>Réécouter</span>
         </button>
       </div>
     </div>
@@ -280,7 +383,7 @@
           </div>
         </div>
 
-        <!-- 4 onglets pédagogiques -->
+        <!-- 5 onglets pédagogiques -->
         <div class="lesson-tabs" role="tablist" aria-label="Sections de la leçon">
           <button id="tab-dialogue" type="button" role="tab" aria-selected="true" class="tab-btn is-active">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 6.5C4 5.12 5.12 4 6.5 4H17.5C18.88 4 20 5.12 20 6.5V14.5C20 15.88 18.88 17 17.5 17H10L5.5 20.5V17H6.5C5.12 17 4 15.88 4 14.5V6.5Z" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round" /></svg>
@@ -293,6 +396,10 @@
           <button id="tab-vocab" type="button" role="tab" aria-selected="false" class="tab-btn">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 6H12C13.66 6 15 7.34 15 9V20C15 18.9 14.1 18 13 18H4V6Z" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round" /><path d="M20 6H12C10.34 6 9 7.34 9 9V20C9 18.9 9.9 18 11 18H20V6Z" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round" /></svg>
             <span>Mots</span>
+          </button>
+          <button id="tab-speak" type="button" role="tab" aria-selected="false" class="tab-btn">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="9" y="3.5" width="6" height="10.5" rx="3" stroke="currentColor" stroke-width="2.1" /><path d="M5.5 11.5C5.5 15.1 8.4 18 12 18C15.6 18 18.5 15.1 18.5 11.5M12 18V21" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" /></svg>
+            <span id="tab-speak-label">Parler</span>
           </button>
           <button id="tab-quiz" type="button" role="tab" aria-selected="false" class="tab-btn">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="2.1" /><path d="M8.5 12.3L10.8 14.6L15.8 9.6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" /></svg>
@@ -349,7 +456,74 @@
           <div id="vocab-list" class="vocab-grid"></div>
         </div>
 
-        <!-- PANNEAU 4 : Quiz -->
+        <!-- PANNEAU 4 : Parler (Reconnaissance vocale en-US) -->
+        <div id="panel-speak" class="lesson-panel hidden">
+          <div id="speak-unsupported-banner" class="speak-warning-pill hidden">
+            La reconnaissance vocale nécessite Chrome, Edge ou Safari récent. Vous pouvez écouter et répéter à voix haute.
+          </div>
+
+          <div class="quiz-progress-bar-wrap">
+            <div class="quiz-progress-track">
+              <div id="speak-progress-fill" class="quiz-progress-fill" style="width: 0%"></div>
+            </div>
+            <span id="speak-progress-label" class="quiz-progress-count">1/1</span>
+          </div>
+
+          <div class="speak-prompt-card">
+            <div class="speak-prompt-top">
+              <div id="speak-npc-avatar" class="avatar-circle avatar-md"></div>
+              <div class="speak-prompt-copy">
+                <span id="speak-speaker-label" class="dialogue-speaker-name">Répétez en anglais</span>
+                <p id="speak-target-en" class="speak-target-en"></p>
+                <p id="speak-target-fr" class="speak-target-fr"></p>
+              </div>
+            </div>
+
+            <div class="speak-listen-row">
+              <button id="btn-speak-practice-listen" type="button" class="duo-btn duo-btn-blue btn-sm">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 9.5V14.5H9L14.5 19V5L9 9.5H5Z" fill="currentColor" /><path d="M17.5 8.5C18.7 9.7 19.3 10.8 19.3 12C19.3 13.2 18.7 14.3 17.5 15.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" /></svg>
+                <span>Écouter</span>
+              </button>
+              <button id="btn-speak-practice-slow" type="button" class="duo-btn duo-btn-white btn-sm">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="2.2" /><path d="M12 7.5V12L15 14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                <span>Lent</span>
+              </button>
+              <span id="speak-phrase-done-badge" class="badge badge-green hidden">+5 XP ✓</span>
+            </div>
+          </div>
+
+          <div class="speak-mic-stage">
+            <button id="btn-speak-mic" type="button" class="speak-mic-btn" aria-label="Appuyer pour parler en anglais">
+              <span class="speak-mic-pulse" aria-hidden="true"></span>
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <rect x="9" y="3.5" width="6" height="10.5" rx="3" stroke="currentColor" stroke-width="2.2" />
+                <path d="M5.5 11.5C5.5 15.1 8.4 18 12 18C15.6 18 18.5 15.1 18.5 11.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+                <path d="M12 18V21M9 21H15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+              </svg>
+            </button>
+            <p id="speak-mic-status" class="speak-mic-status">Appuyez sur le micro et prononcez la phrase</p>
+            <div id="speak-live-wave" class="speaking-wave speak-live-wave hidden" aria-hidden="true">
+              <i></i><i></i><i></i><i></i><i></i>
+            </div>
+          </div>
+
+          <div id="speak-result-card" class="speak-result-card hidden" role="status" aria-live="polite">
+            <div class="speak-result-head">
+              <span id="speak-score-badge" class="badge badge-green">100%</span>
+              <strong id="speak-result-title" class="speak-result-title">Excellente prononciation !</strong>
+            </div>
+            <p id="speak-transcript-line" class="speak-transcript-line"></p>
+            <div id="speak-words-comparison" class="speak-words-comparison"></div>
+          </div>
+
+          <div class="speak-nav-row">
+            <button id="btn-speak-prev" type="button" class="duo-btn duo-btn-white btn-sm">Précédente</button>
+            <div id="speak-dots" class="speak-dots" aria-label="Phrases de l'unité"></div>
+            <button id="btn-speak-next" type="button" class="duo-btn duo-btn-green btn-sm">Suivante</button>
+          </div>
+        </div>
+
+        <!-- PANNEAU 5 : Quiz -->
         <div id="panel-quiz" class="lesson-panel hidden">
           <div id="quiz-completed-banner" class="quiz-done-pill hidden">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 12.5L10 16.5L18.5 8" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
@@ -488,6 +662,71 @@
           <strong id="profile-stat-quiz" class="profile-stat-value">0/8</strong>
           <span class="profile-stat-label">Quiz réussis</span>
         </div>
+        <div class="profile-stat-card profile-stat-wide">
+          <div class="profile-community-row">
+            <span class="profile-stat-icon stat-icon-purple" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <circle cx="9" cy="8.5" r="3.2" stroke="currentColor" stroke-width="2.1" />
+                <path d="M3.5 19C3.5 15.9 6 13.8 9 13.8C12 13.8 14.5 15.9 14.5 19" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" />
+                <circle cx="16.5" cy="9.5" r="2.5" stroke="currentColor" stroke-width="2" />
+                <path d="M15.8 14.4C18.2 14.7 20.3 16.4 20.5 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              </svg>
+            </span>
+            <div class="profile-community-copy">
+              <div class="profile-community-top">
+                <strong id="profile-stat-users" class="profile-stat-value">—</strong>
+                <span class="community-live-tag"><span class="live-dot" aria-hidden="true"></span>En direct</span>
+              </div>
+              <span class="profile-stat-label">Utilisateurs inscrits sur DAVID-DA Speak</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Objectif d'XP quotidien (Anneau de progression + encouragement dynamique) -->
+      <div class="daily-goal-card">
+        <div class="daily-goal-ring-lg" aria-hidden="true">
+          <svg viewBox="0 0 80 80">
+            <circle class="daily-ring-bg" cx="40" cy="40" r="32"></circle>
+            <circle id="profile-daily-ring-fill" class="daily-ring-fill" cx="40" cy="40" r="32" stroke-dasharray="201.06" stroke-dashoffset="201.06"></circle>
+          </svg>
+          <span id="profile-daily-pct" class="daily-ring-pct">0%</span>
+        </div>
+        <div class="daily-goal-copy">
+          <div class="daily-goal-head">
+            <strong class="daily-goal-title">Objectif quotidien</strong>
+            <span id="profile-daily-xp-text" class="badge badge-green">0 / 30 XP</span>
+          </div>
+          <p id="profile-coach-message" class="daily-goal-coach">Gagnez 30 XP aujourd'hui pour entretenir votre série !</p>
+          <div class="daily-goal-presets" role="group" aria-label="Choisir mon objectif d'XP quotidien">
+            <button type="button" class="goal-chip" data-goal="20">20 XP</button>
+            <button type="button" class="goal-chip is-selected" data-goal="30">30 XP</button>
+            <button type="button" class="goal-chip" data-goal="50">50 XP</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rappels quotidiens du navigateur -->
+      <div class="reminder-card">
+        <div class="reminder-card-top">
+          <span class="profile-stat-icon stat-icon-blue" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M18 16V11C18 7.7 15.3 5 12 5C8.7 5 6 7.7 6 11V16L4 18H20L18 16Z" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round" />
+              <path d="M10 19.5C10.4 20.4 11.1 21 12 21C12.9 21 13.6 20.4 14 19.5" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" />
+            </svg>
+          </span>
+          <div class="reminder-copy">
+            <strong class="reminder-title">Rappels quotidiens</strong>
+            <p id="reminder-status-text" class="reminder-desc">Recevez une notification du navigateur pour ne jamais casser votre série.</p>
+          </div>
+        </div>
+        <div class="reminder-controls">
+          <label for="reminder-time-input" class="sr-only">Heure du rappel quotidien</label>
+          <input id="reminder-time-input" type="time" class="reminder-time-input" value="18:00" />
+          <button id="btn-toggle-reminders" type="button" class="duo-btn duo-btn-blue btn-sm reminder-toggle-btn">
+            Activer les rappels
+          </button>
+        </div>
       </div>
 
       <!-- Édition du profil -->
@@ -601,6 +840,26 @@
         <button id="btn-cancel-reset" type="button" class="duo-btn duo-btn-white btn-flex">Annuler</button>
         <button id="btn-confirm-reset" type="button" class="duo-btn duo-btn-red btn-flex">Réinitialiser</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Bannière de célébration de série / objectif quotidien style Duolingo -->
+  <div id="celebration-banner" class="celebration-banner hidden" role="status" aria-live="polite">
+    <div class="celebration-card">
+      <div id="celebration-icon" class="celebration-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M12.5 2.5C12.5 2.5 18 7.2 18 13.2C18 16.95 15.31 20 12 20C8.69 20 6 16.95 6 13.2C6 10.6 7.35 8.1 8.6 6.7C8.6 8.3 9.4 9.5 10.4 9.9C9.8 7.4 10.8 4.4 12.5 2.5Z" fill="#FF9600" />
+          <path d="M12.2 11.2C12.2 11.2 14.8 13.2 14.8 15.6C14.8 17.2 13.55 18.4 12 18.4C10.45 18.4 9.2 17.2 9.2 15.6C9.2 14.2 10.3 12.6 12.2 11.2Z" fill="#FFC800" />
+        </svg>
+      </div>
+      <div class="celebration-copy">
+        <p id="celebration-eyebrow" class="celebration-eyebrow">Série en feu !</p>
+        <h3 id="celebration-title" class="celebration-title">1 jour de série !</h3>
+        <p id="celebration-desc" class="celebration-desc">Continuez votre belle dynamique en anglais.</p>
+      </div>
+      <button id="btn-close-celebration" type="button" class="mini-icon-btn duo-btn-white" aria-label="Fermer la bannière">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" /></svg>
+      </button>
     </div>
   </div>
 

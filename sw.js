@@ -3,7 +3,7 @@
    Stratégie : Cache-First avec pré-cache cœur + pré-cache MP3 en arrière-plan
    =========================================================================== */
 
-const CACHE_NAME = 'david-da-speak-v1';
+const CACHE_NAME = 'david-da-speak-v2';
 
 const CORE_ASSETS = [
   './',
@@ -161,6 +161,18 @@ self.addEventListener('message', (event) => {
   }
 });
 
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      for (const client of clients) {
+        if ('focus' in client) return client.focus();
+      }
+      if (self.clients.openWindow) return self.clients.openWindow('./');
+    })
+  );
+});
+
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET') return;
@@ -168,8 +180,11 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
   if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
 
-  // Ne jamais mettre en cache la route dynamique locale /tts de server.py
-  if (url.origin === self.location.origin && url.pathname.endsWith('/tts')) {
+  // Ne jamais mettre en cache la route dynamique locale /tts ni les routes API de compteur
+  if (
+    url.origin === self.location.origin &&
+    (url.pathname.endsWith('/tts') || url.pathname.includes('/api/'))
+  ) {
     return;
   }
 

@@ -30,6 +30,13 @@
   --red-bg: #FFDFE0;
   --red-border: #FFB2B2;
 
+  --purple: #CE82FF;
+  --purple-dark: #A560E8;
+  --purple-hover: #D89BFF;
+  --purple-bg: #F6EAFF;
+  --purple-border: #DFB5FF;
+  --purple-text: #7D36C9;
+
   --text-main: #3C3C3C;
   --text-muted: #777777;
   --text-light: #AFAFAF;
@@ -978,11 +985,11 @@ input {
   height: 17px;
 }
 
-/* Onglets pédagogiques */
+/* Onglets pédagogiques (5 onglets : Dialogue, Gramm., Mots, Parler, Quiz) */
 .lesson-tabs {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
   background: var(--bg-soft);
   padding: 5px;
   border-radius: 14px;
@@ -2600,5 +2607,1029 @@ input {
     width: 38px;
     height: 38px;
     flex: 0 0 auto;
+  }
+}
+
+/* ==========================================================================
+   1. Splash Screen animé (Logo rebondissant + Onde sonore + Transition)
+   ========================================================================== */
+
+.splash-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: radial-gradient(circle at 50% 35%, #6CE214 0%, #58CC02 52%, #439E00 100%);
+  color: #FFFFFF;
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 0.48s cubic-bezier(0.22, 1, 0.36, 1), transform 0.48s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.splash-screen.is-exiting {
+  opacity: 0;
+  transform: scale(1.04);
+  pointer-events: none;
+}
+
+.splash-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  max-width: 360px;
+}
+
+.splash-logo-wrap {
+  position: relative;
+  width: 112px;
+  height: 112px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+
+.splash-logo-ring {
+  position: absolute;
+  inset: -6px;
+  border-radius: 34px;
+  border: 3px solid rgba(255, 255, 255, 0.42);
+  animation: splashRingPulse 1.6s ease-out infinite;
+}
+
+.splash-logo-emblem {
+  width: 96px;
+  height: 96px;
+  border-radius: 26px;
+  overflow: hidden;
+  box-shadow: 0 12px 28px rgba(38, 92, 0, 0.32), 0 6px 0 rgba(38, 92, 0, 0.25);
+  animation: splashLogoBounce 1.15s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+}
+
+.splash-logo-emblem svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+@keyframes splashLogoBounce {
+  0%, 100% {
+    transform: translateY(0) scale(1, 1);
+  }
+  30% {
+    transform: translateY(-16px) scale(0.96, 1.05);
+  }
+  55% {
+    transform: translateY(0) scale(1.06, 0.94);
+  }
+  72% {
+    transform: translateY(-6px) scale(0.99, 1.02);
+  }
+}
+
+@keyframes splashRingPulse {
+  0% {
+    transform: scale(0.92);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1.26);
+    opacity: 0;
+  }
+}
+
+.splash-brand-title {
+  margin: 4px 0 0;
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-shadow: 0 3px 0 rgba(38, 92, 0, 0.28);
+}
+
+.splash-brand-tagline {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.splash-soundwave {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 40px;
+  margin-top: 8px;
+}
+
+.splash-soundwave span {
+  display: block;
+  width: 6px;
+  height: 12px;
+  border-radius: 999px;
+  background: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(38, 92, 0, 0.22);
+  animation: splashWaveBar 0.85s ease-in-out infinite alternate;
+}
+
+.splash-soundwave span:nth-child(1) { animation-delay: 0s; }
+.splash-soundwave span:nth-child(2) { animation-delay: 0.12s; }
+.splash-soundwave span:nth-child(3) { animation-delay: 0.24s; }
+.splash-soundwave span:nth-child(4) { animation-delay: 0.36s; background: #FFC800; }
+.splash-soundwave span:nth-child(5) { animation-delay: 0.24s; }
+.splash-soundwave span:nth-child(6) { animation-delay: 0.12s; }
+.splash-soundwave span:nth-child(7) { animation-delay: 0s; }
+
+@keyframes splashWaveBar {
+  0% {
+    height: 10px;
+    opacity: 0.72;
+  }
+  100% {
+    height: 36px;
+    opacity: 1;
+  }
+}
+
+.splash-status-text {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* ==========================================================================
+   2. HUD : Anneau d'objectif XP quotidien, Série cliquable & Compteur live
+   ========================================================================== */
+
+.duo-btn-purple {
+  background: var(--purple);
+  color: #FFFFFF;
+  border-color: var(--purple);
+  border-bottom-color: var(--purple-dark);
+}
+
+.duo-btn-purple:hover:not(:disabled) {
+  background: var(--purple-hover);
+  border-color: var(--purple-hover);
+  border-bottom-color: var(--purple-dark);
+}
+
+.stat-pill.stat-streak,
+.stat-pill.stat-daily-goal {
+  cursor: pointer;
+  transition: transform 0.12s ease, filter 0.14s ease, box-shadow 0.14s ease;
+}
+
+.stat-pill.stat-streak:hover,
+.stat-pill.stat-daily-goal:hover {
+  transform: translateY(-1px);
+  filter: brightness(0.98);
+}
+
+.stat-pill.stat-streak.is-celebrating {
+  animation: pillPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes pillPop {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.14); }
+}
+
+.stat-pill.stat-daily-goal {
+  background: var(--green-bg);
+  border-color: var(--green-border);
+  color: var(--green-text);
+  padding: 4px 10px 4px 5px;
+}
+
+.stat-pill.stat-daily-goal.is-goal-met {
+  background: #58CC02;
+  border-color: var(--green-dark);
+  color: #FFFFFF;
+}
+
+.daily-ring-wrap {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.daily-ring-svg {
+  width: 24px;
+  height: 24px;
+  transform: rotate(-90deg);
+}
+
+.daily-ring-bg {
+  fill: none;
+  stroke: rgba(88, 167, 0, 0.22);
+  stroke-width: 4.5;
+}
+
+.stat-daily-goal.is-goal-met .daily-ring-bg {
+  stroke: rgba(255, 255, 255, 0.32);
+}
+
+.daily-ring-fill {
+  fill: none;
+  stroke: var(--green);
+  stroke-width: 4.5;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.stat-daily-goal.is-goal-met .daily-ring-fill {
+  stroke: #FFC800;
+}
+
+.stat-pill.stat-users {
+  background: var(--purple-bg);
+  border-color: var(--purple-border);
+  color: var(--purple-text);
+}
+
+.stat-pill.stat-users.is-bumped {
+  animation: pillPop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #58CC02;
+  box-shadow: 0 0 0 0 rgba(88, 204, 2, 0.65);
+  animation: livePulse 1.8s ease-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes livePulse {
+  0% { box-shadow: 0 0 0 0 rgba(88, 204, 2, 0.65); }
+  75% { box-shadow: 0 0 0 6px rgba(88, 204, 2, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(88, 204, 2, 0); }
+}
+
+/* ==========================================================================
+   3. Onglet "Parler" (Reconnaissance vocale Web Speech API en-US)
+   ========================================================================== */
+
+.speak-warning-pill {
+  background: var(--orange-bg);
+  border: 2px solid var(--orange-border);
+  color: var(--orange-dark);
+  border-radius: 14px;
+  padding: 10px 12px;
+  font-size: 12.5px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.speak-prompt-card {
+  background: var(--bg-white);
+  border: 2px solid var(--border);
+  border-bottom: 3px solid var(--border-strong);
+  border-radius: 18px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.speak-prompt-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+}
+
+.speak-prompt-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.speak-target-en {
+  margin: 2px 0 0;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text-main);
+  line-height: 1.4;
+}
+
+.speak-target-fr {
+  margin: 5px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  line-height: 1.38;
+}
+
+.speak-listen-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.speak-mic-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 12px;
+  background: var(--bg-white);
+  border: 2px solid var(--border);
+  border-radius: 18px;
+  text-align: center;
+}
+
+.speak-mic-btn {
+  position: relative;
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  background: var(--blue);
+  color: #FFFFFF;
+  border: 3px solid var(--blue);
+  border-bottom: 5px solid var(--blue-dark);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.1s ease, background-color 0.16s ease;
+}
+
+.speak-mic-btn:hover {
+  background: var(--blue-hover);
+  border-color: var(--blue-hover);
+  border-bottom-color: var(--blue-dark);
+}
+
+.speak-mic-btn:active {
+  transform: translateY(2px);
+}
+
+.speak-mic-btn svg {
+  width: 32px;
+  height: 32px;
+  position: relative;
+  z-index: 2;
+}
+
+.speak-mic-pulse {
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 3px solid var(--red);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.speak-mic-btn.is-listening {
+  background: var(--red);
+  border-color: var(--red);
+  border-bottom-color: var(--red-dark);
+}
+
+.speak-mic-btn.is-listening .speak-mic-pulse {
+  animation: micRingPulse 1.1s ease-out infinite;
+}
+
+@keyframes micRingPulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.85;
+  }
+  100% {
+    transform: scale(1.38);
+    opacity: 0;
+  }
+}
+
+.speak-mic-status {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-muted);
+}
+
+.speak-live-wave {
+  height: 18px;
+}
+
+.speak-live-wave i {
+  width: 4px;
+  background: var(--red);
+}
+
+.speak-result-card {
+  background: var(--bg-white);
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: sheetIn 0.2s ease-out;
+}
+
+.speak-result-card.is-pass {
+  background: var(--green-bg);
+  border-color: var(--green-border);
+}
+
+.speak-result-card.is-retry {
+  background: var(--orange-bg);
+  border-color: var(--orange-border);
+}
+
+.speak-result-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.speak-result-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.speak-transcript-line {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.speak-words-comparison {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.speak-word-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 800;
+  background: var(--bg-white);
+  border: 1.5px solid var(--border);
+}
+
+.speak-word-chip.is-hit {
+  background: #FFFFFF;
+  border-color: var(--green);
+  color: var(--green-text);
+}
+
+.speak-word-chip.is-miss {
+  background: #FFFFFF;
+  border-color: var(--red-border);
+  color: var(--red-dark);
+  text-decoration: underline wavy var(--red);
+}
+
+.speak-nav-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.speak-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.speak-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 0;
+  padding: 0;
+  background: var(--border-strong);
+  cursor: pointer;
+  transition: transform 0.14s ease, background-color 0.14s ease;
+}
+
+.speak-dot.is-current {
+  background: var(--blue);
+  transform: scale(1.25);
+}
+
+.speak-dot.is-done {
+  background: var(--green);
+}
+
+/* ==========================================================================
+   4. Appel Vocal en direct (Scène 3D #cinema-controls)
+   ========================================================================== */
+
+.voice-call-panel {
+  position: fixed;
+  bottom: max(86px, calc(env(safe-area-inset-bottom) + 76px));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 26;
+  width: min(500px, calc(100vw - 24px));
+  pointer-events: auto;
+  animation: sheetIn 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.voice-call-card {
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(8px);
+  border: 2px solid var(--purple-border);
+  border-bottom: 4px solid var(--purple-dark);
+  border-radius: 22px;
+  padding: 13px 15px;
+  box-shadow: 0 16px 36px rgba(45, 55, 72, 0.22);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.voice-call-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.voice-call-peer {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+.voice-call-peer-meta {
+  min-width: 0;
+}
+
+.voice-call-title-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.voice-call-name {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.call-live-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--green-bg);
+  color: var(--green-text);
+  font-size: 10.5px;
+  font-weight: 800;
+}
+
+.voice-call-status {
+  margin: 2px 0 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.call-transcript-box {
+  background: var(--bg-cream);
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  padding: 9px 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.call-user-said {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--blue-dark);
+}
+
+.call-npc-reply {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.4;
+}
+
+.call-suggestions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.call-chip {
+  flex-shrink: 0;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--blue-bg);
+  border: 1.5px solid var(--blue-border);
+  color: var(--blue-dark);
+  font-size: 11.5px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.1s ease, background-color 0.14s ease;
+}
+
+.call-chip:hover {
+  background: #CBEBFF;
+}
+
+.call-chip:active {
+  transform: translateY(1px);
+}
+
+.voice-call-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.call-mic-btn {
+  flex: 1;
+  min-height: 44px;
+}
+
+.call-mic-btn.is-listening {
+  background: var(--red);
+  border-color: var(--red);
+  border-bottom-color: var(--red-dark);
+}
+
+.cinema-btn.is-call-active {
+  background: var(--red);
+  border-color: var(--red);
+  border-bottom-color: var(--red-dark);
+}
+
+/* ==========================================================================
+   5. Communications Duolingo : Profil (Objectif XP + Rappels) & Célébration
+   ========================================================================== */
+
+.profile-stat-wide {
+  grid-column: 1 / -1;
+}
+
+.profile-community-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.profile-community-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-community-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.community-live-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--green-bg);
+  color: var(--green-text);
+  font-size: 10.5px;
+  font-weight: 800;
+}
+
+.stat-icon-purple {
+  background: var(--purple-bg);
+  color: var(--purple-text);
+}
+
+.daily-goal-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: linear-gradient(135deg, #F6FFE9 0%, #FFFFFF 100%);
+  border: 2px solid var(--green-border);
+  border-bottom: 4px solid var(--green);
+  border-radius: 18px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+
+.daily-goal-ring-lg {
+  position: relative;
+  width: 74px;
+  height: 74px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.daily-goal-ring-lg svg {
+  width: 74px;
+  height: 74px;
+  transform: rotate(-90deg);
+}
+
+.daily-goal-ring-lg .daily-ring-bg {
+  stroke-width: 7;
+}
+
+.daily-goal-ring-lg .daily-ring-fill {
+  stroke-width: 7;
+}
+
+.daily-ring-pct {
+  position: absolute;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--green-text);
+}
+
+.daily-goal-copy {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.daily-goal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.daily-goal-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.daily-goal-coach {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.daily-goal-presets {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.goal-chip {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 2px solid var(--border);
+  background: var(--bg-white);
+  color: var(--text-muted);
+  font-size: 11.5px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: border-color 0.14s ease, background-color 0.14s ease, color 0.14s ease;
+}
+
+.goal-chip.is-selected {
+  background: var(--green-bg);
+  border-color: var(--green);
+  color: var(--green-text);
+}
+
+.reminder-card {
+  background: var(--bg-cream);
+  border: 2px solid var(--border);
+  border-radius: 18px;
+  padding: 13px 14px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.reminder-card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.reminder-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.reminder-title {
+  display: block;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.reminder-desc {
+  margin: 2px 0 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.reminder-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reminder-time-input {
+  padding: 7px 10px;
+  min-height: 38px;
+  border-radius: 12px;
+  border: 2px solid var(--border);
+  background: var(--bg-white);
+  color: var(--text-main);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.reminder-toggle-btn {
+  flex: 1;
+}
+
+/* Bannière de célébration (Série / Objectif quotidien atteint) */
+.celebration-banner {
+  position: fixed;
+  top: max(126px, calc(env(safe-area-inset-top) + 114px));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 65;
+  width: min(440px, calc(100vw - 24px));
+  pointer-events: auto;
+  animation: celebrationDrop 0.36s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes celebrationDrop {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -18px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+.celebration-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, #FFF9E6 0%, #FFFFFF 100%);
+  border: 2.5px solid var(--orange-border);
+  border-bottom: 5px solid var(--orange);
+  border-radius: 20px;
+  padding: 13px 14px;
+  box-shadow: 0 16px 38px rgba(204, 120, 0, 0.22);
+}
+
+.celebration-banner.is-goal .celebration-card {
+  background: linear-gradient(135deg, #E8FFD6 0%, #FFFFFF 100%);
+  border-color: var(--green-border);
+  border-bottom-color: var(--green);
+  box-shadow: 0 16px 38px rgba(70, 163, 2, 0.22);
+}
+
+.celebration-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 15px;
+  background: var(--orange-bg);
+  border: 2px solid var(--orange-border);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  animation: splashLogoBounce 1.3s ease-in-out infinite;
+}
+
+.celebration-banner.is-goal .celebration-icon {
+  background: var(--green-bg);
+  border-color: var(--green-border);
+  color: var(--green-text);
+}
+
+.celebration-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.celebration-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.celebration-eyebrow {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--orange-dark);
+}
+
+.celebration-banner.is-goal .celebration-eyebrow {
+  color: var(--green-text);
+}
+
+.celebration-title {
+  margin: 2px 0 0;
+  font-size: 16.5px;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.celebration-desc {
+  margin: 3px 0 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+@media (max-width: 639px) {
+  .stat-badges {
+    gap: 5px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .daily-ring-wrap,
+  .daily-ring-svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .voice-call-panel {
+    bottom: max(112px, calc(env(safe-area-inset-bottom) + 104px));
+    width: calc(100vw - 16px);
+  }
+
+  .celebration-banner {
+    top: max(154px, calc(env(safe-area-inset-top) + 144px));
+    width: calc(100vw - 16px);
+  }
+
+  .daily-goal-card {
+    padding: 12px;
+    gap: 11px;
+  }
+
+  .daily-goal-ring-lg,
+  .daily-goal-ring-lg svg {
+    width: 64px;
+    height: 64px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash-logo-emblem,
+  .splash-logo-ring,
+  .splash-soundwave span,
+  .celebration-icon,
+  .live-dot {
+    animation: none;
   }
 }

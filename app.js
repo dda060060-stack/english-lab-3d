@@ -560,14 +560,38 @@ const PROFILE_STORAGE_KEY = 'david_speak_profile_v1';
 const PROGRESS_STORAGE_KEY = 'david_speak_progress_v1';
 const LEGACY_STORAGE_KEYS = ['english_city_3d_burkina_v2', 'english_city_3d_progress_v1'];
 const VALID_LOCATION_IDS = new Set(NEIGHBORHOOD_DATA.map(loc => loc.id));
+const SPLASH_START_MS = Date.now();
+const SPLASH_MIN_DURATION_MS = 1350;
+
+// Configuration du compteur global d'utilisateurs (API REST légère configurable + repli localStorage)
+const USER_COUNTER_CONFIG = {
+  endpoint: (typeof window !== 'undefined' && window.DAVID_SPEAK_COUNTER_API)
+    ? String(window.DAVID_SPEAK_COUNTER_API)
+    : 'https://api.counterapi.dev/v1/david-da-speak/users',
+  storageKey: 'david_speak_users_count_v1',
+  registeredFlagKey: 'david_speak_user_counted_v1',
+  seedCount: 128,
+  timeoutMs: 3500
+};
 
 const state = {
   profile: null, // { name, avatarType: 'preset'|'photo', avatarPresetId, avatarDataUrl }
   xp: 0,
+  dailyXp: 0,
+  dailyXpDate: null,
+  dailyGoal: 30,
+  dailyGoalCelebratedDate: null,
   streak: 1,
+  streakJustIncremented: false,
+  streakCelebratedDate: null,
   lastActiveDate: null,
+  remindersEnabled: false,
+  reminderTime: '18:00',
+  lastReminderNotifiedDate: null,
+  totalUsers: null,
   visitedIds: new Set(),
   completedQuizIds: new Set(),
+  spokenPhraseKeys: new Set(),
   soundEnabled: true,
   toneReady: false,
   activeNpc: null,
@@ -586,8 +610,19 @@ const state = {
     camSide: 1,
     autoAdvanceTimer: null
   },
+  speakIndex: 0,
+  speakListening: false,
+  voiceCall: {
+    active: false,
+    loc: null,
+    listening: false,
+    lastReplyEn: '',
+    turnsCount: 0,
+    xpAwardedUnits: new Set()
+  },
   quizIndex: 0,
   quizAnswered: false,
+  quizCorrectStreak: 0,
   keys: { up: false, down: false, left: false, right: false },
   cameraYaw: 0,
   cameraPitch: 0.40,
@@ -606,6 +641,14 @@ const state = {
     avatarDataUrl: null
   }
 };
+
+function syncDailyXpDate() {
+  const today = getLocalDateKey();
+  if (state.dailyXpDate !== today) {
+    state.dailyXp = 0;
+    state.dailyXpDate = today;
+  }
+}
 
 function getLocalDateKey(date = new Date()) {
   const y = date.getFullYear();
@@ -626,6 +669,7 @@ function daysBetweenDateKeys(prevKey, nextKey) {
 
 function updateDailyStreak(shouldSave = true) {
   const today = getLocalDateKey();
+  syncDailyXpDate();
   if (!state.lastActiveDate) {
     state.streak = Math.max(1, state.streak || 1);
     state.lastActiveDate = today;
@@ -633,6 +677,7 @@ function updateDailyStreak(shouldSave = true) {
     const diff = daysBetweenDateKeys(state.lastActiveDate, today);
     if (diff === 1) {
       state.streak = Math.max(1, (state.streak || 1) + 1);
+      state.streakJustIncremented = true;
     } else if (diff > 1 || diff === null) {
       state.streak = 1;
     }
@@ -677,14 +722,24 @@ function loadProfile() {
 
 function saveProgress() {
   try {
+    syncDailyXpDate();
     const payload = {
-      version: 3,
+      version: 4,
       totalUnits: NEIGHBORHOOD_DATA.length,
       xp: state.xp,
+      dailyXp: state.dailyXp,
+      dailyXpDate: state.dailyXpDate || getLocalDateKey(),
+      dailyGoal: state.dailyGoal || 30,
+      dailyGoalCelebratedDate: state.dailyGoalCelebratedDate || null,
       streak: state.streak,
+      streakCelebratedDate: state.streakCelebratedDate || null,
       lastActiveDate: state.lastActiveDate || getLocalDateKey(),
+      remindersEnabled: Boolean(state.remindersEnabled),
+      reminderTime: state.reminderTime || '18:00',
+      lastReminderNotifiedDate: state.lastReminderNotifiedDate || null,
       visitedIds: Array.from(state.visitedIds),
       completedQuizIds: Array.from(state.completedQuizIds),
+      spokenPhraseKeys: Array.from(state.spokenPhraseKeys),
       soundEnabled: state.soundEnabled,
       updatedAt: Date.now()
     };
@@ -718,6 +773,21 @@ function loadProgress() {
     }
 
     state.xp = Number.isFinite(data.xp) && data.xp >= 0 ? Math.floor(data.xp) : 0;
+    state.dailyGoal = [20, 30, 50].includes(Number(data.dailyGoal)) ? Number(data.dailyGoal) : 30;
+    const today = getLocalDateKey();
+    state.dailyXpDate = typeof data.dailyXpDate === 'string' ? data.dailyXpDate : today;
+    state.dailyXp = (state.dailyXpDate === today && Number.isFinite(data.dailyXp) && data.dailyXp >= 0)
+      ? Math.floor(data.dailyXp)
+      : 0;
+    state.dailyXpDate = today;
+    state.dailyGoalCelebratedDate = typeof data.dailyGoalCelebratedDate === 'string' ? data.dailyGoalCelebratedDate : null;
+    state.streakCelebratedDate = typeof data.streakCelebratedDate === 'string' ? data.streakCelebratedDate : null;
+    state.remindersEnabled = Boolean(data.remindersEnabled);
+    state.reminderTime = typeof data.reminderTime === 'string' && /^\d{2}:\d{2}$/.test(data.reminderTime)
+      ? data.reminderTime
+      : '18:00';
+    state.lastReminderNotifiedDate = typeof data.lastReminderNotifiedDate === 'string' ? data.lastReminderNotifiedDate : null;
+
     state.visitedIds = new Set(
       Array.isArray(data.visitedIds)
         ? data.visitedIds.filter(id => VALID_LOCATION_IDS.has(id))
@@ -726,6 +796,11 @@ function loadProgress() {
     state.completedQuizIds = new Set(
       Array.isArray(data.completedQuizIds)
         ? data.completedQuizIds.filter(id => VALID_LOCATION_IDS.has(id))
+        : []
+    );
+    state.spokenPhraseKeys = new Set(
+      Array.isArray(data.spokenPhraseKeys)
+        ? data.spokenPhraseKeys.filter(k => typeof k === 'string')
         : []
     );
     if (typeof data.soundEnabled === 'boolean') {
@@ -6770,6 +6845,7 @@ function exitCinematicDialogue(restoreHud = true, keepInterior = false) {
   const wasIndoor = interiorState.active;
   if (!wasActive && !wasIndoor) return;
 
+  stopVoiceCall(false);
   stopCurrentSpeech();
   state.cinema.active = false;
   state.cinema.loc = null;
@@ -7279,6 +7355,10 @@ function syncProgressUI() {
   if (state.activeNpc) {
     updateDialogueStatusBadges(state.activeNpc);
   }
+
+  syncDailyGoalUI();
+  updateUserCountUI(false);
+  syncReminderUI();
 }
 
 function renderDialogueLines(loc) {
@@ -7557,6 +7637,7 @@ function renderQuiz(loc) {
 
       if (opt.correct) {
         state.quizAnswered = true;
+        state.quizCorrectStreak = (state.quizCorrectStreak || 0) + 1;
         playFX('success');
         btn.classList.add('is-correct');
         allChoiceBtns.forEach(b => { b.disabled = true; });
@@ -7564,7 +7645,9 @@ function renderQuiz(loc) {
         const isLast = idx >= quizzes.length - 1;
         progressFill.style.width = `${Math.round(((idx + 1) / quizzes.length) * 100)}%`;
 
-        let title = ENCOURAGEMENTS[idx % ENCOURAGEMENTS.length];
+        let title = state.quizCorrectStreak >= 3
+          ? `${state.quizCorrectStreak} d'affilée ! ${ENCOURAGEMENTS[idx % ENCOURAGEMENTS.length]}`
+          : ENCOURAGEMENTS[idx % ENCOURAGEMENTS.length];
         let desc = currentQ.explanation || `Vous maîtrisez très bien cette notion avec ${loc.npcName}.`;
         let btnLabel = isLast ? 'Rejouer le quiz' : 'Question suivante';
 
@@ -7599,6 +7682,7 @@ function renderQuiz(loc) {
           }
         });
       } else {
+        state.quizCorrectStreak = 0;
         playFX('error');
         btn.classList.add('is-wrong');
         btn.disabled = true;
@@ -7625,10 +7709,12 @@ function renderQuiz(loc) {
 }
 
 function openDialogue(loc, initialTab = 'dialogue', autoSpeak = false) {
+  stopVoiceCall(false);
   if (state.cinema.active) exitCinematicDialogue(false, interiorState.active);
   state.activeNpc = loc;
   state.quizIndex = 0;
   state.quizAnswered = false;
+  state.speakIndex = 0;
   playFX('open');
 
   updateDailyStreak(false);
@@ -7658,6 +7744,7 @@ function openDialogue(loc, initialTab = 'dialogue', autoSpeak = false) {
   renderDialogueLines(loc);
   renderGrammarPanel(loc);
   renderVocabPanel(loc);
+  renderSpeakPractice(loc);
   renderQuiz(loc);
   updateDialogueStatusBadges(loc);
   switchTab(initialTab || 'dialogue');
@@ -7678,6 +7765,7 @@ function openDialogue(loc, initialTab = 'dialogue', autoSpeak = false) {
 }
 
 function closeDialogue(silent = false) {
+  stopSpeechRecognition();
   state.activeNpc = null;
   hideQuizFeedbackBanner();
   document.getElementById('dialogue-modal').classList.add('hidden');
@@ -7698,15 +7786,23 @@ function closeDialogue(silent = false) {
 }
 
 function switchTab(tabName) {
+  if (state.activeTab === 'speak' && tabName !== 'speak') {
+    stopSpeechRecognition();
+  }
   state.activeTab = tabName;
-  ['dialogue', 'grammar', 'vocab', 'quiz'].forEach(name => {
+  ['dialogue', 'grammar', 'vocab', 'speak', 'quiz'].forEach(name => {
     const panel = document.getElementById(`panel-${name}`);
     const btn = document.getElementById(`tab-${name}`);
+    if (!panel || !btn) return;
     const isActive = name === tabName;
     panel.classList.toggle('hidden', !isActive);
     btn.classList.toggle('is-active', isActive);
     btn.setAttribute('aria-selected', String(isActive));
   });
+
+  if (tabName === 'speak' && state.activeNpc) {
+    renderSpeakPractice(state.activeNpc);
+  }
 
   if (tabName !== 'quiz') {
     hideQuizFeedbackBanner();
@@ -7717,9 +7813,32 @@ function switchTab(tabName) {
 }
 
 function addXP(amount) {
-  state.xp += amount;
+  const safeAmount = Math.max(0, Math.floor(Number(amount) || 0));
+  if (safeAmount <= 0) return;
+
+  syncDailyXpDate();
+  const prevDaily = state.dailyXp;
+  const goal = state.dailyGoal || 30;
+  const today = getLocalDateKey();
+
+  state.xp += safeAmount;
+  state.dailyXp += safeAmount;
   saveProgress();
   syncProgressUI();
+
+  if (prevDaily < goal && state.dailyXp >= goal && state.dailyGoalCelebratedDate !== today) {
+    state.dailyGoalCelebratedDate = today;
+    saveProgress();
+    playFX('success');
+    showCelebrationBanner({
+      type: 'goal',
+      eyebrow: 'Objectif quotidien atteint !',
+      title: `${state.dailyXp} / ${goal} XP aujourd'hui !`,
+      description: getDynamicEncouragement('goal_met')
+    });
+  } else if (state.dailyXp < goal && goal - state.dailyXp <= 10 && prevDaily < goal - 10) {
+    showToast(getDynamicEncouragement('near_goal'));
+  }
 }
 
 /* ===========================================================================
@@ -7849,10 +7968,17 @@ function closeResetModal() {
 
 function resetProgress() {
   state.xp = 0;
+  state.dailyXp = 0;
+  state.dailyXpDate = getLocalDateKey();
+  state.dailyGoalCelebratedDate = null;
   state.streak = 1;
+  state.streakJustIncremented = false;
+  state.streakCelebratedDate = null;
   state.lastActiveDate = getLocalDateKey();
   state.visitedIds.clear();
   state.completedQuizIds.clear();
+  state.spokenPhraseKeys.clear();
+  state.quizCorrectStreak = 0;
 
   try {
     localStorage.removeItem(PROGRESS_STORAGE_KEY);
@@ -7870,6 +7996,1276 @@ function resetProgress() {
 }
 
 /* ===========================================================================
+   10.5. SPLASH SCREEN, COMPTEUR LIVE, PAROLE AU MICRO & COMMUNICATIONS DUOLINGO
+   =========================================================================== */
+
+// --- A. SPLASH SCREEN ANIMÉ ---
+function dismissSplashScreen(onComplete) {
+  const splash = document.getElementById('splash-screen');
+  if (!splash || splash.classList.contains('hidden')) {
+    if (typeof onComplete === 'function') onComplete();
+    return;
+  }
+
+  const statusEl = document.getElementById('splash-status-text');
+  if (statusEl) statusEl.textContent = 'Prêt ! Bienvenue dans le quartier 3D';
+
+  const elapsed = Date.now() - SPLASH_START_MS;
+  const remaining = Math.max(0, SPLASH_MIN_DURATION_MS - elapsed);
+
+  setTimeout(() => {
+    splash.classList.add('is-exiting');
+    setTimeout(() => {
+      splash.classList.add('hidden');
+      splash.classList.remove('is-exiting');
+      if (typeof onComplete === 'function') onComplete();
+    }, 480);
+  }, remaining);
+}
+
+// --- B. COMPTEUR GLOBAL D'UTILISATEURS EN DIRECT (API REST + REPLI localStorage) ---
+function getStoredUserCount() {
+  try {
+    const raw = localStorage.getItem(USER_COUNTER_CONFIG.storageKey);
+    const parsed = Number(raw);
+    if (Number.isFinite(parsed) && parsed >= 1) return Math.floor(parsed);
+  } catch (_) {}
+  return USER_COUNTER_CONFIG.seedCount;
+}
+
+function setStoredUserCount(count) {
+  const safe = Math.max(1, Math.floor(Number(count) || USER_COUNTER_CONFIG.seedCount));
+  state.totalUsers = safe;
+  try {
+    localStorage.setItem(USER_COUNTER_CONFIG.storageKey, String(safe));
+  } catch (_) {}
+  return safe;
+}
+
+function formatUserCount(num) {
+  const n = Math.max(1, Math.floor(Number(num) || getStoredUserCount()));
+  try {
+    return n.toLocaleString('fr-FR');
+  } catch (_) {
+    return String(n);
+  }
+}
+
+function updateUserCountUI(bumped = false) {
+  const count = state.totalUsers || getStoredUserCount();
+  const formatted = formatUserCount(count);
+  const hudEl = document.getElementById('users-count-display');
+  const profileEl = document.getElementById('profile-stat-users');
+  if (hudEl) {
+    hudEl.textContent = formatted;
+    if (bumped) {
+      const pill = hudEl.closest('.stat-users');
+      if (pill) {
+        pill.classList.remove('is-bumped');
+        void pill.offsetWidth;
+        pill.classList.add('is-bumped');
+      }
+    }
+  }
+  if (profileEl) {
+    profileEl.textContent = formatted;
+  }
+}
+
+async function callCounterRestApi(action = 'get') {
+  const endpoint = String(USER_COUNTER_CONFIG.endpoint || '').replace(/\/+$/, '');
+  if (!endpoint || typeof fetch !== 'function') return null;
+
+  const isCounterApiDev = /api\.counterapi\.dev/i.test(endpoint);
+  const url = action === 'increment' && isCounterApiDev ? `${endpoint}/up` : endpoint;
+  const method = action === 'increment' && !isCounterApiDev ? 'POST' : 'GET';
+
+  const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const timer = controller ? setTimeout(() => controller.abort(), USER_COUNTER_CONFIG.timeoutMs) : null;
+
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: method === 'POST' ? { 'Content-Type': 'application/json' } : undefined,
+      body: method === 'POST' ? JSON.stringify({ event: 'signup', app: 'david-da-speak' }) : undefined,
+      cache: 'no-store',
+      signal: controller ? controller.signal : undefined
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const rawVal = data && typeof data === 'object'
+      ? (data.count ?? data.value ?? data.total ?? data.users)
+      : Number(data);
+    const num = Number(rawVal);
+    return Number.isFinite(num) && num >= 0 ? Math.floor(num) : null;
+  } catch (_) {
+    return null;
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+async function fetchGlobalUserCount() {
+  const localCount = getStoredUserCount();
+  state.totalUsers = localCount;
+  updateUserCountUI(false);
+
+  const remoteCount = await callCounterRestApi('get');
+  if (remoteCount !== null) {
+    setStoredUserCount(Math.max(remoteCount, localCount));
+    updateUserCountUI(false);
+  }
+}
+
+async function incrementGlobalUserCount() {
+  let alreadyCounted = false;
+  try {
+    alreadyCounted = localStorage.getItem(USER_COUNTER_CONFIG.registeredFlagKey) === '1';
+  } catch (_) {}
+
+  const currentLocal = getStoredUserCount();
+  if (!alreadyCounted) {
+    setStoredUserCount(currentLocal + 1);
+    try {
+      localStorage.setItem(USER_COUNTER_CONFIG.registeredFlagKey, '1');
+    } catch (_) {}
+    updateUserCountUI(true);
+
+    const remoteCount = await callCounterRestApi('increment');
+    if (remoteCount !== null) {
+      setStoredUserCount(Math.max(remoteCount, state.totalUsers || currentLocal + 1));
+      updateUserCountUI(true);
+    }
+  } else {
+    updateUserCountUI(false);
+  }
+}
+
+// --- C. RECONNAISSANCE VOCALE WEB SPEECH API (en-US) : COMPARAISON & MODULES 1 & 2 ---
+let activeRecognition = null;
+
+function getSpeechRecognitionCtor() {
+  if (typeof window === 'undefined') return null;
+  return window.SpeechRecognition || window.webkitSpeechRecognition || null;
+}
+
+function stopSpeechRecognition() {
+  if (activeRecognition) {
+    const rec = activeRecognition;
+    activeRecognition = null;
+    try {
+      rec.onresult = null;
+      rec.onerror = null;
+      rec.onend = null;
+      rec.abort();
+    } catch (_) {}
+  }
+  state.speakListening = false;
+  if (state.voiceCall) state.voiceCall.listening = false;
+  if (state.speakingTarget === 'player') {
+    state.speakingTarget = null;
+    updateBubbleSpeakingWaves(false);
+  }
+  syncSpeakMicUI(false);
+  syncVoiceCallMicUI(false);
+}
+
+const CONTRACTION_EXPANSIONS = {
+  "i'm": 'i am',
+  "you're": 'you are',
+  "he's": 'he is',
+  "she's": 'she is',
+  "it's": 'it is',
+  "we're": 'we are',
+  "they're": 'they are',
+  "what's": 'what is',
+  "where's": 'where is',
+  "who's": 'who is',
+  "that's": 'that is',
+  "there's": 'there is',
+  "isn't": 'is not',
+  "aren't": 'are not',
+  "don't": 'do not',
+  "doesn't": 'does not',
+  "can't": 'cannot',
+  "won't": 'will not',
+  "let's": 'let us',
+  "o'clock": 'oclock'
+};
+
+function expandAndTokenizeEnglish(text) {
+  let clean = String(text || '')
+    .toLowerCase()
+    .replace(/[’‘`]/g, "'")
+    .replace(/[^a-z0-9'\s-]/g, ' ')
+    .replace(/-/g, ' ')
+    .trim();
+
+  if (!clean) return [];
+
+  const rawWords = clean.split(/\s+/).filter(Boolean);
+  const out = [];
+  rawWords.forEach(w => {
+    const expanded = CONTRACTION_EXPANSIONS[w];
+    if (expanded) {
+      expanded.split(' ').forEach(part => out.push(part));
+    } else {
+      const stripped = w.replace(/'/g, '');
+      if (stripped) out.push(stripped);
+    }
+  });
+  return out;
+}
+
+function levenshteinDistance(a, b) {
+  if (a === b) return 0;
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+  const dp = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= b.length; j++) dp[0][j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + cost);
+    }
+  }
+  return dp[a.length][b.length];
+}
+
+function wordsMatchLoosely(expectedNorm, spokenNorm) {
+  if (!expectedNorm || !spokenNorm) return false;
+  if (expectedNorm === spokenNorm) return true;
+  if (expectedNorm.length >= 4 && spokenNorm.length >= 4) {
+    return levenshteinDistance(expectedNorm, spokenNorm) <= 1;
+  }
+  return false;
+}
+
+function compareSpokenPhrase(targetEn, transcripts) {
+  const displayTokens = String(targetEn || '').trim().split(/\s+/).filter(Boolean);
+  const candidateList = Array.isArray(transcripts) ? transcripts.filter(Boolean) : [String(transcripts || '')];
+  if (candidateList.length === 0) candidateList.push('');
+
+  let bestResult = null;
+
+  candidateList.forEach(rawSpoken => {
+    const spokenTokens = expandAndTokenizeEnglish(rawSpoken);
+    const usedIndices = new Set();
+    let hits = 0;
+
+    const wordResults = displayTokens.map(displayWord => {
+      const subTokens = expandAndTokenizeEnglish(displayWord);
+      if (subTokens.length === 0) {
+        hits += 1;
+        return { word: displayWord, hit: true };
+      }
+
+      let matchedAll = true;
+      const tempMatched = [];
+      for (const expected of subTokens) {
+        let foundIdx = -1;
+        for (let i = 0; i < spokenTokens.length; i++) {
+          if (usedIndices.has(i) || tempMatched.includes(i)) continue;
+          if (wordsMatchLoosely(expected, spokenTokens[i])) {
+            foundIdx = i;
+            break;
+          }
+        }
+        if (foundIdx === -1) {
+          matchedAll = false;
+          break;
+        }
+        tempMatched.push(foundIdx);
+      }
+
+      if (matchedAll) {
+        tempMatched.forEach(idx => usedIndices.add(idx));
+        hits += 1;
+        return { word: displayWord, hit: true };
+      }
+      return { word: displayWord, hit: false };
+    });
+
+    const total = Math.max(1, displayTokens.length);
+    const score = Math.round((hits / total) * 100);
+    if (!bestResult || score > bestResult.score) {
+      bestResult = {
+        score,
+        passed: score >= 70,
+        transcript: rawSpoken,
+        wordResults
+      };
+    }
+  });
+
+  return bestResult;
+}
+
+// --- MODULE 1 : ONGLET "PARLER" DANS .lesson-tabs ---
+function getUnitSpeakPhrases(loc) {
+  if (!loc) return [];
+  const fromDialogues = (loc.dialogues || []).filter(d => d && d.en);
+  if (fromDialogues.length > 0) return fromDialogues;
+  return (loc.vocab || []).slice(0, 6).map(v => ({
+    speaker: loc.npcName,
+    en: v.en,
+    fr: v.fr || ''
+  }));
+}
+
+function getSpeakPhraseKey(loc, idx) {
+  return `${loc.id}::${idx}`;
+}
+
+function syncSpeakMicUI(isListening, customStatus = null) {
+  const btn = document.getElementById('btn-speak-mic');
+  const statusEl = document.getElementById('speak-mic-status');
+  const waveEl = document.getElementById('speak-live-wave');
+  if (btn) btn.classList.toggle('is-listening', Boolean(isListening));
+  if (waveEl) waveEl.classList.toggle('hidden', !isListening);
+  if (statusEl) {
+    statusEl.textContent = customStatus || (isListening
+      ? 'Écoute en cours (en-US)... Prononcez la phrase !'
+      : 'Appuyez sur le micro et prononcez la phrase');
+  }
+}
+
+function renderSpeakPractice(loc) {
+  if (!loc) return;
+  const phrases = getUnitSpeakPhrases(loc);
+  const unsupportedEl = document.getElementById('speak-unsupported-banner');
+  const hasSpeechRec = Boolean(getSpeechRecognitionCtor());
+  if (unsupportedEl) unsupportedEl.classList.toggle('hidden', hasSpeechRec);
+
+  const micBtn = document.getElementById('btn-speak-mic');
+  if (micBtn) micBtn.disabled = !hasSpeechRec || phrases.length === 0;
+
+  const progressFill = document.getElementById('speak-progress-fill');
+  const progressLabel = document.getElementById('speak-progress-label');
+  const avatarEl = document.getElementById('speak-npc-avatar');
+  const speakerLabel = document.getElementById('speak-speaker-label');
+  const targetEnEl = document.getElementById('speak-target-en');
+  const targetFrEl = document.getElementById('speak-target-fr');
+  const doneBadge = document.getElementById('speak-phrase-done-badge');
+  const resultCard = document.getElementById('speak-result-card');
+  const dotsWrap = document.getElementById('speak-dots');
+  const tabLabel = document.getElementById('tab-speak-label');
+
+  if (avatarEl) avatarEl.innerHTML = getNpcPortraitSVG(loc.id);
+
+  if (phrases.length === 0) {
+    if (progressLabel) progressLabel.textContent = '0/0';
+    if (progressFill) progressFill.style.width = '0%';
+    if (targetEnEl) targetEnEl.textContent = 'Aucune phrase disponible pour cette unité.';
+    if (targetFrEl) targetFrEl.textContent = '';
+    return;
+  }
+
+  const idx = Math.max(0, Math.min(state.speakIndex, phrases.length - 1));
+  state.speakIndex = idx;
+  const phrase = phrases[idx];
+  const key = getSpeakPhraseKey(loc, idx);
+  const doneCount = phrases.reduce((acc, _, i) => acc + (state.spokenPhraseKeys.has(getSpeakPhraseKey(loc, i)) ? 1 : 0), 0);
+
+  if (progressLabel) progressLabel.textContent = `${idx + 1}/${phrases.length}`;
+  if (progressFill) progressFill.style.width = `${Math.round((doneCount / phrases.length) * 100)}%`;
+  if (speakerLabel) speakerLabel.textContent = `Répétez après ${phrase.speaker || loc.npcName}`;
+  if (targetEnEl) targetEnEl.textContent = phrase.en;
+  if (targetFrEl) {
+    targetFrEl.textContent = phrase.fr || '';
+    targetFrEl.classList.toggle('hidden', !phrase.fr);
+  }
+  if (doneBadge) doneBadge.classList.toggle('hidden', !state.spokenPhraseKeys.has(key));
+  if (resultCard) resultCard.classList.add('hidden');
+  if (tabLabel) tabLabel.textContent = doneCount === phrases.length ? 'Parler ✓' : 'Parler';
+
+  if (dotsWrap) {
+    dotsWrap.innerHTML = '';
+    phrases.forEach((_, i) => {
+      const dot = document.createElement('button');
+      dot.type = 'button';
+      dot.className = 'speak-dot'
+        + (i === idx ? ' is-current' : '')
+        + (state.spokenPhraseKeys.has(getSpeakPhraseKey(loc, i)) ? ' is-done' : '');
+      dot.setAttribute('aria-label', `Phrase ${i + 1}`);
+      dot.addEventListener('click', () => {
+        playFX('click');
+        stopSpeechRecognition();
+        state.speakIndex = i;
+        renderSpeakPractice(loc);
+      });
+      dotsWrap.appendChild(dot);
+    });
+  }
+
+  const prevBtn = document.getElementById('btn-speak-prev');
+  const nextBtn = document.getElementById('btn-speak-next');
+  if (prevBtn) prevBtn.disabled = idx === 0;
+  if (nextBtn) nextBtn.textContent = idx === phrases.length - 1 ? 'Recommencer' : 'Suivante';
+  syncSpeakMicUI(false);
+}
+
+function showSpeakPracticeEvaluation(loc, idx, evaluation) {
+  const card = document.getElementById('speak-result-card');
+  const scoreBadge = document.getElementById('speak-score-badge');
+  const titleEl = document.getElementById('speak-result-title');
+  const transcriptEl = document.getElementById('speak-transcript-line');
+  const wordsWrap = document.getElementById('speak-words-comparison');
+  if (!card || !scoreBadge || !titleEl || !transcriptEl || !wordsWrap) return;
+
+  card.classList.remove('hidden', 'is-pass', 'is-retry');
+  card.classList.add(evaluation.passed ? 'is-pass' : 'is-retry');
+
+  scoreBadge.textContent = `${evaluation.score}%`;
+  scoreBadge.className = `badge ${evaluation.passed ? 'badge-green' : 'badge-blue'}`;
+
+  let titleText = '';
+  if (evaluation.passed) {
+    const key = getSpeakPhraseKey(loc, idx);
+    const phrases = getUnitSpeakPhrases(loc);
+    if (!state.spokenPhraseKeys.has(key)) {
+      state.spokenPhraseKeys.add(key);
+      updateDailyStreak(false);
+      const allDone = phrases.every((_, i) => state.spokenPhraseKeys.has(getSpeakPhraseKey(loc, i)));
+      const bonus = allDone ? 15 : 5;
+      addXP(bonus);
+      titleText = allDone
+        ? `Unité orale complète ! +${bonus} XP`
+        : `Super prononciation ! +5 XP`;
+    } else {
+      titleText = evaluation.score >= 92 ? 'Accent impeccable !' : 'Très bien prononcé !';
+    }
+    playFX('success');
+    const doneBadge = document.getElementById('speak-phrase-done-badge');
+    if (doneBadge) doneBadge.classList.remove('hidden');
+    const progressFill = document.getElementById('speak-progress-fill');
+    const doneCount = phrases.reduce((acc, _, i) => acc + (state.spokenPhraseKeys.has(getSpeakPhraseKey(loc, i)) ? 1 : 0), 0);
+    if (progressFill) progressFill.style.width = `${Math.round((doneCount / phrases.length) * 100)}%`;
+    const tabLabel = document.getElementById('tab-speak-label');
+    if (tabLabel) tabLabel.textContent = doneCount === phrases.length ? 'Parler ✓' : 'Parler';
+    const dots = document.querySelectorAll('#speak-dots .speak-dot');
+    if (dots[idx]) dots[idx].classList.add('is-done');
+  } else {
+    playFX('error');
+    titleText = 'Presque ! Réécoutez et réessayez.';
+  }
+
+  titleEl.textContent = titleText;
+  transcriptEl.textContent = evaluation.transcript
+    ? `Vous avez dit : « ${evaluation.transcript} »`
+    : 'Aucune parole détectée. Rapprochez-vous du micro.';
+
+  wordsWrap.innerHTML = '';
+  evaluation.wordResults.forEach(item => {
+    const chip = document.createElement('span');
+    chip.className = `speak-word-chip ${item.hit ? 'is-hit' : 'is-miss'}`;
+    chip.textContent = item.word;
+    wordsWrap.appendChild(chip);
+  });
+}
+
+function toggleSpeakPracticeMic() {
+  const loc = state.activeNpc;
+  if (!loc) return;
+  const SpeechRec = getSpeechRecognitionCtor();
+  if (!SpeechRec) {
+    showToast('Reconnaissance vocale non supportée sur ce navigateur.');
+    return;
+  }
+
+  if (state.speakListening) {
+    stopSpeechRecognition();
+    return;
+  }
+
+  const phrases = getUnitSpeakPhrases(loc);
+  const idx = Math.max(0, Math.min(state.speakIndex, phrases.length - 1));
+  const phrase = phrases[idx];
+  if (!phrase) return;
+
+  initAudioFX();
+  stopCurrentSpeech();
+  stopSpeechRecognition();
+
+  const rec = new SpeechRec();
+  rec.lang = 'en-US';
+  rec.interimResults = true;
+  rec.continuous = false;
+  rec.maxAlternatives = 3;
+  activeRecognition = rec;
+  state.speakListening = true;
+  state.speakingTarget = 'player';
+  syncSpeakMicUI(true);
+
+  let finalTranscripts = [];
+  let latestInterim = '';
+
+  rec.onresult = (event) => {
+    latestInterim = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const res = event.results[i];
+      if (res.isFinal) {
+        for (let a = 0; a < res.length; a++) {
+          if (res[a] && res[a].transcript) finalTranscripts.push(res[a].transcript.trim());
+        }
+      } else if (res[0] && res[0].transcript) {
+        latestInterim += res[0].transcript;
+      }
+    }
+    if (latestInterim) {
+      syncSpeakMicUI(true, `Entendu : « ${latestInterim.trim()} »`);
+    }
+  };
+
+  rec.onerror = (event) => {
+    const err = event && event.error ? event.error : 'error';
+    activeRecognition = null;
+    state.speakListening = false;
+    state.speakingTarget = null;
+    const msg = err === 'not-allowed' || err === 'service-not-allowed'
+      ? 'Autorisez le micro dans votre navigateur pour parler.'
+      : err === 'no-speech'
+        ? 'Aucune voix détectée. Appuyez sur le micro et parlez fort.'
+        : 'Micro interrompu. Appuyez à nouveau pour réessayer.';
+    syncSpeakMicUI(false, msg);
+  };
+
+  rec.onend = () => {
+    if (activeRecognition === rec) activeRecognition = null;
+    state.speakListening = false;
+    if (state.speakingTarget === 'player') state.speakingTarget = null;
+    syncSpeakMicUI(false);
+
+    const candidates = finalTranscripts.length > 0
+      ? finalTranscripts
+      : (latestInterim.trim() ? [latestInterim.trim()] : []);
+
+    if (candidates.length > 0 && state.activeNpc && state.activeNpc.id === loc.id) {
+      const evaluation = compareSpokenPhrase(phrase.en, candidates);
+      showSpeakPracticeEvaluation(loc, idx, evaluation);
+    }
+  };
+
+  try {
+    rec.start();
+  } catch (_) {
+    stopSpeechRecognition();
+    syncSpeakMicUI(false, 'Impossible de démarrer le micro.');
+  }
+}
+
+// --- MODULE 2 : APPEL VOCAL EN DIRECT DANS #cinema-controls ---
+const VOICE_CALL_PROMPTS = {
+  1: ['Hello! My name is...', 'Nice to meet you!', 'How are you?'],
+  2: ['Where are my keys?', "It's in my bag.", 'What is this?'],
+  3: ["I'm from Burkina Faso.", 'Where are you from?', 'Nice to meet you!'],
+  4: ["It's sunny today.", 'I like this red jacket.', 'Is this coat yours?'],
+  5: ['What time is it?', "I'm waiting for the bus.", "It's eight thirty."],
+  6: ['I ride my bike to school.', 'I get up at six.', 'Good morning!'],
+  7: ['Does it have a view?', 'Yes, it does!', 'Nice house!'],
+  8: ['Where do you work?', 'I work in an office.', 'What do you do?']
+};
+
+function getVoiceCallSuggestions(loc) {
+  const defaults = VOICE_CALL_PROMPTS[loc.unit] || ['Hello!', 'How are you?', 'Thank you!'];
+  const userName = state.profile && state.profile.name ? state.profile.name : 'David';
+  return defaults.map(s => s.replace('My name is...', `My name is ${userName}.`));
+}
+
+function generateNpcVoiceReply(loc, userText) {
+  const raw = String(userText || '').trim();
+  const low = raw.toLowerCase();
+  const userName = state.profile && state.profile.name ? state.profile.name : 'my friend';
+
+  // 1. Correspondance avec le dialogue de l'unité active (répond avec la réplique suivante naturelle)
+  const lines = loc.dialogues || [];
+  if (lines.length >= 2) {
+    let bestIdx = -1;
+    let bestScore = 0;
+    for (let i = 0; i < lines.length - 1; i++) {
+      const cmp = compareSpokenPhrase(lines[i].en, [raw]);
+      if (cmp && cmp.score >= 65 && cmp.score > bestScore) {
+        bestScore = cmp.score;
+        bestIdx = i;
+      }
+    }
+    if (bestIdx !== -1 && lines[bestIdx + 1]) {
+      return {
+        en: lines[bestIdx + 1].en,
+        fr: lines[bestIdx + 1].fr || ''
+      };
+    }
+  }
+
+  // 2. Intentions universelles
+  if (/\b(bye|goodbye|see you|good night)\b/.test(low)) {
+    return {
+      en: `Goodbye, ${userName}! Great English practice today. See you soon!`,
+      fr: `Au revoir, ${userName} ! Super pratique d'anglais aujourd'hui. À bientôt !`
+    };
+  }
+  if (/\b(thank|thanks)\b/.test(low)) {
+    return {
+      en: `You're welcome, ${userName}! You speak English very well!`,
+      fr: `Je vous en prie, ${userName} ! Vous parlez très bien anglais !`
+    };
+  }
+  if (/\bhow are you\b/.test(low)) {
+    return {
+      en: `I'm doing great, thank you! And how are you today, ${userName}?`,
+      fr: `Je vais très bien, merci ! Et comment allez-vous aujourd'hui, ${userName} ?`
+    };
+  }
+  if (/\b(my name is|i am|i'm)\b/.test(low) && !/\b(from|waiting|working|developer|student|teacher)\b/.test(low)) {
+    return {
+      en: `Nice to meet you, ${userName}! My name is ${loc.npcName}. Welcome to ${loc.placeName}!`,
+      fr: `Enchanté(e), ${userName} ! Je m'appelle ${loc.npcName}. Bienvenue à ${loc.placeName} !`
+    };
+  }
+  if (/\bwhat('?s| is) your name\b/.test(low)) {
+    return {
+      en: `My name is ${loc.npcName}! It's nice to talk with you, ${userName}.`,
+      fr: `Je m'appelle ${loc.npcName} ! Ravi(e) de discuter avec vous, ${userName}.`
+    };
+  }
+
+  // 3. Réponses personnalisées par personnage et unité (Unit 1 à Unit 8)
+  switch (loc.unit) {
+    case 1:
+      if (/\b(hello|hi|good morning|nice to meet)\b/.test(low)) {
+        return {
+          en: `Hello ${userName}! It's nice to meet you too! Are you in my English class?`,
+          fr: `Bonjour ${userName} ! Enchanté moi aussi ! Êtes-vous dans mon cours d'anglais ?`
+        };
+      }
+      return {
+        en: `Great! Tell me, ${userName}, what's your last name again?`,
+        fr: `Super ! Dites-moi, ${userName}, quel est votre nom de famille déjà ?`
+      };
+    case 2:
+      if (/\b(key|keys|bag|backpack|wallet|notebook|sunglasses|where)\b/.test(low)) {
+        return {
+          en: "Look on the table! Your keys and notebook are next to the backpack!",
+          fr: "Regardez sur la table ! Vos clés et votre cahier sont à côté du sac à dos !"
+        };
+      }
+      return {
+        en: `That's right, ${userName}! Ask me: Where are my keys? or What's this?`,
+        fr: `C'est exact, ${userName} ! Demandez-moi : « Where are my keys? » ou « What's this? »`
+      };
+    case 3:
+      if (/\b(from|burkina|ouaga|bobo|france|africa|country|city)\b/.test(low)) {
+        return {
+          en: "Wonderful! I'm from Bobo-Dioulasso in Burkina Faso. People here are very friendly!",
+          fr: "Magnifique ! Je viens de Bobo-Dioulasso au Burkina Faso. Les gens ici sont très chaleureux !"
+        };
+      }
+      return {
+        en: `Welcome to Café Le Faso, ${userName}! Where are you from?`,
+        fr: `Bienvenue au Café Le Faso, ${userName} ! D'où venez-vous ?`
+      };
+    case 4:
+      if (/\b(coat|jacket|red|blue|color|sunny|hot|weather|rain|sneakers)\b/.test(low)) {
+        return {
+          en: "Yes! It's sunny and warm today. This colorful Faso Dan Fani jacket looks great on you!",
+          fr: "Oui ! Il fait soleil et chaud aujourd'hui. Cette veste colorée en Faso Dan Fani vous va à merveille !"
+        };
+      }
+      return {
+        en: `Look at these beautiful clothes, ${userName}! What color do you like?`,
+        fr: `Regardez ces beaux vêtements, ${userName} ! Quelle couleur aimez-vous ?`
+      };
+    case 5:
+      if (/\b(time|clock|thirty|bus|wait|waiting|doing)\b/.test(low)) {
+        return {
+          en: "It's eight thirty right now! I'm waiting for the bus to the city center.",
+          fr: "Il est huit heures trente en ce moment ! J'attends le bus pour le centre-ville."
+        };
+      }
+      return {
+        en: `Good job, ${userName}! Ask me: What time is it? or What are you doing?`,
+        fr: `Bien joué, ${userName} ! Demandez-moi : « What time is it? » ou « What are you doing? »`
+      };
+    case 6:
+      if (/\b(bike|walk|bus|school|get up|morning|family|every day)\b/.test(low)) {
+        return {
+          en: "That's a great routine! Every day, I get up at six and I ride my bike to school!",
+          fr: "C'est une super routine ! Tous les jours, je me lève à six heures et je vais à l'école à vélo !"
+        };
+      }
+      return {
+        en: `Nice, ${userName}! How do you go to school or work every morning?`,
+        fr: `Super, ${userName} ! Comment allez-vous à l'école ou au travail chaque matin ?`
+      };
+    case 7:
+      if (/\b(house|view|room|kitchen|sofa|chair|bedroom|yes|does)\b/.test(low)) {
+        return {
+          en: "Yes, it does! My house has a bright living room, a nice kitchen, and a great view!",
+          fr: "Oui ! Ma maison a un salon lumineux, une jolie cuisine et une belle vue !"
+        };
+      }
+      return {
+        en: `Welcome to my villa, ${userName}! Does your house have a big living room?`,
+        fr: `Bienvenue dans ma villa, ${userName} ! Votre maison a-t-elle un grand salon ?`
+      };
+    case 8:
+      if (/\b(work|job|office|developer|teacher|engineer|doctor|student|do)\b/.test(low)) {
+        return {
+          en: "That's awesome! I'm a software developer here in Ouagadougou, and I love my job!",
+          fr: "C'est génial ! Je suis développeuse logiciel ici à Ouagadougou et j'adore mon métier !"
+        };
+      }
+      return {
+        en: `Great to hear from you, ${userName}! What do you do, and where do you work?`,
+        fr: `Ravi d'avoir de vos nouvelles, ${userName} ! Que faites-vous et où travaillez-vous ?`
+      };
+    default:
+      return {
+        en: `Well said, ${userName}! Keep speaking English with me — you're doing great!`,
+        fr: `Bien dit, ${userName} ! Continuez à parler anglais avec moi, vous vous débrouillez super bien !`
+      };
+  }
+}
+
+function syncVoiceCallMicUI(isListening, customStatus = null) {
+  const micBtn = document.getElementById('btn-call-mic');
+  const micLabel = document.getElementById('call-mic-label');
+  const statusEl = document.getElementById('call-status-text');
+  if (micBtn) micBtn.classList.toggle('is-listening', Boolean(isListening));
+  if (micLabel) micLabel.textContent = isListening ? 'Écoute... (Stop)' : 'Parler au micro';
+  if (statusEl && customStatus) statusEl.textContent = customStatus;
+}
+
+function showVoiceCallBubble(role, loc, enText, frText) {
+  const npcBubble = document.getElementById('npc-speech-bubble');
+  const playerBubble = document.getElementById('player-speech-bubble');
+  if (!npcBubble || !playerBubble) return;
+
+  if (role === 'player') {
+    npcBubble.classList.add('hidden');
+    document.getElementById('player-bubble-avatar').innerHTML = state.profile
+      ? renderAvatarHTML(state.profile.avatarType, state.profile.avatarPresetId, state.profile.avatarDataUrl)
+      : getPartnerPortraitSVG();
+    document.getElementById('player-bubble-speaker').textContent = state.profile ? state.profile.name : 'Vous';
+    document.getElementById('player-bubble-turn').textContent = 'Appel live';
+    document.getElementById('player-bubble-en').textContent = enText;
+    const frEl = document.getElementById('player-bubble-fr');
+    frEl.textContent = frText || '';
+    frEl.classList.toggle('hidden', !frText);
+    playerBubble.classList.remove('hidden');
+  } else {
+    playerBubble.classList.add('hidden');
+    document.getElementById('npc-bubble-avatar').innerHTML = getNpcPortraitSVG(loc.id);
+    document.getElementById('npc-bubble-speaker').textContent = loc.npcName;
+    document.getElementById('npc-bubble-turn').textContent = 'Appel live';
+    document.getElementById('npc-bubble-en').textContent = enText;
+    const frEl = document.getElementById('npc-bubble-fr');
+    frEl.textContent = frText || '';
+    frEl.classList.toggle('hidden', !frText);
+    npcBubble.classList.remove('hidden');
+  }
+}
+
+async function speakVoiceCallNpcReply(loc, replyObj) {
+  if (!state.voiceCall.active || !loc || !replyObj) return;
+  stopCurrentSpeech();
+  const myReqId = speechRequestId;
+  state.voiceCall.lastReplyEn = replyObj.en;
+
+  const replyEl = document.getElementById('call-npc-reply');
+  if (replyEl) {
+    replyEl.textContent = replyObj.fr
+      ? `${loc.npcName} : « ${replyObj.en} » — ${replyObj.fr}`
+      : `${loc.npcName} : « ${replyObj.en} »`;
+  }
+  syncVoiceCallMicUI(false, `${loc.npcName} vous répond...`);
+  showVoiceCallBubble('npc', loc, replyObj.en, replyObj.fr);
+
+  // Active state.speakingTarget = loc.id pour animer les lèvres 3D en temps réel
+  await playSingleUtterance(replyObj.en, false, loc.voice, myReqId, loc.id);
+
+  if (state.voiceCall.active && myReqId === speechRequestId) {
+    syncVoiceCallMicUI(false, 'À votre tour ! Appuyez sur le micro pour répondre.');
+  }
+}
+
+async function processVoiceCallUserMessage(loc, userText) {
+  const cleaned = String(userText || '').trim();
+  if (!cleaned || !state.voiceCall.active) return;
+
+  const userSaidEl = document.getElementById('call-user-said');
+  if (userSaidEl) {
+    userSaidEl.textContent = `Vous : « ${cleaned} »`;
+    userSaidEl.classList.remove('hidden');
+  }
+  showVoiceCallBubble('player', loc, cleaned, '');
+
+  state.voiceCall.turnsCount += 1;
+  if (state.voiceCall.turnsCount <= 4) {
+    updateDailyStreak(false);
+    addXP(5);
+  }
+
+  const reply = generateNpcVoiceReply(loc, cleaned);
+  await speakVoiceCallNpcReply(loc, reply);
+}
+
+function startVoiceCall() {
+  const loc = state.cinema.loc || interiorState.loc || state.activeNpc;
+  if (!loc) return;
+
+  if (state.voiceCall.active) {
+    stopVoiceCall(true);
+    return;
+  }
+
+  initAudioFX();
+  stopCurrentSpeech();
+  stopSpeechRecognition();
+  playFX('open');
+
+  state.voiceCall.active = true;
+  state.voiceCall.loc = loc;
+  state.voiceCall.listening = false;
+  state.voiceCall.turnsCount = 0;
+  if (state.cinema.active) {
+    state.cinema.activeRole = 'npc';
+    state.cinema.isPointingTurn = false;
+  }
+
+  const callBtn = document.getElementById('btn-cinema-call');
+  const callLabel = document.getElementById('cinema-call-label');
+  if (callBtn) callBtn.classList.add('is-call-active');
+  if (callLabel) callLabel.textContent = 'Fin appel';
+
+  const panel = document.getElementById('voice-call-panel');
+  document.getElementById('call-npc-avatar').innerHTML = getNpcPortraitSVG(loc.id);
+  document.getElementById('call-npc-name').textContent = `${loc.npcName} • Unité ${loc.unit}`;
+  const userSaidEl = document.getElementById('call-user-said');
+  if (userSaidEl) {
+    userSaidEl.textContent = '';
+    userSaidEl.classList.add('hidden');
+  }
+
+  // Suggestions rapides de phrases à prononcer (ou cliquer si sans micro)
+  const suggWrap = document.getElementById('call-suggestions');
+  if (suggWrap) {
+    suggWrap.innerHTML = '';
+    getVoiceCallSuggestions(loc).forEach(phrase => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'call-chip';
+      chip.textContent = phrase;
+      chip.title = 'Cliquer pour répondre avec cette phrase';
+      chip.addEventListener('click', () => {
+        playFX('click');
+        stopSpeechRecognition();
+        processVoiceCallUserMessage(loc, phrase);
+      });
+      suggWrap.appendChild(chip);
+    });
+  }
+
+  if (panel) panel.classList.remove('hidden');
+
+  const userName = state.profile && state.profile.name ? state.profile.name : 'my friend';
+  const greeting = {
+    en: `Hi ${userName}! I'm ${loc.npcName}. Let's practice English together! Say hello or ask me a question!`,
+    fr: `Salut ${userName} ! Je suis ${loc.npcName}. Pratiquons l'anglais ensemble ! Dites bonjour ou posez-moi une question !`
+  };
+  speakVoiceCallNpcReply(loc, greeting);
+}
+
+function stopVoiceCall(announce = false) {
+  if (!state.voiceCall.active) return;
+  stopSpeechRecognition();
+  stopCurrentSpeech();
+  state.voiceCall.active = false;
+  state.voiceCall.loc = null;
+  state.voiceCall.listening = false;
+
+  const panel = document.getElementById('voice-call-panel');
+  if (panel) panel.classList.add('hidden');
+
+  const callBtn = document.getElementById('btn-cinema-call');
+  const callLabel = document.getElementById('cinema-call-label');
+  if (callBtn) callBtn.classList.remove('is-call-active');
+  if (callLabel) callLabel.textContent = 'Appel vocal';
+
+  if (announce) {
+    playFX('click');
+    showToast("Appel vocal terminé. Bravo pour votre pratique à l'oral !");
+  }
+}
+
+function toggleVoiceCallMic() {
+  const loc = state.voiceCall.loc;
+  if (!state.voiceCall.active || !loc) return;
+
+  const SpeechRec = getSpeechRecognitionCtor();
+  if (!SpeechRec) {
+    showToast('Micro non pris en charge ici : cliquez sur une suggestion ci-dessous !');
+    return;
+  }
+
+  if (state.voiceCall.listening) {
+    stopSpeechRecognition();
+    syncVoiceCallMicUI(false, 'Micro arrêté. Appuyez pour reparler.');
+    return;
+  }
+
+  initAudioFX();
+  stopCurrentSpeech();
+  stopSpeechRecognition();
+
+  const rec = new SpeechRec();
+  rec.lang = 'en-US';
+  rec.interimResults = true;
+  rec.continuous = false;
+  rec.maxAlternatives = 1;
+  activeRecognition = rec;
+  state.voiceCall.listening = true;
+  state.speakingTarget = 'player';
+  updateBubbleSpeakingWaves(true);
+  syncVoiceCallMicUI(true, `${loc.npcName} vous écoute... Parlez en anglais !`);
+
+  let spokenText = '';
+
+  rec.onresult = (event) => {
+    let interim = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const txt = event.results[i][0] ? event.results[i][0].transcript : '';
+      if (event.results[i].isFinal) {
+        spokenText += (spokenText ? ' ' : '') + txt.trim();
+      } else {
+        interim += txt;
+      }
+    }
+    const preview = (spokenText || interim).trim();
+    if (preview) {
+      const userSaidEl = document.getElementById('call-user-said');
+      if (userSaidEl) {
+        userSaidEl.textContent = `Vous : « ${preview} »`;
+        userSaidEl.classList.remove('hidden');
+      }
+      showVoiceCallBubble('player', loc, preview, '');
+    }
+  };
+
+  rec.onerror = (event) => {
+    const err = event && event.error ? event.error : 'error';
+    activeRecognition = null;
+    state.voiceCall.listening = false;
+    state.speakingTarget = null;
+    updateBubbleSpeakingWaves(false);
+    const msg = err === 'not-allowed' || err === 'service-not-allowed'
+      ? 'Autorisez le micro ou utilisez les phrases suggérées.'
+      : 'Je ne vous ai pas entendu. Réessayez ou cliquez sur une phrase !';
+    syncVoiceCallMicUI(false, msg);
+  };
+
+  rec.onend = () => {
+    if (activeRecognition === rec) activeRecognition = null;
+    state.voiceCall.listening = false;
+    if (state.speakingTarget === 'player') {
+      state.speakingTarget = null;
+      updateBubbleSpeakingWaves(false);
+    }
+    syncVoiceCallMicUI(false);
+
+    if (spokenText.trim() && state.voiceCall.active) {
+      processVoiceCallUserMessage(loc, spokenText.trim());
+    }
+  };
+
+  try {
+    rec.start();
+  } catch (_) {
+    stopSpeechRecognition();
+    syncVoiceCallMicUI(false, 'Impossible de lancer le micro.');
+  }
+}
+
+// --- D. COMMUNICATIONS STYLE DUOLINGO (OBJECTIF XP, SÉRIE, ENCOURAGEMENTS & RAPPELS) ---
+let celebrationTimer = null;
+
+function getDynamicEncouragement(context = 'general') {
+  const name = state.profile && state.profile.name ? state.profile.name : 'Champion';
+  syncDailyXpDate();
+  const goal = state.dailyGoal || 30;
+  const remaining = Math.max(0, goal - state.dailyXp);
+  const hour = new Date().getHours();
+
+  if (context === 'goal_met') {
+    return `Incroyable, ${name} ! Vous avez validé vos ${goal} XP du jour. Votre anglais progresse vite !`;
+  }
+  if (context === 'near_goal') {
+    return `Courage ${name} ! Plus que ${remaining} XP pour valider votre objectif quotidien !`;
+  }
+  if (context === 'streak') {
+    return state.streak > 1
+      ? `${state.streak} jours consécutifs, ${name} ! La régularité est votre super-pouvoir.`
+      : `Premier jour lancé, ${name} ! Revenez demain pour faire grandir votre flamme.`;
+  }
+  if (context === 'welcome') {
+    const salutation = hour < 12 ? 'Bonjour' : hour < 18 ? 'Bon après-midi' : 'Bonsoir';
+    if (remaining === 0) {
+      return `${salutation} ${name} ! Objectif du jour déjà atteint (${state.dailyXp}/${goal} XP). Bravo !`;
+    }
+    return `${salutation} ${name} ! Plus que ${remaining} XP pour votre objectif du jour.`;
+  }
+  if (remaining === 0) {
+    return `Objectif quotidien atteint (${state.dailyXp}/${goal} XP) ! Vous êtes en feu, ${name} !`;
+  }
+  if (state.dailyXp === 0) {
+    return `Commencez une visite, un quiz ou l'onglet Parler pour lancer vos ${goal} XP du jour !`;
+  }
+  return `Déjà ${state.dailyXp} XP aujourd'hui ! Plus que ${remaining} XP pour boucler votre objectif.`;
+}
+
+function syncDailyGoalUI() {
+  syncDailyXpDate();
+  const goal = state.dailyGoal || 30;
+  const ratio = Math.min(1, state.dailyXp / goal);
+  const pct = Math.round(ratio * 100);
+  const goalMet = state.dailyXp >= goal;
+
+  // Petit anneau HUD (r = 14 -> circonférence ≈ 87.96)
+  const hudCirc = 2 * Math.PI * 14;
+  const hudRing = document.getElementById('hud-daily-ring-fill');
+  if (hudRing) {
+    hudRing.style.strokeDasharray = hudCirc.toFixed(2);
+    hudRing.style.strokeDashoffset = (hudCirc * (1 - ratio)).toFixed(2);
+  }
+  const hudText = document.getElementById('daily-xp-display');
+  if (hudText) hudText.textContent = `${state.dailyXp}/${goal}`;
+  const hudPill = document.getElementById('btn-daily-goal');
+  if (hudPill) {
+    hudPill.classList.toggle('is-goal-met', goalMet);
+    hudPill.title = `Objectif quotidien : ${state.dailyXp} / ${goal} XP (${pct}%)`;
+  }
+
+  // Grand anneau dans #profile-modal (r = 32 -> circonférence ≈ 201.06)
+  const profCirc = 2 * Math.PI * 32;
+  const profRing = document.getElementById('profile-daily-ring-fill');
+  if (profRing) {
+    profRing.style.strokeDasharray = profCirc.toFixed(2);
+    profRing.style.strokeDashoffset = (profCirc * (1 - ratio)).toFixed(2);
+  }
+  const profPct = document.getElementById('profile-daily-pct');
+  if (profPct) profPct.textContent = `${pct}%`;
+  const profText = document.getElementById('profile-daily-xp-text');
+  if (profText) profText.textContent = `${state.dailyXp} / ${goal} XP`;
+  const coachEl = document.getElementById('profile-coach-message');
+  if (coachEl) coachEl.textContent = getDynamicEncouragement('general');
+
+  document.querySelectorAll('.goal-chip').forEach(btn => {
+    btn.classList.toggle('is-selected', Number(btn.dataset.goal) === goal);
+  });
+}
+
+function setDailyGoal(newGoal) {
+  const valid = [20, 30, 50].includes(Number(newGoal)) ? Number(newGoal) : 30;
+  state.dailyGoal = valid;
+  saveProgress();
+  syncDailyGoalUI();
+  playFX('click');
+  showToast(`Objectif quotidien réglé sur ${valid} XP/jour !`);
+}
+
+function showCelebrationBanner({ type = 'streak', eyebrow = 'Série en feu !', title = '', description = '' }) {
+  const banner = document.getElementById('celebration-banner');
+  const iconEl = document.getElementById('celebration-icon');
+  const eyebrowEl = document.getElementById('celebration-eyebrow');
+  const titleEl = document.getElementById('celebration-title');
+  const descEl = document.getElementById('celebration-desc');
+  if (!banner || !eyebrowEl || !titleEl || !descEl) return;
+
+  banner.classList.remove('hidden', 'is-goal');
+  if (type === 'goal') {
+    banner.classList.add('is-goal');
+    if (iconEl) iconEl.innerHTML = UI_ICONS.check;
+  } else if (iconEl) {
+    iconEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none"><path d="M12.5 2.5C12.5 2.5 18 7.2 18 13.2C18 16.95 15.31 20 12 20C8.69 20 6 16.95 6 13.2C6 10.6 7.35 8.1 8.6 6.7C8.6 8.3 9.4 9.5 10.4 9.9C9.8 7.4 10.8 4.4 12.5 2.5Z" fill="#FF9600"/><path d="M12.2 11.2C12.2 11.2 14.8 13.2 14.8 15.6C14.8 17.2 13.55 18.4 12 18.4C10.45 18.4 9.2 17.2 9.2 15.6C9.2 14.2 10.3 12.6 12.2 11.2Z" fill="#FFC800"/></svg>';
+  }
+
+  eyebrowEl.textContent = eyebrow;
+  titleEl.textContent = title;
+  descEl.textContent = description;
+
+  const streakPill = document.getElementById('btn-streak-pill');
+  if (type === 'streak' && streakPill) {
+    streakPill.classList.remove('is-celebrating');
+    void streakPill.offsetWidth;
+    streakPill.classList.add('is-celebrating');
+  }
+
+  clearTimeout(celebrationTimer);
+  celebrationTimer = setTimeout(hideCelebrationBanner, 5500);
+}
+
+function hideCelebrationBanner() {
+  const banner = document.getElementById('celebration-banner');
+  if (banner) banner.classList.add('hidden');
+  clearTimeout(celebrationTimer);
+}
+
+function triggerStreakCelebration() {
+  const days = state.streak || 1;
+  showCelebrationBanner({
+    type: 'streak',
+    eyebrow: days > 1 ? 'Série prolongée !' : 'Série active !',
+    title: days > 1 ? `${days} jours de série !` : '1 jour de série !',
+    description: getDynamicEncouragement('streak')
+  });
+}
+
+// --- E. RAPPELS QUOTIDIENS DU NAVIGATEUR ---
+let reminderIntervalId = null;
+
+function sendBrowserNotification(title, body) {
+  if (typeof window === 'undefined' || !('Notification' in window)) return;
+  if (Notification.permission !== 'granted') return;
+
+  const opts = {
+    body,
+    icon: './icons/icon-192.png',
+    badge: './icons/icon-192.png',
+    tag: 'david-da-speak-daily-reminder'
+  };
+
+  if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+    navigator.serviceWorker.ready
+      .then(reg => {
+        if (reg && typeof reg.showNotification === 'function') {
+          return reg.showNotification(title, opts);
+        }
+        new Notification(title, opts);
+      })
+      .catch(() => {
+        try { new Notification(title, opts); } catch (_) {}
+      });
+  } else {
+    try { new Notification(title, opts); } catch (_) {}
+  }
+}
+
+function syncReminderUI() {
+  const btn = document.getElementById('btn-toggle-reminders');
+  const statusEl = document.getElementById('reminder-status-text');
+  const timeInput = document.getElementById('reminder-time-input');
+  if (timeInput && state.reminderTime) {
+    timeInput.value = state.reminderTime;
+  }
+  if (!btn || !statusEl) return;
+
+  if (typeof window === 'undefined' || !('Notification' in window)) {
+    btn.disabled = true;
+    btn.textContent = 'Non disponible';
+    statusEl.textContent = 'Votre navigateur ne prend pas en charge les notifications de rappel.';
+    return;
+  }
+
+  const perm = Notification.permission;
+  if (perm === 'denied') {
+    state.remindersEnabled = false;
+    btn.className = 'duo-btn duo-btn-white btn-sm reminder-toggle-btn';
+    btn.textContent = 'Notifications bloquées';
+    statusEl.textContent = 'Autorisez les notifications dans les réglages du navigateur pour activer les rappels.';
+    return;
+  }
+
+  if (state.remindersEnabled && perm === 'granted') {
+    btn.className = 'duo-btn duo-btn-green btn-sm reminder-toggle-btn';
+    btn.textContent = 'Rappels activés ✓';
+    statusEl.textContent = `Rappel quotidien programmé à ${state.reminderTime} pour votre objectif de ${state.dailyGoal || 30} XP.`;
+  } else {
+    btn.className = 'duo-btn duo-btn-blue btn-sm reminder-toggle-btn';
+    btn.textContent = 'Activer les rappels';
+    statusEl.textContent = 'Recevez une notification du navigateur pour ne jamais casser votre série.';
+  }
+}
+
+async function toggleDailyReminders() {
+  if (typeof window === 'undefined' || !('Notification' in window)) {
+    showToast('Les notifications ne sont pas supportées par ce navigateur.');
+    return;
+  }
+
+  if (state.remindersEnabled && Notification.permission === 'granted') {
+    state.remindersEnabled = false;
+    saveProgress();
+    syncReminderUI();
+    playFX('click');
+    showToast('Rappels quotidiens désactivés.');
+    return;
+  }
+
+  let permission = Notification.permission;
+  if (permission === 'default') {
+    try {
+      permission = await Notification.requestPermission();
+    } catch (_) {
+      permission = 'denied';
+    }
+  }
+
+  if (permission !== 'granted') {
+    state.remindersEnabled = false;
+    saveProgress();
+    syncReminderUI();
+    playFX('error');
+    showToast('Autorisez les notifications pour recevoir vos rappels quotidiens.');
+    return;
+  }
+
+  state.remindersEnabled = true;
+  saveProgress();
+  syncReminderUI();
+  playFX('success');
+  showToast(`Rappel quotidien activé à ${state.reminderTime} !`);
+  sendBrowserNotification(
+    'DAVID-DA Speak — Rappels activés !',
+    `On se retrouve chaque jour à ${state.reminderTime} pour atteindre votre objectif de ${state.dailyGoal || 30} XP.`
+  );
+  startDailyReminderScheduler();
+}
+
+function checkDueDailyReminder() {
+  if (!state.remindersEnabled) return;
+  if (typeof window === 'undefined' || !('Notification' in window) || Notification.permission !== 'granted') return;
+
+  syncDailyXpDate();
+  const today = getLocalDateKey();
+  if (state.lastReminderNotifiedDate === today) return;
+  if (state.dailyXp >= (state.dailyGoal || 30)) return;
+
+  const parts = String(state.reminderTime || '18:00').split(':').map(Number);
+  if (parts.length !== 2 || Number.isNaN(parts[0]) || Number.isNaN(parts[1])) return;
+
+  const now = new Date();
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const targetMinutes = parts[0] * 60 + parts[1];
+
+  if (nowMinutes >= targetMinutes) {
+    state.lastReminderNotifiedDate = today;
+    saveProgress();
+    const remaining = Math.max(1, (state.dailyGoal || 30) - state.dailyXp);
+    const name = state.profile && state.profile.name ? state.profile.name : 'Champion';
+    sendBrowserNotification(
+      `DAVID-DA Speak : Protégez votre série (${state.streak} j) !`,
+      `${name}, il ne vous reste que ${remaining} XP pour valider votre objectif d'anglais du jour.`
+    );
+  }
+}
+
+function startDailyReminderScheduler() {
+  if (reminderIntervalId) clearInterval(reminderIntervalId);
+  checkDueDailyReminder();
+  reminderIntervalId = setInterval(checkDueDailyReminder, 60000);
+}
+
+/* ===========================================================================
    11. LIAISON DES ÉVÉNEMENTS & DÉMARRAGE
    =========================================================================== */
 function clearMovementKeys() {
@@ -7881,7 +9277,9 @@ function clearMovementKeys() {
 }
 
 function isAnyBlockingModalOpen() {
+  const splash = document.getElementById('splash-screen');
   return (
+    (splash && !splash.classList.contains('hidden')) ||
     !document.getElementById('onboarding-modal').classList.contains('hidden') ||
     !document.getElementById('profile-modal').classList.contains('hidden') ||
     !document.getElementById('help-modal').classList.contains('hidden') ||
@@ -7909,6 +9307,7 @@ function bindUIEvents() {
       if (!resetModal.classList.contains('hidden')) closeResetModal();
       else if (!profileModal.classList.contains('hidden')) closeProfileModal();
       else if (!helpModal.classList.contains('hidden')) helpModal.classList.add('hidden');
+      else if (state.voiceCall.active) stopVoiceCall(true);
       else if (state.activeNpc) closeDialogue();
       else if (state.cinema.active || interiorState.active) exitCinematicDialogue(true, false);
       return;
@@ -8010,10 +9409,12 @@ function bindUIEvents() {
 
     if (!saveProfile()) return;
     updateDailyStreak(true);
+    incrementGlobalUserCount();
     document.getElementById('onboarding-modal').classList.add('hidden');
     syncProgressUI();
     playFX('success');
     showToast(`Bienvenue sur DAVID-DA Speak, ${state.profile.name} !`);
+    triggerStreakCelebration();
   });
 
   // Modale Profil
@@ -8113,10 +9514,12 @@ function bindUIEvents() {
   // Contrôles de la scène de dialogue 3D (mode film avec bulles flottantes)
   document.getElementById('btn-cinema-replay').addEventListener('click', () => {
     initAudioFX();
+    stopVoiceCall(false);
     if (state.cinema.active) playCinemaTurn(state.cinema.turnIndex);
   });
   document.getElementById('btn-cinema-next').addEventListener('click', () => {
     initAudioFX();
+    stopVoiceCall(false);
     advanceCinemaTurn();
   });
   document.getElementById('btn-cinema-course').addEventListener('click', () => {
@@ -8187,7 +9590,99 @@ function bindUIEvents() {
   document.getElementById('tab-dialogue').addEventListener('click', () => switchTab('dialogue'));
   document.getElementById('tab-grammar').addEventListener('click', () => switchTab('grammar'));
   document.getElementById('tab-vocab').addEventListener('click', () => switchTab('vocab'));
+  document.getElementById('tab-speak').addEventListener('click', () => switchTab('speak'));
   document.getElementById('tab-quiz').addEventListener('click', () => switchTab('quiz'));
+
+  // Module 1 : Parole au micro dans l'onglet "Parler"
+  document.getElementById('btn-speak-practice-listen').addEventListener('click', () => {
+    if (!state.activeNpc) return;
+    const phrases = getUnitSpeakPhrases(state.activeNpc);
+    const phrase = phrases[state.speakIndex];
+    if (phrase) speakEnglish(phrase.en, false, state.activeNpc.voice, state.activeNpc.id);
+  });
+  document.getElementById('btn-speak-practice-slow').addEventListener('click', () => {
+    if (!state.activeNpc) return;
+    const phrases = getUnitSpeakPhrases(state.activeNpc);
+    const phrase = phrases[state.speakIndex];
+    if (phrase) speakEnglish(phrase.en, true, state.activeNpc.voice, state.activeNpc.id);
+  });
+  document.getElementById('btn-speak-mic').addEventListener('click', toggleSpeakPracticeMic);
+  document.getElementById('btn-speak-prev').addEventListener('click', () => {
+    if (!state.activeNpc) return;
+    playFX('click');
+    stopSpeechRecognition();
+    state.speakIndex = Math.max(0, state.speakIndex - 1);
+    renderSpeakPractice(state.activeNpc);
+  });
+  document.getElementById('btn-speak-next').addEventListener('click', () => {
+    if (!state.activeNpc) return;
+    playFX('click');
+    stopSpeechRecognition();
+    const phrases = getUnitSpeakPhrases(state.activeNpc);
+    state.speakIndex = state.speakIndex >= phrases.length - 1 ? 0 : state.speakIndex + 1;
+    renderSpeakPractice(state.activeNpc);
+  });
+
+  // Module 2 : Appel vocal en direct dans #cinema-controls
+  const cinemaCallBtn = document.getElementById('btn-cinema-call');
+  if (cinemaCallBtn) {
+    cinemaCallBtn.addEventListener('click', startVoiceCall);
+  }
+  const callHangupBtn = document.getElementById('btn-call-hangup');
+  if (callHangupBtn) {
+    callHangupBtn.addEventListener('click', () => stopVoiceCall(true));
+  }
+  const callMicBtn = document.getElementById('btn-call-mic');
+  if (callMicBtn) {
+    callMicBtn.addEventListener('click', toggleVoiceCallMic);
+  }
+  const callRepeatBtn = document.getElementById('btn-call-repeat');
+  if (callRepeatBtn) {
+    callRepeatBtn.addEventListener('click', () => {
+      if (state.voiceCall.active && state.voiceCall.loc && state.voiceCall.lastReplyEn) {
+        speakVoiceCallNpcReply(state.voiceCall.loc, { en: state.voiceCall.lastReplyEn, fr: '' });
+      }
+    });
+  }
+
+  // Communications Duolingo : Objectif XP quotidien, Série & Rappels navigateur
+  const dailyGoalBtn = document.getElementById('btn-daily-goal');
+  if (dailyGoalBtn) {
+    dailyGoalBtn.addEventListener('click', () => {
+      playFX('click');
+      openProfileModal();
+    });
+  }
+  const streakPillBtn = document.getElementById('btn-streak-pill');
+  if (streakPillBtn) {
+    streakPillBtn.addEventListener('click', () => {
+      initAudioFX();
+      playFX('open');
+      triggerStreakCelebration();
+    });
+  }
+  const closeCelebrationBtn = document.getElementById('btn-close-celebration');
+  if (closeCelebrationBtn) {
+    closeCelebrationBtn.addEventListener('click', hideCelebrationBanner);
+  }
+  document.querySelectorAll('.goal-chip').forEach(btn => {
+    btn.addEventListener('click', () => setDailyGoal(btn.dataset.goal));
+  });
+  const reminderToggleBtn = document.getElementById('btn-toggle-reminders');
+  if (reminderToggleBtn) {
+    reminderToggleBtn.addEventListener('click', toggleDailyReminders);
+  }
+  const reminderTimeInput = document.getElementById('reminder-time-input');
+  if (reminderTimeInput) {
+    reminderTimeInput.addEventListener('change', () => {
+      if (/^\d{2}:\d{2}$/.test(reminderTimeInput.value)) {
+        state.reminderTime = reminderTimeInput.value;
+        saveProgress();
+        syncReminderUI();
+        showToast(`Heure du rappel réglée sur ${state.reminderTime}.`);
+      }
+    });
+  }
 
   document.getElementById('btn-speak-normal').addEventListener('click', () => {
     if (state.activeNpc) speakDialogueSequence(state.activeNpc, false);
@@ -8255,16 +9750,27 @@ window.addEventListener('load', async () => {
   registerServiceWorker();
   state.profile = loadProfile();
   const restored = loadProgress();
+  fetchGlobalUserCount(); // Chargement asynchrone du compteur global d'utilisateurs
   loadAudioManifest(); // Chargement non bloquant de audio/manifest.json pour GitHub Pages
   await loadLessonsFromJson();
   bindUIEvents();
   const sceneReady = initThreeScene();
   syncProgressUI();
+  startDailyReminderScheduler();
   if (sceneReady) animate();
 
-  if (!state.profile) {
-    openOnboardingModal();
-  } else if (restored) {
-    showToast(`Bon retour sur DAVID-DA Speak, ${state.profile.name} !`);
-  }
+  dismissSplashScreen(() => {
+    if (!state.profile) {
+      openOnboardingModal();
+    } else {
+      const today = getLocalDateKey();
+      if (state.streakJustIncremented && state.streakCelebratedDate !== today) {
+        state.streakCelebratedDate = today;
+        saveProgress();
+        triggerStreakCelebration();
+      } else if (restored || state.profile) {
+        showToast(getDynamicEncouragement('welcome'));
+      }
+    }
+  });
 });
